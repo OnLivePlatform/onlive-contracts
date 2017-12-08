@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle test"
+    "test": "truffle test",
+    "lint:solhint": "solhint contracts/**/*.sol test/**/*.sol"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/OnLivePlatform/onlive-contracts#readme",
   "devDependencies": {
+    "solhint": "^1.1.9",
     "truffle": "^4.0.1"
   }
 }
