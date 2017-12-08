@@ -1,0 +1,28 @@
+{
+  "name": "onlive-contracts",
+  "version": "0.0.1",
+  "description": "OnLive Platform Smart Contracts",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OnLivePlatform/onlive-contracts.git"
+  },
+  "author": {
+    "name": "Jakub Stefanski",
+    "url": "https://jakubstefanski.com"
+  },
+  "license": "BSD-3-Clause-Clear",
+  "bugs": {
+    "url": "https://github.com/OnLivePlatform/onlive-contracts/issues"
+  },
+  "homepage": "https://github.com/OnLivePlatform/onlive-contracts#readme",
+  "devDependencies": {
+    "truffle": "^4.0.1"
+  }
+}
