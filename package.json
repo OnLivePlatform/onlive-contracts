@@ -3,9 +3,6 @@
   "version": "0.0.1",
   "description": "OnLive Platform Smart Contracts",
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "test": "truffle test",
     "lint:solhint": "solhint contracts/**/*.sol test/**/*.sol"
@@ -26,5 +23,8 @@
   "devDependencies": {
     "solhint": "^1.1.9",
     "truffle": "^4.0.1"
+  },
+  "dependencies": {
+    "zeppelin-solidity": "^1.4.0"
   }
 }
