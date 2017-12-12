@@ -4,8 +4,16 @@
   "description": "OnLive Platform Smart Contracts",
   "main": "index.js",
   "scripts": {
-    "test": "truffle test",
-    "lint:solhint": "solhint contracts/**/*.sol test/**/*.sol"
+    "compile": "run-s compile:ts compile:sol",
+    "compile:sol": "truffle compile",
+    "compile:ts": "tsc",
+    "test": "run-s compile:ts test:js",
+    "test:js": "truffle test",
+    "lint": "run-p -c --aggregate-output lint:solhint lint:tslint",
+    "lint:tslint": "tslint --project .",
+    "lint:tslint:fix": "tslint --fix --project .",
+    "lint:solhint": "solhint contracts/**/*.sol test/**/*.sol",
+    "format": "prettier --write *.ts {migrations,test,types}/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -21,8 +29,16 @@
   },
   "homepage": "https://github.com/OnLivePlatform/onlive-contracts#readme",
   "devDependencies": {
+    "@types/chai": "^4.0.8",
+    "@types/mocha": "^2.2.44",
+    "@types/node": "^8.0.57",
+    "bignumber.js": "^5.0.0",
+    "npm-run-all": "^4.1.2",
+    "prettier": "^1.9.2",
     "solhint": "^1.1.9",
-    "truffle": "^4.0.1"
+    "truffle": "^4.0.1",
+    "tslint": "^5.8.0",
+    "typescript": "^2.6.2"
   },
   "dependencies": {
     "zeppelin-solidity": "^1.4.0"
