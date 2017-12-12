@@ -20,13 +20,28 @@ declare module 'onlive' {
         options?: TransactionOptions
       ): Promise<TransactionResult>;
     }
+
+    interface ReleasableToken extends ContractBase {
+      releaseManager(): Promise<Address>;
+
+      setReleaseManager(
+        addr: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
+    }
+
+    interface ReleasableTokenContract extends Contract<ReleasableToken> {
+      'new'(options?: TransactionOptions): Promise<ReleasableToken>;
     }
 
     interface OnLiveArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
+      require(name: './token/ReleasableToken.sol'): ReleasableTokenContract;
     }
   }
 
