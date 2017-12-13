@@ -105,6 +105,16 @@ declare module 'onlive' {
       value: BigNumber;
     }
 
+    interface MintingManagerAddedEvent {
+      addr: Address;
+    }
+
+    interface MintingManagerRemovedEvent {
+      addr: Address;
+    }
+
+    interface MintingFinishedEvent {}
+
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
