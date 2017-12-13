@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import { without } from 'ramda';
 
 import * as Web3 from 'web3';
 
@@ -29,7 +30,13 @@ const MintableTokenContract = artifacts.require('./token/MintableToken.sol');
 const utils = new Web3Utils(web3);
 
 contract('ReleasableToken', accounts => {
-  const ctx = new TokenTestContext<MintableToken>(accounts, accounts[9]);
+  const owner = accounts[9];
+  const holder = accounts[8];
+  const ctx = new TokenTestContext<MintableToken>(
+    without([owner, holder], accounts),
+    owner,
+    holder
+  );
 
   beforeEach(async () => {
     ctx.token = await MintableTokenContract.new({ from: ctx.owner });
@@ -42,8 +49,8 @@ contract('ReleasableToken', accounts => {
 });
 
 export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
-  const mintingManager = ctx.accounts[5];
-  const otherAccount = ctx.accounts[6];
+  const mintingManager = ctx.accounts[0];
+  const otherAccount = ctx.accounts[1];
 
   it('should add minting manager', async () => {
     assert.isFalse(await ctx.token.mintingManagers(mintingManager));
@@ -52,7 +59,7 @@ export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should add multiple minting managers', async () => {
-    const managers = ctx.accounts.slice(2, 5);
+    const managers = ctx.accounts.slice(0, 4);
     await Promise.all(
       managers.map(account =>
         ctx.token.addMintingManager(account, { from: ctx.owner })
@@ -93,8 +100,8 @@ export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
 }
 
 export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
-  const mintingManager = ctx.accounts[5];
-  const otherAccount = ctx.accounts[6];
+  const mintingManager = ctx.accounts[0];
+  const otherAccount = ctx.accounts[1];
 
   beforeEach(async () => {
     await ctx.token.addMintingManager(mintingManager, { from: ctx.owner });
@@ -145,9 +152,9 @@ export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
 }
 
 export function testMint(ctx: TokenTestContext<MintableToken>) {
-  const mintingManager = ctx.accounts[5];
-  const otherAccount = ctx.accounts[6];
-  const destinationAccount = ctx.accounts[7];
+  const mintingManager = ctx.accounts[0];
+  const otherAccount = ctx.accounts[1];
+  const destinationAccount = ctx.accounts[2];
 
   beforeEach(async () => {
     await ctx.token.addMintingManager(mintingManager, { from: ctx.owner });
@@ -227,7 +234,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 }
 
 export function testFinishMinting(ctx: TokenTestContext<MintableToken>) {
-  const otherAccount = ctx.accounts[5];
+  const otherAccount = ctx.accounts[0];
 
   it('should set isMintingFinished flag', async () => {
     assert.isFalse(await ctx.token.isMintingFinished());

@@ -129,6 +129,18 @@ declare module 'onlive' {
 
     interface MintingFinishedEvent {}
 
+    interface BurnableToken extends ERC20 {
+      burn(
+        value: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface BurnedEvent {
+      from: Address;
+      value: BigNumber;
+    }
+
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
@@ -141,11 +153,16 @@ declare module 'onlive' {
       'new'(options?: TransactionOptions): Promise<MintableToken>;
     }
 
+    interface BurnableTokenContract extends Contract<BurnableToken> {
+      'new'(options?: TransactionOptions): Promise<BurnableToken>;
+    }
+
     interface OnLiveArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
       require(name: './token/ReleasableToken.sol'): ReleasableTokenContract;
       require(name: './token/MintableToken.sol'): MintableTokenContract;
+      require(name: './token/BurnableToken.sol'): BurnableTokenContract;
     }
   }
 

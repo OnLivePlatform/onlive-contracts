@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import { without } from 'ramda';
 
 import * as Web3 from 'web3';
 
@@ -23,7 +24,13 @@ const ReleasableTokenContract = artifacts.require(
 );
 
 contract('ReleasableToken', accounts => {
-  const ctx = new TokenTestContext<ReleasableToken>(accounts, accounts[9]);
+  const owner = accounts[9];
+  const holder = accounts[8];
+  const ctx = new TokenTestContext<ReleasableToken>(
+    without([owner, holder], accounts),
+    owner,
+    holder
+  );
 
   beforeEach(async () => {
     ctx.token = await ReleasableTokenContract.new({ from: ctx.owner });
@@ -36,8 +43,8 @@ contract('ReleasableToken', accounts => {
 });
 
 export function testSetReleaseManager(ctx: TokenTestContext<ReleasableToken>) {
-  const releaseManager = ctx.accounts[5];
-  const otherAccount = ctx.accounts[6];
+  const releaseManager = ctx.accounts[0];
+  const otherAccount = ctx.accounts[1];
 
   it('should set release manager', async () => {
     assert.notEqual(await ctx.token.releaseManager(), releaseManager);
@@ -75,9 +82,9 @@ export function testSetReleaseManager(ctx: TokenTestContext<ReleasableToken>) {
 }
 
 export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
-  const releaseManager = ctx.accounts[5];
-  const transferManager = ctx.accounts[6];
-  const otherAccount = ctx.accounts[7];
+  const releaseManager = ctx.accounts[0];
+  const transferManager = ctx.accounts[1];
+  const otherAccount = ctx.accounts[2];
 
   beforeEach(async () => {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
@@ -90,7 +97,7 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
   });
 
   it('should add multiple transfer managers', async () => {
-    const managers = ctx.accounts.slice(2, 5);
+    const managers = ctx.accounts.slice(0, 4);
     await Promise.all(
       managers.map(account =>
         ctx.token.addTransferManager(account, { from: ctx.owner })
@@ -134,9 +141,9 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
 export function testRemoveTransferManager(
   ctx: TokenTestContext<ReleasableToken>
 ) {
-  const releaseManager = ctx.accounts[5];
-  const transferManager = ctx.accounts[6];
-  const otherAccount = ctx.accounts[7];
+  const releaseManager = ctx.accounts[0];
+  const transferManager = ctx.accounts[1];
+  const otherAccount = ctx.accounts[2];
 
   beforeEach(async () => {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
@@ -188,8 +195,8 @@ export function testRemoveTransferManager(
 }
 
 export function testRelease(ctx: TokenTestContext<ReleasableToken>) {
-  const releaseManager = ctx.accounts[5];
-  const otherAccount = ctx.accounts[6];
+  const releaseManager = ctx.accounts[0];
+  const otherAccount = ctx.accounts[1];
 
   beforeEach(async () => {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
