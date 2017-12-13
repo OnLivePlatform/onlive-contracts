@@ -23,9 +23,28 @@ contract MintableToken is StandardToken, Ownable {
      */
     mapping (address => bool) public mintingManagers;
 
+    /**
+     * @dev Tokens minted to specified address
+     * @param to address The receiver of the tokens
+     * @param value uint256 The amount of tokens
+     */
     event Minted(address to, uint256 value);
+
+    /**
+     * @dev Address approved as a Minting Manager
+     * @param addr address The approved address
+     */
     event MintingManagerAdded(address addr);
+
+    /**
+     * @dev Address denied as a Minting Manager
+     * @param addr address The revoked address
+     */
     event MintingManagerRemoved(address addr);
+
+    /**
+     * @dev Creation of tokens finished
+     */
     event MintingFinished();
 
     modifier onlyMintingManager {
