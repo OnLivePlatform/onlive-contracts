@@ -1,46 +1,18 @@
 import { assert } from 'chai';
-import { without } from 'ramda';
 
 import * as Web3 from 'web3';
 
 import {
-  OnLiveArtifacts,
   ReleasableToken,
   ReleasedEvent,
   ReleaseManagerSetEvent,
   TransferManagerAddedEvent,
   TransferManagerRemovedEvent
 } from 'onlive';
-import { ContractContextDefinition } from 'truffle';
 import { assertThrowsInvalidOpcode, findLastLog } from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
-declare const artifacts: OnLiveArtifacts;
-declare const contract: ContractContextDefinition;
-
-const ReleasableTokenContract = artifacts.require(
-  './token/ReleasableToken.sol'
-);
-
-contract('ReleasableToken', accounts => {
-  const owner = accounts[9];
-  const holder = accounts[8];
-  const ctx = new TokenTestContext<ReleasableToken>(
-    without([owner, holder], accounts),
-    owner,
-    holder
-  );
-
-  beforeEach(async () => {
-    ctx.token = await ReleasableTokenContract.new({ from: ctx.owner });
-  });
-
-  describe('#setReleaseManager', () => testSetReleaseManager(ctx));
-  describe('#addTransferManager', () => testAddTransferManager(ctx));
-  describe('#removeTransferManager', () => testRemoveTransferManager(ctx));
-  describe('#release', () => testRelease(ctx));
-});
 
 export function testSetReleaseManager(ctx: TokenTestContext<ReleasableToken>) {
   const releaseManager = ctx.accounts[0];

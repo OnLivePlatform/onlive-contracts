@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { without } from 'ramda';
 
 import * as Web3 from 'web3';
 
@@ -9,10 +8,8 @@ import {
   MintingFinishedEvent,
   MintingManagerAddedEvent,
   MintingManagerRemovedEvent,
-  OnLiveArtifacts,
   TransferEvent
 } from 'onlive';
-import { ContractContextDefinition } from 'truffle';
 import { Web3Utils } from '../../utils';
 import {
   assertEtherEqual,
@@ -22,31 +19,8 @@ import {
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
-declare const artifacts: OnLiveArtifacts;
-declare const contract: ContractContextDefinition;
-
-const MintableTokenContract = artifacts.require('./token/MintableToken.sol');
 
 const utils = new Web3Utils(web3);
-
-contract('ReleasableToken', accounts => {
-  const owner = accounts[9];
-  const holder = accounts[8];
-  const ctx = new TokenTestContext<MintableToken>(
-    without([owner, holder], accounts),
-    owner,
-    holder
-  );
-
-  beforeEach(async () => {
-    ctx.token = await MintableTokenContract.new({ from: ctx.owner });
-  });
-
-  describe('#mint', () => testMint(ctx));
-  describe('#addMintingManager', () => testAddMintingManager(ctx));
-  describe('#removeMintingManager', () => testRemoveMintingManager(ctx));
-  describe('#finishMinting', () => testFinishMinting(ctx));
-});
 
 export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
   const mintingManager = ctx.accounts[0];

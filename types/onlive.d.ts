@@ -141,6 +141,11 @@ declare module 'onlive' {
       value: BigNumber;
     }
 
+    interface OnLiveToken
+      extends ReleasableToken,
+        MintableToken,
+        BurnableToken {}
+
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
@@ -157,12 +162,17 @@ declare module 'onlive' {
       'new'(options?: TransactionOptions): Promise<BurnableToken>;
     }
 
+    interface OnLiveTokenContract extends Contract<OnLiveToken> {
+      'new'(options?: TransactionOptions): Promise<OnLiveToken>;
+    }
+
     interface OnLiveArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
       require(name: './token/ReleasableToken.sol'): ReleasableTokenContract;
       require(name: './token/MintableToken.sol'): MintableTokenContract;
       require(name: './token/BurnableToken.sol'): BurnableTokenContract;
+      require(name: './OnLiveToken.sol'): OnLiveTokenContract;
     }
   }
 
