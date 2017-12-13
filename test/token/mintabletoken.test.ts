@@ -106,12 +106,6 @@ export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
     assert.isFalse(await ctx.token.mintingManagers(mintingManager));
   });
 
-  it('should pass when minting manager does not exist', async () => {
-    assert.isFalse(await ctx.token.mintingManagers(otherAccount));
-    await ctx.token.removeMintingManager(otherAccount, { from: ctx.owner });
-    assert.isFalse(await ctx.token.mintingManagers(otherAccount));
-  });
-
   it('should emit MintingManagerRemoved event', async () => {
     const tx = await ctx.token.removeMintingManager(mintingManager, {
       from: ctx.owner
@@ -123,6 +117,12 @@ export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
     const event = log.args as MintingManagerRemovedEvent;
     assert.isOk(event);
     assert.equal(event.addr, mintingManager);
+  });
+
+  it('should throw when minting manager does not exist', async () => {
+    await assertThrowsInvalidOpcode(async () => {
+      await ctx.token.removeMintingManager(otherAccount, { from: ctx.owner });
+    });
   });
 
   it('should throw when called by non-owner', async () => {

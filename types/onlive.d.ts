@@ -77,6 +77,20 @@ declare module 'onlive' {
       release(options?: TransactionOptions): Promise<TransactionResult>;
     }
 
+    interface ReleaseManagerSetEvent {
+      addr: Address;
+    }
+
+    interface TransferManagerAddedEvent {
+      addr: Address;
+    }
+
+    interface TransferManagerRemovedEvent {
+      addr: Address;
+    }
+
+    interface ReleasedEvent {}
+
     interface MintableToken extends ERC20 {
       isMintingFinished(): Promise<boolean>;
       mintingManagers(addr: Address): Promise<boolean>;

@@ -27,6 +27,29 @@ contract ReleasableToken is StandardToken, Ownable {
     mapping (address => bool) public transferManagers;
 
     /**
+     * @dev Specified address set as a Release Manager
+     * @param addr address The approved address
+     */
+    event ReleaseManagerSet(address addr);
+
+    /**
+     * @dev Approves specified address as Transfer Manager
+     * @param addr address The approved address
+     */
+    event TransferManagerAdded(address addr);
+
+    /**
+     * @dev Denies specified address as Transfer Manager
+     * @param addr address The denied address
+     */
+    event TransferManagerRemoved(address addr);
+
+    /**
+     * @dev Marks token as released (transferable)
+     */
+    event Released();
+
+    /**
      * @dev Token is released or specified address is transfer manager
      */
     modifier onlyTransferableFrom(address from) {
@@ -34,6 +57,14 @@ contract ReleasableToken is StandardToken, Ownable {
             require(transferManagers[from]);
         }
 
+        _;
+    }
+
+    /**
+     * @dev Specified address is transfer manager
+     */
+    modifier onlyTransferManager(address addr) {
+        require(transferManagers[addr]);
         _;
     }
 
@@ -71,6 +102,8 @@ contract ReleasableToken is StandardToken, Ownable {
         onlyNotReleased
     {
         releaseManager = addr;
+
+        ReleaseManagerSet(addr);
     }
 
     /**
@@ -83,6 +116,8 @@ contract ReleasableToken is StandardToken, Ownable {
         onlyNotReleased
     {
         transferManagers[addr] = true;
+
+        TransferManagerAdded(addr);
     }
 
     /**
@@ -92,16 +127,25 @@ contract ReleasableToken is StandardToken, Ownable {
     function removeTransferManager(address addr)
         public
         onlyOwner
+        onlyTransferManager(addr)
         onlyNotReleased
     {
         delete transferManagers[addr];
+
+        TransferManagerRemoved(addr);
     }
 
     /**
      * @dev Release token and makes it transferable
      */
-    function release() public onlyReleaseManager onlyNotReleased {
+    function release()
+        public
+        onlyReleaseManager
+        onlyNotReleased
+    {
         isReleased = true;
+
+        Released();
     }
 
     /**

@@ -28,16 +28,16 @@ contract MintableToken is StandardToken, Ownable {
      * @param to address The receiver of the tokens
      * @param value uint256 The amount of tokens
      */
-    event Minted(address to, uint256 value);
+    event Minted(address indexed to, uint256 value);
 
     /**
-     * @dev Address approved as a Minting Manager
+     * @dev Approves specified address as a Minting Manager
      * @param addr address The approved address
      */
     event MintingManagerAdded(address addr);
 
     /**
-     * @dev Address denied as a Minting Manager
+     * @dev Denies specified address as a Minting Manager
      * @param addr address The revoked address
      */
     event MintingManagerRemoved(address addr);
@@ -47,8 +47,8 @@ contract MintableToken is StandardToken, Ownable {
      */
     event MintingFinished();
 
-    modifier onlyMintingManager {
-        require(mintingManagers[msg.sender]);
+    modifier onlyMintingManager(address addr) {
+        require(mintingManagers[addr]);
         _;
     }
 
@@ -78,6 +78,7 @@ contract MintableToken is StandardToken, Ownable {
     function removeMintingManager(address addr)
         public
         onlyOwner
+        onlyMintingManager(addr)
         onlyMintingNotFinished
     {
         delete mintingManagers[addr];
@@ -92,7 +93,7 @@ contract MintableToken is StandardToken, Ownable {
      */
     function mint(address to, uint256 value)
         public
-        onlyMintingManager
+        onlyMintingManager(msg.sender)
         onlyMintingNotFinished
     {
         totalSupply = totalSupply.add(value);
