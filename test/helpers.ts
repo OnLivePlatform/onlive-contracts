@@ -2,6 +2,8 @@ import * as Web3 from 'web3';
 
 import { BigNumber } from 'bignumber.js';
 import { assert } from 'chai';
+import { findLast, propEq } from 'ramda';
+import { TransactionLog, TransactionResult } from 'truffle';
 
 declare const web3: Web3;
 
@@ -89,4 +91,11 @@ export function assertEtherAlmostEqual(
   epsilon = epsilon || DEFAULT_ACCEPTABLE_ERROR;
 
   return assertNumberAlmostEqual(actual, expect, epsilon, ETH_DECIMALS);
+}
+
+export function findLastLog(
+  trans: TransactionResult,
+  event: string
+): TransactionLog {
+  return findLast(propEq('event', event))(trans.logs);
 }

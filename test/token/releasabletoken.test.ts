@@ -40,7 +40,7 @@ export function testSetReleaseManager(ctx: TokenTestContext<ReleasableToken>) {
 
   it('should throw when called by non-owner', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.setReleaseManager(releaseManager);
+      await ctx.token.setReleaseManager(releaseManager, { from: otherAccount });
     });
   });
 
@@ -84,7 +84,9 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
 
   it('should throw when called by non-owner', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.addTransferManager(transferManager);
+      await ctx.token.addTransferManager(transferManager, {
+        from: otherAccount
+      });
     });
   });
 
@@ -122,7 +124,9 @@ export function testRemoveTransferManager(
 
   it('should throw when called by non-owner', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.removeTransferManager(transferManager);
+      await ctx.token.removeTransferManager(transferManager, {
+        from: otherAccount
+      });
     });
   });
 
@@ -157,7 +161,7 @@ export function testRelease(ctx: TokenTestContext<ReleasableToken>) {
     });
   });
 
-  it('should throw when called after release', async () => {
+  it('should throw when called after being released', async () => {
     await ctx.token.release({ from: releaseManager });
 
     await assertThrowsInvalidOpcode(async () => {

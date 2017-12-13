@@ -48,6 +48,12 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
+    interface TransferEvent {
+      from: Address;
+      to: Address;
+      value: BigNumber;
+    }
+
     interface ReleasableToken extends ERC20 {
       releaseManager(): Promise<Address>;
       transferManagers(addr: Address): Promise<boolean>;
@@ -71,6 +77,34 @@ declare module 'onlive' {
       release(options?: TransactionOptions): Promise<TransactionResult>;
     }
 
+    interface MintableToken extends ERC20 {
+      isMintingFinished(): Promise<boolean>;
+      mintingManagers(addr: Address): Promise<boolean>;
+
+      addMintingManager(
+        addr: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      removeMintingManager(
+        addr: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      mint(
+        to: Address,
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      finishMinting(options?: TransactionOptions): Promise<TransactionResult>;
+    }
+
+    interface MintedEvent {
+      to: Address;
+      value: BigNumber;
+    }
+
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
@@ -79,10 +113,15 @@ declare module 'onlive' {
       'new'(options?: TransactionOptions): Promise<ReleasableToken>;
     }
 
+    interface MintableTokenContract extends Contract<MintableToken> {
+      'new'(options?: TransactionOptions): Promise<MintableToken>;
+    }
+
     interface OnLiveArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
       require(name: './token/ReleasableToken.sol'): ReleasableTokenContract;
+      require(name: './token/MintableToken.sol'): MintableTokenContract;
     }
   }
 
