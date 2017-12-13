@@ -14,6 +14,7 @@
     "migrations/**/*.ts",
     "test/**/*.ts",
     "truffle-config.ts",
-    "types/**/*.ts"
+    "types/**/*.ts",
+    "utils/**/*.ts"
   ]
 }

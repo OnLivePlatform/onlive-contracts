@@ -7,6 +7,8 @@ declare module 'onlive' {
     TransactionResult,
     TruffleArtifacts
   } from 'truffle';
+  import { AnyNumber } from 'web3';
+  import { BigNumber } from 'bignumber.js';
 
   namespace onlive {
     interface Migrations extends ContractBase {
@@ -21,13 +23,52 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
-    interface ReleasableToken extends ContractBase {
+    interface ERC20 extends ContractBase {
+      totalSupply(): Promise<BigNumber>;
+      balanceOf(who: Address): Promise<BigNumber>;
+      allowance(owner: Address, spender: Address): Promise<BigNumber>;
+
+      transfer(
+        to: Address,
+        value: BigNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      transferFrom(
+        from: Address,
+        to: Address,
+        value: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      approve(
+        spender: Address,
+        value: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface ReleasableToken extends ERC20 {
       releaseManager(): Promise<Address>;
+      transferManagers(addr: Address): Promise<boolean>;
+      isReleased(): Promise<boolean>;
 
       setReleaseManager(
         addr: Address,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
+
+      addTransferManager(
+        addr: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      removeTransferManager(
+        addr: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      release(options?: TransactionOptions): Promise<TransactionResult>;
     }
 
     interface MigrationsContract extends Contract<Migrations> {
