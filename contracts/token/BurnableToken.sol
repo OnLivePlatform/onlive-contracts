@@ -24,7 +24,7 @@ contract BurnableToken is StandardToken, Ownable {
      * @param from address The burner
      * @param value uint256 The amount of destroyed tokens
      */
-    event Burned(address from, uint256 value);
+    event Burned(address indexed from, uint256 value);
 
     /**
      * @dev Destroy tokens (reduce total supply)
