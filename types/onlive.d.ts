@@ -23,16 +23,25 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
-    interface ERC20 extends ContractBase {
+    interface ERC20Basic extends ContractBase {
       totalSupply(): Promise<BigNumber>;
       balanceOf(who: Address): Promise<BigNumber>;
-      allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
       transfer(
         to: Address,
         value: BigNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
+    }
+
+    interface TransferEvent {
+      from: Address;
+      to: Address;
+      value: BigNumber;
+    }
+
+    interface ERC20 extends ERC20Basic {
+      allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
       transferFrom(
         from: Address,
@@ -48,9 +57,9 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
-    interface TransferEvent {
-      from: Address;
-      to: Address;
+    interface ApprovalEvent {
+      owner: Address;
+      spender: Address;
       value: BigNumber;
     }
 
@@ -91,7 +100,7 @@ declare module 'onlive' {
 
     interface ReleasedEvent {}
 
-    interface MintableToken extends ERC20 {
+    interface MintableToken extends ERC20Basic {
       mintingFinished(): Promise<boolean>;
       mintingManagers(addr: Address): Promise<boolean>;
 
@@ -129,7 +138,7 @@ declare module 'onlive' {
 
     interface MintingFinishedEvent {}
 
-    interface BurnableToken extends ERC20 {
+    interface BurnableToken extends ERC20Basic {
       burn(
         value: AnyNumber,
         options?: TransactionOptions
