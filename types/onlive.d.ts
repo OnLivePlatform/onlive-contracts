@@ -138,6 +138,10 @@ declare module 'onlive' {
 
     interface MintingFinishedEvent {}
 
+    interface CappedMintableToken extends MintableToken {
+      maxSupply(): Promise<BigNumber>;
+    }
+
     interface BurnableToken extends ERC20Basic {
       burn(
         value: AnyNumber,
@@ -152,7 +156,7 @@ declare module 'onlive' {
 
     interface OnLiveToken
       extends ReleasableToken,
-        MintableToken,
+        CappedMintableToken,
         BurnableToken {}
 
     interface MigrationsContract extends Contract<Migrations> {
@@ -167,12 +171,23 @@ declare module 'onlive' {
       'new'(options?: TransactionOptions): Promise<MintableToken>;
     }
 
+    interface CappedMintableTokenContract
+      extends Contract<CappedMintableToken> {
+      'new'(
+        maxSupply: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<CappedMintableToken>;
+    }
+
     interface BurnableTokenContract extends Contract<BurnableToken> {
       'new'(options?: TransactionOptions): Promise<BurnableToken>;
     }
 
     interface OnLiveTokenContract extends Contract<OnLiveToken> {
-      'new'(options?: TransactionOptions): Promise<OnLiveToken>;
+      'new'(
+        maxSupply: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<OnLiveToken>;
     }
 
     interface OnLiveArtifacts extends TruffleArtifacts {

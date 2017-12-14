@@ -7,6 +7,7 @@ import { OnLiveArtifacts, OnLiveToken } from 'onlive';
 import { ContractContextDefinition } from 'truffle';
 import { Web3Utils } from '../utils';
 import { testBurn } from './token/burnabletoken.test';
+import { testCappedMint } from './token/cappedmintabletoken.test';
 import { TokenTestContext } from './token/context';
 import {
   testAddMintingManager,
@@ -27,12 +28,13 @@ declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
 declare const contract: ContractContextDefinition;
 
-const OnLiveTokenContract = artifacts.require('./token/OnLiveToken.sol');
+const OnLiveTokenContract = artifacts.require('./OnLiveToken.sol');
 
 const utils = new Web3Utils(web3);
 
 contract('OnLiveToken', accounts => {
   const owner = accounts[9];
+  const maxSupply = utils.toEther(1000);
 
   const ctx = new TokenTestContext<OnLiveToken>(
     without([owner], accounts),
@@ -40,7 +42,7 @@ contract('OnLiveToken', accounts => {
   );
 
   beforeEach(async () => {
-    ctx.token = await OnLiveTokenContract.new({ from: ctx.owner });
+    ctx.token = await OnLiveTokenContract.new(maxSupply, { from: ctx.owner });
   });
 
   describe('#setReleaseManager', () => testSetReleaseManager(ctx));
@@ -52,6 +54,8 @@ contract('OnLiveToken', accounts => {
   describe('#approveMintingManager', () => testAddMintingManager(ctx));
   describe('#revokeMintingManager', () => testRemoveMintingManager(ctx));
   describe('#finishMinting', () => testFinishMinting(ctx));
+
+  describe('#mint (capped)', () => testCappedMint(ctx));
 
   context('Given account has 100 tokens', () => {
     const initialBalance = utils.toEther(100);
