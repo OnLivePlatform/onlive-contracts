@@ -7,7 +7,7 @@ import { OnLiveArtifacts, OnLiveToken } from 'onlive';
 import { ContractContextDefinition } from 'truffle';
 import { Web3Utils } from '../utils';
 import { testBurn } from './token/burnabletoken.test';
-import { testCappedMint } from './token/cappedmintabletoken.test';
+import { testMint as testCappedMint } from './token/cappedmintabletoken.test';
 import { TokenTestContext } from './token/context';
 import {
   testAddMintingManager,

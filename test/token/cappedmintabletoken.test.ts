@@ -9,7 +9,7 @@ import { TokenTestContext } from './context';
 
 declare const web3: Web3;
 
-export function testCappedMint(ctx: TokenTestContext<CappedMintableToken>) {
+export function testMint(ctx: TokenTestContext<CappedMintableToken>) {
   const mintingManager = ctx.accounts[0];
   const destinationAccount = ctx.accounts[2];
 
