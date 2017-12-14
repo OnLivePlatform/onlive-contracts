@@ -23,6 +23,12 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
+    interface Ownable extends ContractBase {
+      owner(): Promise<Address>;
+
+      transferOwnership(newOwner: Address): Promise<TransactionResult>;
+    }
+
     interface ERC20Basic extends ContractBase {
       totalSupply(): Promise<BigNumber>;
       balanceOf(who: Address): Promise<BigNumber>;
@@ -41,6 +47,10 @@ declare module 'onlive' {
     }
 
     interface ERC20 extends ERC20Basic {
+      name(): Promise<string>;
+      symbol(): Promise<string>;
+      digits(): Promise<BigNumber>;
+
       allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
       transferFrom(
@@ -63,7 +73,7 @@ declare module 'onlive' {
       value: BigNumber;
     }
 
-    interface ReleasableToken extends ERC20 {
+    interface ReleasableToken extends ERC20, Ownable {
       releaseManager(): Promise<Address>;
       transferManagers(addr: Address): Promise<boolean>;
       released(): Promise<boolean>;
@@ -100,7 +110,7 @@ declare module 'onlive' {
 
     interface ReleasedEvent {}
 
-    interface MintableToken extends ERC20Basic {
+    interface MintableToken extends ERC20Basic, Ownable {
       mintingFinished(): Promise<boolean>;
       mintingManagers(addr: Address): Promise<boolean>;
 
@@ -185,6 +195,8 @@ declare module 'onlive' {
 
     interface OnLiveTokenContract extends Contract<OnLiveToken> {
       'new'(
+        name: string,
+        symbol: string,
         maxSupply: AnyNumber,
         options?: TransactionOptions
       ): Promise<OnLiveToken>;

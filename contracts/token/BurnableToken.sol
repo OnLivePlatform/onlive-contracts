@@ -2,14 +2,13 @@ pragma solidity 0.4.18;
 
 import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
 import { BasicToken } from "zeppelin-solidity/contracts/token/BasicToken.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
  * @title A token that can decrease its supply
  * @author Jakub Stefanski
  */
-contract BurnableToken is BasicToken, Ownable {
+contract BurnableToken is BasicToken {
 
     using SafeMath for uint256;
 

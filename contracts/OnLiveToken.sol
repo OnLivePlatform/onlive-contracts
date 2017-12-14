@@ -11,15 +11,28 @@ import { BurnableToken } from "./token/BurnableToken.sol";
  */
 contract OnLiveToken is ReleasableToken, CappedMintableToken, BurnableToken {
 
-    string public name = "OnLive Token";
-    string public symbol = "ONL";
+    string public name;
+    string public symbol;
     uint256 public decimals = 18;
 
-    function OnLiveToken(uint256 _maxSupply)
+    function OnLiveToken(
+        string _name,
+        string _symbol,
+        uint256 _maxSupply
+    )
         public
         CappedMintableToken(_maxSupply)
+        onlyNotEmpty(_name)
+        onlyNotEmpty(_symbol)
     {
         owner = msg.sender;
+        name = _name;
+        symbol = _symbol;
+    }
+
+    modifier onlyNotEmpty(string str) {
+        require(bytes(str).length > 0);
+        _;
     }
 }
 
