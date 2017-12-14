@@ -17,28 +17,30 @@ const utils = new Web3Utils(web3);
 
 export function testBurn(
   ctx: TokenTestContext<BurnableToken>,
-  burner: Address
+  burnerAccount: Address
 ) {
   it('should reduce total supply', async () => {
     const value = utils.toEther(1);
     const expectedSupply = (await ctx.token.totalSupply()).sub(value);
 
-    await ctx.token.burn(value, { from: burner });
+    await ctx.token.burn(value, { from: burnerAccount });
     assertEtherEqual(await ctx.token.totalSupply(), expectedSupply);
   });
 
   it('should reduce sender balance', async () => {
     const value = utils.toEther(1);
-    const expectedBalance = (await ctx.token.balanceOf(burner)).sub(value);
+    const expectedBalance = (await ctx.token.balanceOf(burnerAccount)).sub(
+      value
+    );
 
-    await ctx.token.burn(value, { from: burner });
+    await ctx.token.burn(value, { from: burnerAccount });
     assertEtherEqual(await ctx.token.totalSupply(), expectedBalance);
   });
 
   it('should emit Burned event', async () => {
     const value = utils.toEther(1);
     const tx = await ctx.token.burn(value, {
-      from: burner
+      from: burnerAccount
     });
 
     const log = findLastLog(tx, 'Burned');
@@ -46,14 +48,14 @@ export function testBurn(
 
     const event = log.args as BurnedEvent;
     assert.isOk(event);
-    assert.equal(event.from, burner);
+    assert.equal(event.from, burnerAccount);
     assertEtherEqual(event.value, value);
   });
 
   it('should emit Transfer event', async () => {
     const value = utils.toEther(1);
     const tx = await ctx.token.burn(value, {
-      from: burner
+      from: burnerAccount
     });
 
     const log = findLastLog(tx, 'Transfer');
@@ -61,17 +63,17 @@ export function testBurn(
 
     const event = log.args as TransferEvent;
     assert.isOk(event);
-    assert.equal(event.from, burner);
+    assert.equal(event.from, burnerAccount);
     assert.equal(event.to, '0x' + '0'.repeat(40));
     assertEtherEqual(event.value, value);
   });
 
   it('should throw when insufficient balance', async () => {
-    const balance = await ctx.token.balanceOf(burner);
+    const balance = await ctx.token.balanceOf(burnerAccount);
     const value = balance.add(utils.toEther(1));
 
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.burn(value, { from: burner });
+      await ctx.token.burn(value, { from: burnerAccount });
     });
   });
 }

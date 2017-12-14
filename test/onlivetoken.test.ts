@@ -18,7 +18,9 @@ import {
   testAddTransferManager,
   testRelease,
   testRemoveTransferManager,
-  testSetReleaseManager
+  testSetReleaseManager,
+  testTransfer,
+  testTransferFrom
 } from './token/releasabletoken.test';
 
 declare const web3: Web3;
@@ -51,25 +53,26 @@ contract('OnLiveToken', accounts => {
   describe('#removeMintingManager', () => testRemoveMintingManager(ctx));
   describe('#finishMinting', () => testFinishMinting(ctx));
 
-  context('Given burner has 100 tokens', () => {
-    const burnerInitialBalance = utils.toEther(100);
-    const burner = ctx.accounts[5];
-    const tempMintingManager = ctx.accounts[6];
+  context('Given account has 100 tokens', () => {
+    const initialBalance = utils.toEther(100);
+    const holderAccount = ctx.accounts[5];
+    const mintingManager = ctx.accounts[6];
 
     beforeEach(async () => {
-      await ctx.token.addMintingManager(tempMintingManager, {
+      ctx.accounts = without([holderAccount, mintingManager], ctx.accounts);
+
+      await ctx.token.addMintingManager(mintingManager, {
         from: ctx.owner
       });
 
-      await ctx.token.mint(burner, burnerInitialBalance, {
-        from: tempMintingManager
-      });
-
-      await ctx.token.removeMintingManager(tempMintingManager, {
-        from: ctx.owner
+      await ctx.token.mint(holderAccount, initialBalance, {
+        from: mintingManager
       });
     });
 
-    describe('#burn', () => testBurn(ctx, burner));
+    describe('#transfer', () => testTransfer(ctx, holderAccount));
+    describe('#transferFrom', () => testTransferFrom(ctx, holderAccount));
+
+    describe('#burn', () => testBurn(ctx, holderAccount));
   });
 });

@@ -9,10 +9,17 @@ import {
   TransferManagerAddedEvent,
   TransferManagerRemovedEvent
 } from 'onlive';
-import { assertThrowsInvalidOpcode, findLastLog } from '../helpers';
+import { Web3Utils } from '../../utils';
+import {
+  assertEtherEqual,
+  assertThrowsInvalidOpcode,
+  findLastLog
+} from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
+
+const utils = new Web3Utils(web3);
 
 export function testSetReleaseManager(ctx: TokenTestContext<ReleasableToken>) {
   const releaseManager = ctx.accounts[0];
@@ -201,6 +208,103 @@ export function testRelease(ctx: TokenTestContext<ReleasableToken>) {
 
     await assertThrowsInvalidOpcode(async () => {
       await ctx.token.release({ from: releaseManager });
+    });
+  });
+}
+
+export function testTransfer(
+  ctx: TokenTestContext<ReleasableToken>,
+  sourceAccount: Address
+) {
+  const releaseManager = ctx.accounts[0];
+  const destinationAccount = ctx.accounts[1];
+
+  beforeEach(async () => {
+    await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
+  });
+
+  it('should change balances when released', async () => {
+    await ctx.token.release({ from: releaseManager });
+
+    const value = utils.toEther(1);
+
+    const expectedDestinationBalance = (await ctx.token.balanceOf(
+      destinationAccount
+    )).add(value);
+
+    const expectedSourceBalance = (await ctx.token.balanceOf(
+      sourceAccount
+    )).sub(value);
+
+    await ctx.token.transfer(destinationAccount, value, {
+      from: sourceAccount
+    });
+
+    assertEtherEqual(
+      await ctx.token.balanceOf(destinationAccount),
+      expectedDestinationBalance
+    );
+
+    assertEtherEqual(
+      await ctx.token.balanceOf(sourceAccount),
+      expectedSourceBalance
+    );
+  });
+
+  it('should throw when not released', async () => {
+    await assertThrowsInvalidOpcode(async () => {
+      await ctx.token.transfer(destinationAccount, utils.toEther(1), {
+        from: sourceAccount
+      });
+    });
+  });
+}
+
+export function testTransferFrom(
+  ctx: TokenTestContext<ReleasableToken>,
+  sourceAccount: Address
+) {
+  const releaseManager = ctx.accounts[0];
+  const destinationAccount = ctx.accounts[1];
+  const approvedAccount = ctx.accounts[2];
+  const value = utils.toEther(1);
+
+  beforeEach(async () => {
+    await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
+    await ctx.token.approve(approvedAccount, value, { from: sourceAccount });
+  });
+
+  it('should change balances when released', async () => {
+    await ctx.token.release({ from: releaseManager });
+
+    const expectedDestinationBalance = (await ctx.token.balanceOf(
+      destinationAccount
+    )).add(value);
+
+    const expectedSourceBalance = (await ctx.token.balanceOf(
+      sourceAccount
+    )).sub(value);
+
+    await ctx.token.transferFrom(sourceAccount, destinationAccount, value, {
+      from: approvedAccount
+    });
+
+    assertEtherEqual(
+      await ctx.token.balanceOf(destinationAccount),
+      expectedDestinationBalance
+    );
+
+    assertEtherEqual(
+      await ctx.token.balanceOf(sourceAccount),
+      expectedSourceBalance
+    );
+  });
+
+  it('should throw when not released', async () => {
+    await assertThrowsInvalidOpcode(async () => {
+      await ctx.token.transferFrom(sourceAccount, destinationAccount, value, {
+        from: approvedAccount
+      });
     });
   });
 }
