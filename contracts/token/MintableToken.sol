@@ -1,7 +1,7 @@
 pragma solidity 0.4.18;
 
 import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
-import { StandardToken } from "zeppelin-solidity/contracts/token/StandardToken.sol";
+import { BasicToken } from "zeppelin-solidity/contracts/token/BasicToken.sol";
 import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
@@ -9,7 +9,7 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
  * @title A token that can increase its supply in initial period
  * @author Jakub Stefanski
  */
-contract MintableToken is StandardToken, Ownable {
+contract MintableToken is BasicToken, Ownable {
 
     using SafeMath for uint256;
 
