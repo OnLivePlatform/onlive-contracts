@@ -14,7 +14,7 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Controls whether token transfers are enabled
      * @dev If false, token is in transfer lock up period.
      */
-    bool public isReleased;
+    bool public released;
 
     /**
      * @dev Contract or EOA that can enable token transfers
@@ -36,13 +36,13 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Approves specified address as Transfer Manager
      * @param addr address The approved address
      */
-    event TransferManagerAdded(address addr);
+    event TransferManagerApproved(address addr);
 
     /**
-     * @dev Denies specified address as Transfer Manager
+     * @dev Revokes specified address as Transfer Manager
      * @param addr address The denied address
      */
-    event TransferManagerRemoved(address addr);
+    event TransferManagerRevoked(address addr);
 
     /**
      * @dev Marks token as released (transferable)
@@ -53,7 +53,7 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Token is released or specified address is transfer manager
      */
     modifier onlyTransferableFrom(address from) {
-        if (!isReleased) {
+        if (!released) {
             require(transferManagers[from]);
         }
 
@@ -80,7 +80,7 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Token is released (transferable)
      */
     modifier onlyReleased() {
-        require(isReleased);
+        require(released);
         _;
     }
 
@@ -88,7 +88,7 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Token is in lock up period
      */
     modifier onlyNotReleased() {
-        require(!isReleased);
+        require(!released);
         _;
     }
 
@@ -110,21 +110,21 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Approve specified address to make transfers in lock up period
      * @param addr address The approved Transfer Manager address
      */
-    function addTransferManager(address addr)
+    function approveTransferManager(address addr)
         public
         onlyOwner
         onlyNotReleased
     {
         transferManagers[addr] = true;
 
-        TransferManagerAdded(addr);
+        TransferManagerApproved(addr);
     }
 
     /**
      * @dev Forbid specified address to make transfers in lock up period
      * @param addr address The denied Transfer Manager address
      */
-    function removeTransferManager(address addr)
+    function revokeTransferManager(address addr)
         public
         onlyOwner
         onlyTransferManager(addr)
@@ -132,7 +132,7 @@ contract ReleasableToken is StandardToken, Ownable {
     {
         delete transferManagers[addr];
 
-        TransferManagerRemoved(addr);
+        TransferManagerRevoked(addr);
     }
 
     /**
@@ -143,7 +143,7 @@ contract ReleasableToken is StandardToken, Ownable {
         onlyReleaseManager
         onlyNotReleased
     {
-        isReleased = true;
+        released = true;
 
         Released();
     }

@@ -57,19 +57,19 @@ declare module 'onlive' {
     interface ReleasableToken extends ERC20 {
       releaseManager(): Promise<Address>;
       transferManagers(addr: Address): Promise<boolean>;
-      isReleased(): Promise<boolean>;
+      released(): Promise<boolean>;
 
       setReleaseManager(
         addr: Address,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
-      addTransferManager(
+      approveTransferManager(
         addr: Address,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
-      removeTransferManager(
+      revokeTransferManager(
         addr: Address,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
@@ -81,26 +81,26 @@ declare module 'onlive' {
       addr: Address;
     }
 
-    interface TransferManagerAddedEvent {
+    interface TransferManagerApprovedEvent {
       addr: Address;
     }
 
-    interface TransferManagerRemovedEvent {
+    interface TransferManagerRevokedEvent {
       addr: Address;
     }
 
     interface ReleasedEvent {}
 
     interface MintableToken extends ERC20 {
-      isMintingFinished(): Promise<boolean>;
+      mintingFinished(): Promise<boolean>;
       mintingManagers(addr: Address): Promise<boolean>;
 
-      addMintingManager(
+      approveMintingManager(
         addr: Address,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
-      removeMintingManager(
+      revokeMintingManager(
         addr: Address,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
@@ -119,11 +119,11 @@ declare module 'onlive' {
       value: BigNumber;
     }
 
-    interface MintingManagerAddedEvent {
+    interface MintingManagerApprovedEvent {
       addr: Address;
     }
 
-    interface MintingManagerRemovedEvent {
+    interface MintingManagerRevokedEvent {
       addr: Address;
     }
 

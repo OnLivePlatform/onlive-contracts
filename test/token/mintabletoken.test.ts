@@ -6,8 +6,8 @@ import {
   MintableToken,
   MintedEvent,
   MintingFinishedEvent,
-  MintingManagerAddedEvent,
-  MintingManagerRemovedEvent,
+  MintingManagerApprovedEvent,
+  MintingManagerRevokedEvent,
   TransferEvent
 } from 'onlive';
 import { Web3Utils } from '../../utils';
@@ -26,17 +26,19 @@ export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
   const mintingManager = ctx.accounts[0];
   const otherAccount = ctx.accounts[1];
 
-  it('should add minting manager', async () => {
+  it('should approve minting manager', async () => {
     assert.isFalse(await ctx.token.mintingManagers(mintingManager));
-    await ctx.token.addMintingManager(mintingManager, { from: ctx.owner });
+
+    await ctx.token.approveMintingManager(mintingManager, { from: ctx.owner });
+
     assert.isTrue(await ctx.token.mintingManagers(mintingManager));
   });
 
-  it('should add multiple minting managers', async () => {
+  it('should approve multiple minting managers', async () => {
     const managers = ctx.accounts.slice(0, 4);
     await Promise.all(
       managers.map(account =>
-        ctx.token.addMintingManager(account, { from: ctx.owner })
+        ctx.token.approveMintingManager(account, { from: ctx.owner })
       )
     );
 
@@ -45,70 +47,22 @@ export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
     }
   });
 
-  it('should emit MintingManagerAdded event', async () => {
-    const tx = await ctx.token.addMintingManager(mintingManager, {
+  it('should emit MintingManagerApproved event', async () => {
+    const tx = await ctx.token.approveMintingManager(mintingManager, {
       from: ctx.owner
     });
 
-    const log = findLastLog(tx, 'MintingManagerAdded');
+    const log = findLastLog(tx, 'MintingManagerApproved');
     assert.isOk(log);
 
-    const event = log.args as MintingManagerAddedEvent;
+    const event = log.args as MintingManagerApprovedEvent;
     assert.isOk(event);
     assert.equal(event.addr, mintingManager);
   });
 
   it('should throw when called by non-owner', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.addMintingManager(mintingManager, { from: otherAccount });
-    });
-  });
-
-  it('should throw when called after finished minting', async () => {
-    await ctx.token.finishMinting({ from: ctx.owner });
-
-    await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.addMintingManager(otherAccount, { from: ctx.owner });
-    });
-  });
-}
-
-export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
-  const mintingManager = ctx.accounts[0];
-  const otherAccount = ctx.accounts[1];
-
-  beforeEach(async () => {
-    await ctx.token.addMintingManager(mintingManager, { from: ctx.owner });
-  });
-
-  it('should remove minting manager', async () => {
-    assert.isTrue(await ctx.token.mintingManagers(mintingManager));
-    await ctx.token.removeMintingManager(mintingManager, { from: ctx.owner });
-    assert.isFalse(await ctx.token.mintingManagers(mintingManager));
-  });
-
-  it('should emit MintingManagerRemoved event', async () => {
-    const tx = await ctx.token.removeMintingManager(mintingManager, {
-      from: ctx.owner
-    });
-
-    const log = findLastLog(tx, 'MintingManagerRemoved');
-    assert.isOk(log);
-
-    const event = log.args as MintingManagerRemovedEvent;
-    assert.isOk(event);
-    assert.equal(event.addr, mintingManager);
-  });
-
-  it('should throw when minting manager does not exist', async () => {
-    await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.removeMintingManager(otherAccount, { from: ctx.owner });
-    });
-  });
-
-  it('should throw when called by non-owner', async () => {
-    await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.removeMintingManager(mintingManager, {
+      await ctx.token.approveMintingManager(mintingManager, {
         from: otherAccount
       });
     });
@@ -118,7 +72,57 @@ export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
     await ctx.token.finishMinting({ from: ctx.owner });
 
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.removeMintingManager(mintingManager, {
+      await ctx.token.approveMintingManager(otherAccount, { from: ctx.owner });
+    });
+  });
+}
+
+export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
+  const mintingManager = ctx.accounts[0];
+  const otherAccount = ctx.accounts[1];
+
+  beforeEach(async () => {
+    await ctx.token.approveMintingManager(mintingManager, { from: ctx.owner });
+  });
+
+  it('should revoke minting manager', async () => {
+    assert.isTrue(await ctx.token.mintingManagers(mintingManager));
+    await ctx.token.revokeMintingManager(mintingManager, { from: ctx.owner });
+    assert.isFalse(await ctx.token.mintingManagers(mintingManager));
+  });
+
+  it('should emit MintingManagerRevoked event', async () => {
+    const tx = await ctx.token.revokeMintingManager(mintingManager, {
+      from: ctx.owner
+    });
+
+    const log = findLastLog(tx, 'MintingManagerRevoked');
+    assert.isOk(log);
+
+    const event = log.args as MintingManagerRevokedEvent;
+    assert.isOk(event);
+    assert.equal(event.addr, mintingManager);
+  });
+
+  it('should throw when minting manager does not exist', async () => {
+    await assertThrowsInvalidOpcode(async () => {
+      await ctx.token.revokeMintingManager(otherAccount, { from: ctx.owner });
+    });
+  });
+
+  it('should throw when called by non-owner', async () => {
+    await assertThrowsInvalidOpcode(async () => {
+      await ctx.token.revokeMintingManager(mintingManager, {
+        from: otherAccount
+      });
+    });
+  });
+
+  it('should throw when called after finished minting', async () => {
+    await ctx.token.finishMinting({ from: ctx.owner });
+
+    await assertThrowsInvalidOpcode(async () => {
+      await ctx.token.revokeMintingManager(mintingManager, {
         from: ctx.owner
       });
     });
@@ -131,7 +135,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
   const destinationAccount = ctx.accounts[2];
 
   beforeEach(async () => {
-    await ctx.token.addMintingManager(mintingManager, { from: ctx.owner });
+    await ctx.token.approveMintingManager(mintingManager, { from: ctx.owner });
   });
 
   it('should increase total supply', async () => {
@@ -210,10 +214,10 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 export function testFinishMinting(ctx: TokenTestContext<MintableToken>) {
   const otherAccount = ctx.accounts[0];
 
-  it('should set isMintingFinished flag', async () => {
-    assert.isFalse(await ctx.token.isMintingFinished());
+  it('should set mintingFinished flag', async () => {
+    assert.isFalse(await ctx.token.mintingFinished());
     await ctx.token.finishMinting({ from: ctx.owner });
-    assert.isTrue(await ctx.token.isMintingFinished());
+    assert.isTrue(await ctx.token.mintingFinished());
   });
 
   it('should emit MintingFinished event', async () => {

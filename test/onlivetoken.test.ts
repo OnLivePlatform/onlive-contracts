@@ -44,13 +44,13 @@ contract('OnLiveToken', accounts => {
   });
 
   describe('#setReleaseManager', () => testSetReleaseManager(ctx));
-  describe('#addTransferManager', () => testAddTransferManager(ctx));
-  describe('#removeTransferManager', () => testRemoveTransferManager(ctx));
+  describe('#approveTransferManager', () => testAddTransferManager(ctx));
+  describe('#revokeTransferManager', () => testRemoveTransferManager(ctx));
   describe('#release', () => testRelease(ctx));
 
   describe('#mint', () => testMint(ctx));
-  describe('#addMintingManager', () => testAddMintingManager(ctx));
-  describe('#removeMintingManager', () => testRemoveMintingManager(ctx));
+  describe('#approveMintingManager', () => testAddMintingManager(ctx));
+  describe('#revokeMintingManager', () => testRemoveMintingManager(ctx));
   describe('#finishMinting', () => testFinishMinting(ctx));
 
   context('Given account has 100 tokens', () => {
@@ -61,7 +61,7 @@ contract('OnLiveToken', accounts => {
     beforeEach(async () => {
       ctx.accounts = without([holderAccount, mintingManager], ctx.accounts);
 
-      await ctx.token.addMintingManager(mintingManager, {
+      await ctx.token.approveMintingManager(mintingManager, {
         from: ctx.owner
       });
 

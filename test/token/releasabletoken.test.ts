@@ -6,8 +6,8 @@ import {
   ReleasableToken,
   ReleasedEvent,
   ReleaseManagerSetEvent,
-  TransferManagerAddedEvent,
-  TransferManagerRemovedEvent
+  TransferManagerApprovedEvent,
+  TransferManagerRevokedEvent
 } from 'onlive';
 import { Web3Utils } from '../../utils';
 import {
@@ -69,17 +69,21 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
   });
 
-  it('should add transfer manager', async () => {
+  it('should approve transfer manager', async () => {
     assert.isFalse(await ctx.token.transferManagers(transferManager));
-    await ctx.token.addTransferManager(transferManager, { from: ctx.owner });
+
+    await ctx.token.approveTransferManager(transferManager, {
+      from: ctx.owner
+    });
+
     assert.isTrue(await ctx.token.transferManagers(transferManager));
   });
 
-  it('should add multiple transfer managers', async () => {
+  it('should approve multiple transfer managers', async () => {
     const managers = ctx.accounts.slice(0, 4);
     await Promise.all(
       managers.map(account =>
-        ctx.token.addTransferManager(account, { from: ctx.owner })
+        ctx.token.approveTransferManager(account, { from: ctx.owner })
       )
     );
 
@@ -88,22 +92,22 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
     }
   });
 
-  it('should emit TransferManagerAdded event', async () => {
-    const tx = await ctx.token.addTransferManager(transferManager, {
+  it('should emit TransferManagerApproved event', async () => {
+    const tx = await ctx.token.approveTransferManager(transferManager, {
       from: ctx.owner
     });
 
-    const log = findLastLog(tx, 'TransferManagerAdded');
+    const log = findLastLog(tx, 'TransferManagerApproved');
     assert.isOk(log);
 
-    const event = log.args as TransferManagerAddedEvent;
+    const event = log.args as TransferManagerApprovedEvent;
     assert.isOk(event);
     assert.equal(event.addr, transferManager);
   });
 
   it('should throw when called by non-owner', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.addTransferManager(transferManager, {
+      await ctx.token.approveTransferManager(transferManager, {
         from: otherAccount
       });
     });
@@ -112,7 +116,7 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
   it('should throw when called after release', async () => {
     await ctx.token.release({ from: releaseManager });
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.addTransferManager(otherAccount, { from: ctx.owner });
+      await ctx.token.approveTransferManager(otherAccount, { from: ctx.owner });
     });
   });
 }
@@ -126,37 +130,39 @@ export function testRemoveTransferManager(
 
   beforeEach(async () => {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
-    await ctx.token.addTransferManager(transferManager, { from: ctx.owner });
+    await ctx.token.approveTransferManager(transferManager, {
+      from: ctx.owner
+    });
   });
 
-  it('should remove transfer manager', async () => {
+  it('should revoke transfer manager', async () => {
     assert.isTrue(await ctx.token.transferManagers(transferManager));
-    await ctx.token.removeTransferManager(transferManager, { from: ctx.owner });
+    await ctx.token.revokeTransferManager(transferManager, { from: ctx.owner });
     assert.isFalse(await ctx.token.transferManagers(transferManager));
   });
 
-  it('should emit TransferManagerRemoved event', async () => {
-    const tx = await ctx.token.removeTransferManager(transferManager, {
+  it('should emit TransferManagerRevoked event', async () => {
+    const tx = await ctx.token.revokeTransferManager(transferManager, {
       from: ctx.owner
     });
 
-    const log = findLastLog(tx, 'TransferManagerRemoved');
+    const log = findLastLog(tx, 'TransferManagerRevoked');
     assert.isOk(log);
 
-    const event = log.args as TransferManagerRemovedEvent;
+    const event = log.args as TransferManagerRevokedEvent;
     assert.isOk(event);
     assert.equal(event.addr, transferManager);
   });
 
   it('should throw when transfer manager does not exist', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.removeTransferManager(otherAccount, { from: ctx.owner });
+      await ctx.token.revokeTransferManager(otherAccount, { from: ctx.owner });
     });
   });
 
   it('should throw when called by non-owner', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.removeTransferManager(transferManager, {
+      await ctx.token.revokeTransferManager(transferManager, {
         from: otherAccount
       });
     });
@@ -166,7 +172,7 @@ export function testRemoveTransferManager(
     await ctx.token.release({ from: releaseManager });
 
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.removeTransferManager(transferManager, {
+      await ctx.token.revokeTransferManager(transferManager, {
         from: ctx.owner
       });
     });
@@ -181,10 +187,10 @@ export function testRelease(ctx: TokenTestContext<ReleasableToken>) {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
   });
 
-  it('should set isReleased flag', async () => {
-    assert.isFalse(await ctx.token.isReleased());
+  it('should set released flag', async () => {
+    assert.isFalse(await ctx.token.released());
     await ctx.token.release({ from: releaseManager });
-    assert.isTrue(await ctx.token.isReleased());
+    assert.isTrue(await ctx.token.released());
   });
 
   it('should emit Released event', async () => {

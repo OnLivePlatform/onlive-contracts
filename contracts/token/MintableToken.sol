@@ -16,7 +16,7 @@ contract MintableToken is BasicToken, Ownable {
     /**
      * @dev Indicates whether creating tokens has finished
      */
-    bool public isMintingFinished;
+    bool public mintingFinished;
 
     /**
      * @dev List of addresses allowed to create tokens
@@ -34,13 +34,13 @@ contract MintableToken is BasicToken, Ownable {
      * @dev Approves specified address as a Minting Manager
      * @param addr address The approved address
      */
-    event MintingManagerAdded(address addr);
+    event MintingManagerApproved(address addr);
 
     /**
-     * @dev Denies specified address as a Minting Manager
+     * @dev Revokes specified address as a Minting Manager
      * @param addr address The revoked address
      */
-    event MintingManagerRemoved(address addr);
+    event MintingManagerRevoked(address addr);
 
     /**
      * @dev Creation of tokens finished
@@ -53,7 +53,7 @@ contract MintableToken is BasicToken, Ownable {
     }
 
     modifier onlyMintingNotFinished {
-        require(!isMintingFinished);
+        require(!mintingFinished);
         _;
     }
 
@@ -61,21 +61,21 @@ contract MintableToken is BasicToken, Ownable {
      * @dev Approve specified address to mint tokens
      * @param addr address The approved Minting Manager address
      */
-    function addMintingManager(address addr)
+    function approveMintingManager(address addr)
         public
         onlyOwner
         onlyMintingNotFinished
     {
         mintingManagers[addr] = true;
 
-        MintingManagerAdded(addr);
+        MintingManagerApproved(addr);
     }
 
     /**
-     * @dev Deny specified address to mint tokens
+     * @dev Forbid specified address to mint tokens
      * @param addr address The denied Minting Manager address
      */
-    function removeMintingManager(address addr)
+    function revokeMintingManager(address addr)
         public
         onlyOwner
         onlyMintingManager(addr)
@@ -83,7 +83,7 @@ contract MintableToken is BasicToken, Ownable {
     {
         delete mintingManagers[addr];
 
-        MintingManagerRemoved(addr);
+        MintingManagerRevoked(addr);
     }
 
     /**
@@ -111,7 +111,7 @@ contract MintableToken is BasicToken, Ownable {
         onlyOwner
         onlyMintingNotFinished
     {
-        isMintingFinished = true;
+        mintingFinished = true;
 
         MintingFinished();
     }
