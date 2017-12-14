@@ -3,17 +3,14 @@ pragma solidity 0.4.18;
 import { ReleasableToken } from "./token/ReleasableToken.sol";
 import { CappedMintableToken } from "./token/CappedMintableToken.sol";
 import { BurnableToken } from "./token/BurnableToken.sol";
+import { DescriptiveToken } from "./token/DescriptiveToken.sol";
 
 
 /**
  * @title OnLive Token
  * @author Jakub Stefanski
  */
-contract OnLiveToken is ReleasableToken, CappedMintableToken, BurnableToken {
-
-    string public name;
-    string public symbol;
-    uint256 public decimals = 18;
+contract OnLiveToken is DescriptiveToken, ReleasableToken, CappedMintableToken, BurnableToken {
 
     function OnLiveToken(
         string _name,
@@ -21,18 +18,10 @@ contract OnLiveToken is ReleasableToken, CappedMintableToken, BurnableToken {
         uint256 _maxSupply
     )
         public
+        DescriptiveToken(_name, _symbol)
         CappedMintableToken(_maxSupply)
-        onlyNotEmpty(_name)
-        onlyNotEmpty(_symbol)
     {
         owner = msg.sender;
-        name = _name;
-        symbol = _symbol;
-    }
-
-    modifier onlyNotEmpty(string str) {
-        require(bytes(str).length > 0);
-        _;
     }
 }
 
