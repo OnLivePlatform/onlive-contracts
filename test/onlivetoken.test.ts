@@ -25,6 +25,7 @@ import {
   testTransfer,
   testTransferFrom
 } from './token/releasabletoken.test';
+import { testChangeDescription } from './token/descriptivetoken.test';
 
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
@@ -81,17 +82,27 @@ contract('OnLiveToken', accounts => {
       ctx.token = await createToken();
     });
 
-    describe('#setReleaseManager', () => testSetReleaseManager(ctx));
-    describe('#approveTransferManager', () => testAddTransferManager(ctx));
-    describe('#revokeTransferManager', () => testRemoveTransferManager(ctx));
-    describe('#release', () => testRelease(ctx));
+    describe('DescriptiveToken base', () => {
+      describe('#changeDescription', () => testChangeDescription(ctx));
+    });
 
-    describe('#mint', () => testMint(ctx));
-    describe('#approveMintingManager', () => testAddMintingManager(ctx));
-    describe('#revokeMintingManager', () => testRemoveMintingManager(ctx));
-    describe('#finishMinting', () => testFinishMinting(ctx));
+    describe('ReleasableToken base', () => {
+      describe('#setReleaseManager', () => testSetReleaseManager(ctx));
+      describe('#approveTransferManager', () => testAddTransferManager(ctx));
+      describe('#revokeTransferManager', () => testRemoveTransferManager(ctx));
+      describe('#release', () => testRelease(ctx));
+    });
 
-    describe('#mint (capped)', () => testCappedMint(ctx));
+    describe('MintableToken base', () => {
+      describe('#mint', () => testMint(ctx));
+      describe('#approveMintingManager', () => testAddMintingManager(ctx));
+      describe('#revokeMintingManager', () => testRemoveMintingManager(ctx));
+      describe('#finishMinting', () => testFinishMinting(ctx));
+    });
+
+    describe('CappedMintableToken base', () => {
+      describe('#mint (capped)', () => testCappedMint(ctx));
+    });
 
     context('Given account has 100 tokens', () => {
       const initialBalance = utils.toEther(100);
@@ -110,10 +121,14 @@ contract('OnLiveToken', accounts => {
         });
       });
 
-      describe('#transfer', () => testTransfer(ctx, holderAccount));
-      describe('#transferFrom', () => testTransferFrom(ctx, holderAccount));
+      describe('ReleasableToken base', () => {
+        describe('#transfer', () => testTransfer(ctx, holderAccount));
+        describe('#transferFrom', () => testTransferFrom(ctx, holderAccount));
+      });
 
-      describe('#burn', () => testBurn(ctx, holderAccount));
+      describe('BurnableToken base', () => {
+        describe('#burn', () => testBurn(ctx, holderAccount));
+      });
     });
   });
 });

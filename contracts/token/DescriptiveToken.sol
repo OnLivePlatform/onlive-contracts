@@ -1,13 +1,14 @@
 pragma solidity 0.4.18;
 
+import { BasicToken } from "zeppelin-solidity/contracts/token/BasicToken.sol";
 import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
- * @title A token with standard description properties
+ * @title A token with modifiable name and symbol
  * @author Jakub Stefanski
  */
-contract DescriptiveToken is Ownable {
+contract DescriptiveToken is BasicToken, Ownable {
 
     string public name;
     string public symbol;
@@ -25,6 +26,11 @@ contract DescriptiveToken is Ownable {
         symbol = _symbol;
     }
 
+    /**
+     * @dev Logs change of token name and symbol
+     * @param name string The new token name
+     * @param symbol string The new token symbol
+     */
     event DescriptionChanged(string name, string symbol);
 
     modifier onlyNotEmpty(string str) {
@@ -32,6 +38,12 @@ contract DescriptiveToken is Ownable {
         _;
     }
 
+    /**
+     * @dev Change name and symbol of tokens
+     * @dev May be used in case of symbol collisions in exchanges.
+     * @param _name string A new token name
+     * @param _symbol string A new token symbol
+     */
     function changeDescription(string _name, string _symbol)
         public
         onlyOwner

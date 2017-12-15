@@ -47,10 +47,6 @@ declare module 'onlive' {
     }
 
     interface ERC20 extends ERC20Basic {
-      name(): Promise<string>;
-      symbol(): Promise<string>;
-      digits(): Promise<BigNumber>;
-
       allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
       transferFrom(
@@ -164,8 +160,26 @@ declare module 'onlive' {
       value: BigNumber;
     }
 
+    interface DescriptiveToken extends ERC20Basic, Ownable {
+      name(): Promise<string>;
+      symbol(): Promise<string>;
+      decimals(): Promise<BigNumber>;
+
+      changeDescription(
+        name: string,
+        symbol: string,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface DescriptionChangedEvent {
+      name: string;
+      symbol: string;
+    }
+
     interface OnLiveToken
-      extends ReleasableToken,
+      extends DescriptiveToken,
+        ReleasableToken,
         CappedMintableToken,
         BurnableToken {}
 
