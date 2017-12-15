@@ -1,0 +1,46 @@
+pragma solidity 0.4.18;
+
+import { MintableToken } from "./MintableToken.sol";
+
+
+/**
+ * @title A token that can increase its supply to the specified limit
+ * @author Jakub Stefanski
+ */
+contract CappedMintableToken is MintableToken {
+
+    /**
+     * @dev Maximum supply that can be minted
+     */
+    uint256 public maxSupply;
+
+    function CappedMintableToken(uint256 _maxSupply)
+        public
+        onlyNotZero(_maxSupply)
+    {
+        maxSupply = _maxSupply;
+    }
+
+    modifier onlyNotZero(uint256 value) {
+        require(value != 0);
+        _;
+    }
+
+    modifier onlyNotExceedingMaxSupply(uint256 supply) {
+        require(supply <= maxSupply);
+        _;
+    }
+
+    /**
+     * @dev Create new tokens and transfer them to specified address
+     * @dev Checks against capped max supply of token.
+     * @param to address The address to transfer to
+     * @param value uint256 The amount to be minted
+     */
+    function mint(address to, uint256 value)
+        public
+        onlyNotExceedingMaxSupply(totalSupply.add(value))
+    {
+        return MintableToken.mint(to, value);
+    }
+}
