@@ -11,6 +11,7 @@ import { assertEtherEqual } from './helpers';
 import { testBurn } from './token/burnabletoken.test';
 import { testMint as testCappedMint } from './token/cappedmintabletoken.test';
 import { TokenTestContext } from './token/context';
+import { testChangeDescription } from './token/descriptivetoken.test';
 import {
   testAddMintingManager,
   testFinishMinting,
@@ -25,7 +26,6 @@ import {
   testTransfer,
   testTransferFrom
 } from './token/releasabletoken.test';
-import { testChangeDescription } from './token/descriptivetoken.test';
 
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;

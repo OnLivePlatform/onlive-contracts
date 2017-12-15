@@ -187,7 +187,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 
     const event = log.args as TransferEvent;
     assert.isOk(event);
-    assert.equal(event.from, ctx.token.address);
+    assert.equal(event.from, '0x' + '0'.repeat(40));
     assert.equal(event.to, destinationAccount);
     assertEtherEqual(event.value, value);
   });

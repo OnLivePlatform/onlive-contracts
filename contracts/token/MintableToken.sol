@@ -14,6 +14,12 @@ contract MintableToken is BasicToken, Ownable {
     using SafeMath for uint256;
 
     /**
+     * @dev Address from which minted tokens are Transferred.
+     * @dev This is useful for blockchain explorers operating on Transfer event.
+     */
+    address public constant MINT_ADDRESS = address(0x0);
+
+    /**
      * @dev Indicates whether creating tokens has finished
      */
     bool public mintingFinished;
@@ -100,7 +106,7 @@ contract MintableToken is BasicToken, Ownable {
         balances[to] = balances[to].add(value);
 
         Minted(to, value);
-        Transfer(this, to, value);
+        Transfer(MINT_ADDRESS, to, value);
     }
 
     /**
