@@ -12,8 +12,8 @@ import {
 } from 'onlive';
 import { Web3Utils } from '../../utils';
 import {
-  assertEtherEqual,
   assertThrowsInvalidOpcode,
+  assertTokenEqual,
   findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
@@ -144,7 +144,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 
     await ctx.token.mint(destinationAccount, value, { from: mintingManager });
 
-    assertEtherEqual(await ctx.token.totalSupply(), expectedSupply);
+    assertTokenEqual(await ctx.token.totalSupply(), expectedSupply);
   });
 
   it('should increase balance of destination account', async () => {
@@ -155,7 +155,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 
     await ctx.token.mint(destinationAccount, value, { from: mintingManager });
 
-    assertEtherEqual(
+    assertTokenEqual(
       await ctx.token.balanceOf(destinationAccount),
       expectedValue
     );
@@ -173,7 +173,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
     const event = log.args as MintedEvent;
     assert.isOk(event);
     assert.equal(event.to, destinationAccount);
-    assertEtherEqual(event.value, value);
+    assertTokenEqual(event.value, value);
   });
 
   it('should emit Transfer event', async () => {
@@ -189,7 +189,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
     assert.isOk(event);
     assert.equal(event.from, '0x' + '0'.repeat(40));
     assert.equal(event.to, destinationAccount);
-    assertEtherEqual(event.value, value);
+    assertTokenEqual(event.value, value);
   });
 
   it('should throw when minting is finished', async () => {

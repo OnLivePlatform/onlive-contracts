@@ -11,8 +11,8 @@ import {
 } from 'onlive';
 import { Web3Utils } from '../../utils';
 import {
-  assertEtherEqual,
   assertThrowsInvalidOpcode,
+  assertTokenEqual,
   findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
@@ -246,12 +246,12 @@ export function testTransfer(
       from: sourceAccount
     });
 
-    assertEtherEqual(
+    assertTokenEqual(
       await ctx.token.balanceOf(destinationAccount),
       expectedDestinationBalance
     );
 
-    assertEtherEqual(
+    assertTokenEqual(
       await ctx.token.balanceOf(sourceAccount),
       expectedSourceBalance
     );
@@ -295,12 +295,12 @@ export function testTransferFrom(
       from: approvedAccount
     });
 
-    assertEtherEqual(
+    assertTokenEqual(
       await ctx.token.balanceOf(destinationAccount),
       expectedDestinationBalance
     );
 
-    assertEtherEqual(
+    assertTokenEqual(
       await ctx.token.balanceOf(sourceAccount),
       expectedSourceBalance
     );

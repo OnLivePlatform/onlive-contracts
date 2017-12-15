@@ -7,7 +7,7 @@ import { OnLiveArtifacts, OnLiveToken } from 'onlive';
 
 import { ContractContextDefinition } from 'truffle';
 import { Web3Utils } from '../utils';
-import { assertEtherEqual } from './helpers';
+import { assertTokenEqual } from './helpers';
 import { testBurn } from './token/burnabletoken.test';
 import { testMint as testCappedMint } from './token/cappedmintabletoken.test';
 import { TokenTestContext } from './token/context';
@@ -63,7 +63,7 @@ contract('OnLiveToken', accounts => {
 
     it('should set maxSupply', async () => {
       const token = await createToken();
-      assertEtherEqual(await token.maxSupply(), maxSupply);
+      assertTokenEqual(await token.maxSupply(), maxSupply);
     });
 
     it('should set owner', async () => {

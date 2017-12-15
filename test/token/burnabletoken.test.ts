@@ -5,8 +5,8 @@ import * as Web3 from 'web3';
 import { BurnableToken, BurnedEvent, TransferEvent } from 'onlive';
 import { Web3Utils } from '../../utils';
 import {
-  assertEtherEqual,
   assertThrowsInvalidOpcode,
+  assertTokenEqual,
   findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
@@ -24,7 +24,7 @@ export function testBurn(
     const expectedSupply = (await ctx.token.totalSupply()).sub(value);
 
     await ctx.token.burn(value, { from: burnerAccount });
-    assertEtherEqual(await ctx.token.totalSupply(), expectedSupply);
+    assertTokenEqual(await ctx.token.totalSupply(), expectedSupply);
   });
 
   it('should reduce sender balance', async () => {
@@ -34,7 +34,7 @@ export function testBurn(
     );
 
     await ctx.token.burn(value, { from: burnerAccount });
-    assertEtherEqual(await ctx.token.totalSupply(), expectedBalance);
+    assertTokenEqual(await ctx.token.totalSupply(), expectedBalance);
   });
 
   it('should emit Burned event', async () => {
@@ -49,7 +49,7 @@ export function testBurn(
     const event = log.args as BurnedEvent;
     assert.isOk(event);
     assert.equal(event.from, burnerAccount);
-    assertEtherEqual(event.value, value);
+    assertTokenEqual(event.value, value);
   });
 
   it('should emit Transfer event', async () => {
@@ -65,7 +65,7 @@ export function testBurn(
     assert.isOk(event);
     assert.equal(event.from, burnerAccount);
     assert.equal(event.to, '0x' + '0'.repeat(40));
-    assertEtherEqual(event.value, value);
+    assertTokenEqual(event.value, value);
   });
 
   it('should throw when insufficient balance', async () => {

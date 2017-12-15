@@ -4,7 +4,7 @@ declare module '*.json' {
 }
 
 declare module 'truffle' {
-  import { TxData, AnyNumber } from 'web3';
+  import { TxData } from 'web3';
 
   namespace truffle {
     type ContractCallback = (

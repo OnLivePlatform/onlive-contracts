@@ -4,7 +4,7 @@ import { assert } from 'chai';
 import * as Web3 from 'web3';
 
 import { CappedMintableToken } from 'onlive';
-import { assertEtherEqual, assertThrowsInvalidOpcode } from '../helpers';
+import { assertThrowsInvalidOpcode, assertTokenEqual } from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
@@ -34,7 +34,7 @@ export function testMint(ctx: TokenTestContext<CappedMintableToken>) {
       from: mintingManager
     });
 
-    assertEtherEqual(await ctx.token.totalSupply(), expectedSupply);
+    assertTokenEqual(await ctx.token.totalSupply(), expectedSupply);
   });
 
   it('should throw when exceeds maxSupply', async () => {

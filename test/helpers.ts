@@ -7,8 +7,7 @@ import { TransactionLog, TransactionResult } from 'truffle';
 
 declare const web3: Web3;
 
-const ETH_DECIMALS = 18;
-const DEFAULT_ACCEPTABLE_ERROR = web3.toWei(5, 'finney');
+const ONL_DECIMALS = 18;
 
 export async function assertThrowsInvalidOpcode(func: () => void) {
   try {
@@ -41,7 +40,7 @@ export function assertNumberEqual(
 ) {
   const actualNum = new BigNumber(actual);
   const expectNum = new BigNumber(expect);
-  /* solhint-disable no-empty-blocks */
+
   if (!actualNum.eq(expectNum)) {
     const div = decimals ? Math.pow(10, decimals) : 1;
     assert.fail(
@@ -53,44 +52,8 @@ export function assertNumberEqual(
   }
 }
 
-export function assertEtherEqual(actual: any, expect: any) {
-  return assertNumberEqual(actual, expect, ETH_DECIMALS);
-}
-
-export function assertNumberAlmostEqual(
-  actual: Web3.AnyNumber,
-  expect: Web3.AnyNumber,
-  epsilon: Web3.AnyNumber,
-  decimals: number
-) {
-  const actualNum = new BigNumber(actual);
-  const expectNum = new BigNumber(expect);
-  const epsilonNum = new BigNumber(epsilon);
-
-  if (
-    actualNum.lessThan(expectNum.sub(epsilonNum)) ||
-    actualNum.greaterThan(expectNum.add(epsilonNum))
-  ) {
-    const div = decimals ? Math.pow(10, decimals) : 1;
-    assert.fail(
-      actualNum.toFixed(),
-      expectNum.toFixed(),
-      `${actualNum.div(div).toFixed()} == ${expectNum
-        .div(div)
-        .toFixed()} (precision ${epsilonNum.div(div).toFixed()})`,
-      '=='
-    );
-  }
-}
-
-export function assertEtherAlmostEqual(
-  actual: Web3.AnyNumber,
-  expect: Web3.AnyNumber,
-  epsilon?: Web3.AnyNumber
-) {
-  epsilon = epsilon || DEFAULT_ACCEPTABLE_ERROR;
-
-  return assertNumberAlmostEqual(actual, expect, epsilon, ETH_DECIMALS);
+export function assertTokenEqual(actual: any, expect: any) {
+  return assertNumberEqual(actual, expect, ONL_DECIMALS);
 }
 
 export function findLastLog(
