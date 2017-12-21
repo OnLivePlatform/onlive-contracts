@@ -32,9 +32,9 @@ contract MintableToken is BasicToken, Ownable {
     /**
      * @dev Tokens minted to specified address
      * @param to address The receiver of the tokens
-     * @param value uint256 The amount of tokens
+     * @param amount uint256 The amount of tokens
      */
-    event Minted(address indexed to, uint256 value);
+    event Minted(address indexed to, uint256 amount);
 
     /**
      * @dev Approves specified address as a Minting Manager
@@ -95,18 +95,18 @@ contract MintableToken is BasicToken, Ownable {
     /**
      * @dev Create new tokens and transfer them to specified address
      * @param to address The address to transfer to
-     * @param value uint256 The amount to be minted
+     * @param amount uint256 The amount to be minted
      */
-    function mint(address to, uint256 value)
+    function mint(address to, uint256 amount)
         public
         onlyMintingManager(msg.sender)
         onlyMintingNotFinished
     {
-        totalSupply = totalSupply.add(value);
-        balances[to] = balances[to].add(value);
+        totalSupply = totalSupply.add(amount);
+        balances[to] = balances[to].add(amount);
 
-        Minted(to, value);
-        Transfer(MINT_ADDRESS, to, value);
+        Minted(to, amount);
+        Transfer(MINT_ADDRESS, to, amount);
     }
 
     /**

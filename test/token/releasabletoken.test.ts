@@ -9,17 +9,15 @@ import {
   TransferManagerApprovedEvent,
   TransferManagerRevokedEvent
 } from 'onlive';
-import { Web3Utils } from '../../utils';
 import {
   assertThrowsInvalidOpcode,
   assertTokenEqual,
-  findLastLog
+  findLastLog,
+  toONL
 } from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
-
-const utils = new Web3Utils(web3);
 
 export function testSetReleaseManager(ctx: TokenTestContext<ReleasableToken>) {
   const releaseManager = ctx.accounts[0];
@@ -232,17 +230,17 @@ export function testTransfer(
   it('should change balances when released', async () => {
     await ctx.token.release({ from: releaseManager });
 
-    const value = utils.toEther(1);
+    const amount = toONL(1);
 
     const expectedDestinationBalance = (await ctx.token.balanceOf(
       destinationAccount
-    )).add(value);
+    )).add(amount);
 
     const expectedSourceBalance = (await ctx.token.balanceOf(
       sourceAccount
-    )).sub(value);
+    )).sub(amount);
 
-    await ctx.token.transfer(destinationAccount, value, {
+    await ctx.token.transfer(destinationAccount, amount, {
       from: sourceAccount
     });
 
@@ -259,7 +257,7 @@ export function testTransfer(
 
   it('should throw when not released', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.transfer(destinationAccount, utils.toEther(1), {
+      await ctx.token.transfer(destinationAccount, toONL(1), {
         from: sourceAccount
       });
     });
@@ -273,11 +271,11 @@ export function testTransferFrom(
   const releaseManager = ctx.accounts[0];
   const destinationAccount = ctx.accounts[1];
   const approvedAccount = ctx.accounts[2];
-  const value = utils.toEther(1);
+  const amount = toONL(1);
 
   beforeEach(async () => {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
-    await ctx.token.approve(approvedAccount, value, { from: sourceAccount });
+    await ctx.token.approve(approvedAccount, amount, { from: sourceAccount });
   });
 
   it('should change balances when released', async () => {
@@ -285,13 +283,13 @@ export function testTransferFrom(
 
     const expectedDestinationBalance = (await ctx.token.balanceOf(
       destinationAccount
-    )).add(value);
+    )).add(amount);
 
     const expectedSourceBalance = (await ctx.token.balanceOf(
       sourceAccount
-    )).sub(value);
+    )).sub(amount);
 
-    await ctx.token.transferFrom(sourceAccount, destinationAccount, value, {
+    await ctx.token.transferFrom(sourceAccount, destinationAccount, amount, {
       from: approvedAccount
     });
 
@@ -308,7 +306,7 @@ export function testTransferFrom(
 
   it('should throw when not released', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.transferFrom(sourceAccount, destinationAccount, value, {
+      await ctx.token.transferFrom(sourceAccount, destinationAccount, amount, {
         from: approvedAccount
       });
     });

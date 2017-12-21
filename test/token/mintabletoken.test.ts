@@ -10,17 +10,15 @@ import {
   MintingManagerRevokedEvent,
   TransferEvent
 } from 'onlive';
-import { Web3Utils } from '../../utils';
 import {
   assertThrowsInvalidOpcode,
   assertTokenEqual,
-  findLastLog
+  findLastLog,
+  toONL
 } from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
-
-const utils = new Web3Utils(web3);
 
 export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
   const mintingManager = ctx.accounts[0];
@@ -139,7 +137,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should increase total supply', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const expectedSupply = (await ctx.token.totalSupply()).add(value);
 
     await ctx.token.mint(destinationAccount, value, { from: mintingManager });
@@ -148,7 +146,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should increase balance of destination account', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const expectedValue = (await ctx.token.balanceOf(destinationAccount)).add(
       value
     );
@@ -162,7 +160,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should emit Minted event', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const tx = await ctx.token.mint(destinationAccount, value, {
       from: mintingManager
     });
@@ -177,7 +175,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should emit Transfer event', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const tx = await ctx.token.mint(destinationAccount, value, {
       from: mintingManager
     });
@@ -196,7 +194,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
     await ctx.token.finishMinting({ from: ctx.owner });
 
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.mint(destinationAccount, utils.toEther(1), {
+      await ctx.token.mint(destinationAccount, toONL(1), {
         from: mintingManager
       });
     });
@@ -204,7 +202,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 
   it('should throw when called by not minting manager', async () => {
     await assertThrowsInvalidOpcode(async () => {
-      await ctx.token.mint(destinationAccount, utils.toEther(1), {
+      await ctx.token.mint(destinationAccount, toONL(1), {
         from: otherAccount
       });
     });

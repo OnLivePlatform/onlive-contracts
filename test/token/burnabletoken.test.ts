@@ -3,24 +3,22 @@ import { assert } from 'chai';
 import * as Web3 from 'web3';
 
 import { BurnableToken, BurnedEvent, TransferEvent } from 'onlive';
-import { Web3Utils } from '../../utils';
 import {
   assertThrowsInvalidOpcode,
   assertTokenEqual,
-  findLastLog
+  findLastLog,
+  toONL
 } from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
-
-const utils = new Web3Utils(web3);
 
 export function testBurn(
   ctx: TokenTestContext<BurnableToken>,
   burnerAccount: Address
 ) {
   it('should reduce total supply', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const expectedSupply = (await ctx.token.totalSupply()).sub(value);
 
     await ctx.token.burn(value, { from: burnerAccount });
@@ -28,7 +26,7 @@ export function testBurn(
   });
 
   it('should reduce sender balance', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const expectedBalance = (await ctx.token.balanceOf(burnerAccount)).sub(
       value
     );
@@ -38,7 +36,7 @@ export function testBurn(
   });
 
   it('should emit Burned event', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const tx = await ctx.token.burn(value, {
       from: burnerAccount
     });
@@ -53,7 +51,7 @@ export function testBurn(
   });
 
   it('should emit Transfer event', async () => {
-    const value = utils.toEther(1);
+    const value = toONL(1);
     const tx = await ctx.token.burn(value, {
       from: burnerAccount
     });
@@ -70,7 +68,7 @@ export function testBurn(
 
   it('should throw when insufficient balance', async () => {
     const balance = await ctx.token.balanceOf(burnerAccount);
-    const value = balance.add(utils.toEther(1));
+    const value = balance.add(toONL(1));
 
     await assertThrowsInvalidOpcode(async () => {
       await ctx.token.burn(value, { from: burnerAccount });
