@@ -189,6 +189,13 @@ declare module 'onlive' {
       endBlock(): Promise<BigNumber>;
       tokensAvailable(): Promise<BigNumber>;
       isPaymentRegistered(paymentId: string): Promise<boolean>;
+      isActive(): Promise<boolean>;
+
+      scheduleSale(
+        startBlock: AnyNumber,
+        endBlock: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
 
       registerPurchase(
         paymentId: string,
@@ -202,6 +209,11 @@ declare module 'onlive' {
       paymentId: string;
       purchaser: Address;
       amount: BigNumber;
+    }
+
+    interface SaleScheduledEvent {
+      startBlock: BigNumber;
+      endBlock: BigNumber;
     }
 
     interface MigrationsContract extends Contract<Migrations> {

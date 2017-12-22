@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import { propOr } from 'ramda';
 
 import * as Web3 from 'web3';
 
@@ -6,11 +7,15 @@ import {
   ExternalCrowdsale,
   MintableToken,
   OnLiveArtifacts,
-  PurchaseRegisteredEvent
+  PurchaseRegisteredEvent,
+  SaleScheduledEvent
 } from 'onlive';
 
+import { BigNumber } from 'bignumber.js';
 import { ContractContextDefinition } from 'truffle';
+import { AnyNumber } from 'web3';
 import {
+  assertNumberEqual,
   assertThrowsInvalidOpcode,
   assertTokenEqual,
   findLastLog,
@@ -21,11 +26,25 @@ declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
 declare const contract: ContractContextDefinition;
 
+interface ScheduleOptions {
+  startBlock: AnyNumber;
+  endBlock: AnyNumber;
+  from: Address;
+}
+
+interface PurchaseOptions {
+  paymentId: string;
+  purchaser: Address;
+  amount: AnyNumber;
+  from: Address;
+}
+
 const ExternalCrowdsaleContract = artifacts.require('./ExternalCrowdsale.sol');
 const MintableTokenContract = artifacts.require('./token/MintableToken.sol');
 
 contract('ExternalCrowdsale', accounts => {
   const owner = accounts[9];
+  const nonOwner = accounts[8];
 
   let token: MintableToken;
 
@@ -70,7 +89,11 @@ contract('ExternalCrowdsale', accounts => {
   });
 
   context('Given deployed token contract', () => {
+    const saleDuration = 1000;
+
     let crowdsale: ExternalCrowdsale;
+    let startBlock: number;
+    let endBlock: number;
 
     beforeEach(async () => {
       crowdsale = await ExternalCrowdsaleContract.new(
@@ -78,8 +101,82 @@ contract('ExternalCrowdsale', accounts => {
         toONL(1000),
         { from: owner }
       );
-
       await token.approveMintingManager(crowdsale.address, { from: owner });
+    });
+
+    async function scheduleSale(options?: Partial<ScheduleOptions>) {
+      return await crowdsale.scheduleSale(
+        propOr(startBlock, 'startBlock', options),
+        propOr(endBlock, 'endBlock', options),
+        { from: propOr(owner, 'from', options) }
+      );
+    }
+
+    describe('#scheduleSale', () => {
+      beforeEach(() => {
+        startBlock = web3.eth.blockNumber;
+        endBlock = startBlock + saleDuration;
+      });
+
+      it('should set startBlock', async () => {
+        await scheduleSale();
+        assertNumberEqual(await crowdsale.startBlock(), startBlock);
+      });
+
+      it('should set endBlock', async () => {
+        await scheduleSale();
+        assertNumberEqual(await crowdsale.endBlock(), endBlock);
+      });
+
+      it('should emit SaleScheduled event', async () => {
+        const tx = await scheduleSale();
+
+        const log = findLastLog(tx, 'SaleScheduled');
+        assert.isOk(log);
+
+        const event = log.args as SaleScheduledEvent;
+        assert.isOk(event);
+        assertNumberEqual(event.startBlock, startBlock);
+        assertNumberEqual(event.endBlock, endBlock);
+      });
+
+      it('should throw when start block is zero', async () => {
+        await assertThrowsInvalidOpcode(async () => {
+          await scheduleSale({ startBlock: new BigNumber(0) });
+        });
+      });
+
+      it('should throw when end block is zero', async () => {
+        await assertThrowsInvalidOpcode(async () => {
+          await scheduleSale({ endBlock: new BigNumber(0) });
+        });
+      });
+
+      it('should throw when end block is equal start block', async () => {
+        await assertThrowsInvalidOpcode(async () => {
+          await scheduleSale({ endBlock: startBlock });
+        });
+      });
+
+      it('should throw when end block is lower than start block', async () => {
+        await assertThrowsInvalidOpcode(async () => {
+          await scheduleSale({ endBlock: startBlock - 1 });
+        });
+      });
+
+      it('should throw when called by non-owner', async () => {
+        await assertThrowsInvalidOpcode(async () => {
+          await scheduleSale({ from: nonOwner });
+        });
+      });
+
+      it('should throw when already scheduled', async () => {
+        await scheduleSale();
+
+        await assertThrowsInvalidOpcode(async () => {
+          await scheduleSale();
+        });
+      });
     });
 
     describe('#registerPurchase', () => {
@@ -87,48 +184,101 @@ contract('ExternalCrowdsale', accounts => {
       const purchaser = accounts[2];
       const amount = toONL(100);
 
-      it('should reduce amount of available tokens', async () => {
-        const availableAmount = await crowdsale.tokensAvailable();
-        const expectedAmount = availableAmount.sub(amount);
-        await crowdsale.registerPurchase(paymentId, purchaser, amount, {
-          from: owner
-        });
-        assertTokenEqual(await crowdsale.tokensAvailable(), expectedAmount);
-      });
-
-      it('should mint tokens for purchaser', async () => {
-        const balance = await token.balanceOf(purchaser);
-        const expectedBalance = balance.add(amount);
-        await crowdsale.registerPurchase(paymentId, purchaser, amount, {
-          from: owner
-        });
-        assertTokenEqual(await token.balanceOf(purchaser), expectedBalance);
-      });
-
-      it('should mark payment id as registered', async () => {
-        assert.isFalse(await crowdsale.isPaymentRegistered(paymentId));
-        await crowdsale.registerPurchase(paymentId, purchaser, amount, {
-          from: owner
-        });
-        assert.isTrue(await crowdsale.isPaymentRegistered(paymentId));
-      });
-
-      it('should emit PurchaseRegistered event', async () => {
-        const tx = await crowdsale.registerPurchase(
-          paymentId,
-          purchaser,
-          amount,
-          { from: owner }
+      async function registerPurchase(options?: Partial<PurchaseOptions>) {
+        return await crowdsale.registerPurchase(
+          propOr(paymentId, 'paymentId', options),
+          propOr(purchaser, 'purchaser', options),
+          propOr(amount, 'amount', options),
+          { from: propOr(owner, 'from', options) }
         );
+      }
 
-        const log = findLastLog(tx, 'PurchaseRegistered');
-        assert.isOk(log);
+      it('should throw when sale is not scheduled', async () => {
+        await assertThrowsInvalidOpcode(async () => {
+          await registerPurchase();
+        });
+      });
 
-        const event = log.args as PurchaseRegisteredEvent;
-        assert.isOk(event);
-        assert.equal(event.paymentId, paymentId);
-        assert.equal(event.purchaser, purchaser);
-        assertTokenEqual(event.amount, amount);
+      it('should throw when sale is not active', async () => {
+        const futureStart = web3.eth.blockNumber + 1000;
+        await scheduleSale({
+          endBlock: futureStart + saleDuration,
+          startBlock: futureStart
+        });
+
+        assert.isFalse(await crowdsale.isActive());
+
+        await assertThrowsInvalidOpcode(async () => {
+          await registerPurchase();
+        });
+      });
+
+      context('Given sale is active', () => {
+        beforeEach(async () => {
+          await scheduleSale();
+
+          assert.isTrue(await crowdsale.isActive());
+        });
+
+        it('should reduce amount of available tokens', async () => {
+          const availableAmount = await crowdsale.tokensAvailable();
+          const expectedAmount = availableAmount.sub(amount);
+          await registerPurchase();
+          assertTokenEqual(await crowdsale.tokensAvailable(), expectedAmount);
+        });
+
+        it('should mint tokens for purchaser', async () => {
+          const balance = await token.balanceOf(purchaser);
+          const expectedBalance = balance.add(amount);
+          await registerPurchase();
+          assertTokenEqual(await token.balanceOf(purchaser), expectedBalance);
+        });
+
+        it('should mark payment id as registered', async () => {
+          assert.isFalse(await crowdsale.isPaymentRegistered(paymentId));
+          await registerPurchase();
+          assert.isTrue(await crowdsale.isPaymentRegistered(paymentId));
+        });
+
+        it('should emit PurchaseRegistered event', async () => {
+          const tx = await registerPurchase();
+
+          const log = findLastLog(tx, 'PurchaseRegistered');
+          assert.isOk(log);
+
+          const event = log.args as PurchaseRegisteredEvent;
+          assert.isOk(event);
+          assert.equal(event.paymentId, paymentId);
+          assert.equal(event.purchaser, purchaser);
+          assertTokenEqual(event.amount, amount);
+        });
+
+        it('should throw when called by non-owner', async () => {
+          await assertThrowsInvalidOpcode(async () => {
+            await registerPurchase({ from: nonOwner });
+          });
+        });
+
+        it('should throw when purchaser address is zero', async () => {
+          await assertThrowsInvalidOpcode(async () => {
+            await registerPurchase({ purchaser: '0x' + '0'.repeat(40) });
+          });
+        });
+
+        it('should throw when purchased amount is zero', async () => {
+          await assertThrowsInvalidOpcode(async () => {
+            await registerPurchase({ amount: 0 });
+          });
+        });
+
+        it('should throw when payment id is duplicated', async () => {
+          const duplicatedPaymentId = '0x123';
+          await registerPurchase({ paymentId: duplicatedPaymentId });
+
+          await assertThrowsInvalidOpcode(async () => {
+            await registerPurchase({ paymentId: duplicatedPaymentId });
+          });
+        });
       });
     });
   });
