@@ -21,19 +21,19 @@ contract BurnableToken is BasicToken {
     /**
      * @dev Tokens destroyed from specified address
      * @param from address The burner
-     * @param value uint256 The amount of destroyed tokens
+     * @param amount uint256 The amount of destroyed tokens
      */
-    event Burned(address indexed from, uint256 value);
+    event Burned(address indexed from, uint256 amount);
 
     /**
      * @dev Destroy tokens (reduce total supply)
-     * @param value uint256 The amount of tokens to be burned
+     * @param amount uint256 The amount of tokens to be burned
      */
-    function burn(uint256 value) public {
-        balances[msg.sender] = balances[msg.sender].sub(value);
-        totalSupply = totalSupply.sub(value);
+    function burn(uint256 amount) public {
+        balances[msg.sender] = balances[msg.sender].sub(amount);
+        totalSupply = totalSupply.sub(amount);
 
-        Burned(msg.sender, value);
-        Transfer(msg.sender, BURN_ADDRESS, value);
+        Burned(msg.sender, amount);
+        Transfer(msg.sender, BURN_ADDRESS, amount);
     }
 }

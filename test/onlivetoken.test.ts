@@ -6,8 +6,7 @@ import * as Web3 from 'web3';
 import { OnLiveArtifacts, OnLiveToken } from 'onlive';
 
 import { ContractContextDefinition } from 'truffle';
-import { Web3Utils } from '../utils';
-import { assertTokenEqual } from './helpers';
+import { assertTokenEqual, toONL } from './helpers';
 import { testBurn } from './token/burnabletoken.test';
 import { testMint as testCappedMint } from './token/cappedmintabletoken.test';
 import { TokenTestContext } from './token/context';
@@ -33,13 +32,11 @@ declare const contract: ContractContextDefinition;
 
 const OnLiveTokenContract = artifacts.require('./OnLiveToken.sol');
 
-const utils = new Web3Utils(web3);
-
 contract('OnLiveToken', accounts => {
   const owner = accounts[9];
   const name = 'OnLive Token';
   const symbol = 'ONL';
-  const maxSupply = utils.toEther(1000);
+  const maxSupply = toONL(1000);
 
   async function createToken(options: any = {}) {
     return await OnLiveTokenContract.new(
@@ -105,7 +102,7 @@ contract('OnLiveToken', accounts => {
     });
 
     context('Given account has 100 tokens', () => {
-      const initialBalance = utils.toEther(100);
+      const initialBalance = toONL(100);
       const holderAccount = ctx.accounts[5];
       const mintingManager = ctx.accounts[6];
 

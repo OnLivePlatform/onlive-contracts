@@ -35,12 +35,12 @@ contract CappedMintableToken is MintableToken {
      * @dev Create new tokens and transfer them to specified address
      * @dev Checks against capped max supply of token.
      * @param to address The address to transfer to
-     * @param value uint256 The amount to be minted
+     * @param amount uint256 The amount to be minted
      */
-    function mint(address to, uint256 value)
+    function mint(address to, uint256 amount)
         public
-        onlyNotExceedingMaxSupply(totalSupply.add(value))
+        onlyNotExceedingMaxSupply(totalSupply.add(amount))
     {
-        return MintableToken.mint(to, value);
+        return MintableToken.mint(to, amount);
     }
 }

@@ -152,17 +152,17 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Transfer token to a specified address
      * @dev Available only after token release
      * @param to address The address to transfer to
-     * @param value uint256 The amount to be transferred
+     * @param amount uint256 The amount to be transferred
      */
     function transfer(
         address to,
-        uint256 value
+        uint256 amount
     )
         public
         onlyTransferableFrom(msg.sender)
         returns (bool)
     {
-        return super.transfer(to, value);
+        return super.transfer(to, amount);
     }
 
     /**
@@ -170,17 +170,17 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Available only after token release
      * @param from address The address which you want to send tokens from
      * @param to address The address which you want to transfer to
-     * @param value uint256 the amount of tokens to be transferred
+     * @param amount uint256 the amount of tokens to be transferred
      */
     function transferFrom(
         address from,
         address to,
-        uint256 value
+        uint256 amount
     )
         public
         onlyTransferableFrom(from)
         returns (bool)
     {
-        return super.transferFrom(from, to, value);
+        return super.transferFrom(from, to, amount);
     }
 }

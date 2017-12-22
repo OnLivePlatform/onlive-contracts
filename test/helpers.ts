@@ -9,6 +9,11 @@ declare const web3: Web3;
 
 const ONL_DECIMALS = 18;
 
+export function toONL(num: number | string) {
+  // assumes that ONL has 18 decimals just like ETH
+  return new BigNumber(web3.toWei(num, 'ether'));
+}
+
 export async function assertThrowsInvalidOpcode(func: () => void) {
   try {
     await func();
