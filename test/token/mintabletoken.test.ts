@@ -137,21 +137,21 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should increase total supply', async () => {
-    const value = toONL(1);
-    const expectedSupply = (await ctx.token.totalSupply()).add(value);
+    const amount = toONL(1);
+    const expectedSupply = (await ctx.token.totalSupply()).add(amount);
 
-    await ctx.token.mint(destinationAccount, value, { from: mintingManager });
+    await ctx.token.mint(destinationAccount, amount, { from: mintingManager });
 
     assertTokenEqual(await ctx.token.totalSupply(), expectedSupply);
   });
 
   it('should increase balance of destination account', async () => {
-    const value = toONL(1);
+    const amount = toONL(1);
     const expectedValue = (await ctx.token.balanceOf(destinationAccount)).add(
-      value
+      amount
     );
 
-    await ctx.token.mint(destinationAccount, value, { from: mintingManager });
+    await ctx.token.mint(destinationAccount, amount, { from: mintingManager });
 
     assertTokenEqual(
       await ctx.token.balanceOf(destinationAccount),
@@ -160,8 +160,8 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should emit Minted event', async () => {
-    const value = toONL(1);
-    const tx = await ctx.token.mint(destinationAccount, value, {
+    const amount = toONL(1);
+    const tx = await ctx.token.mint(destinationAccount, amount, {
       from: mintingManager
     });
 
@@ -171,12 +171,12 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
     const event = log.args as MintedEvent;
     assert.isOk(event);
     assert.equal(event.to, destinationAccount);
-    assertTokenEqual(event.value, value);
+    assertTokenEqual(event.amount, amount);
   });
 
   it('should emit Transfer event', async () => {
-    const value = toONL(1);
-    const tx = await ctx.token.mint(destinationAccount, value, {
+    const amount = toONL(1);
+    const tx = await ctx.token.mint(destinationAccount, amount, {
       from: mintingManager
     });
 
@@ -187,7 +187,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
     assert.isOk(event);
     assert.equal(event.from, '0x' + '0'.repeat(40));
     assert.equal(event.to, destinationAccount);
-    assertTokenEqual(event.value, value);
+    assertTokenEqual(event.value, amount);
   });
 
   it('should throw when minting is finished', async () => {

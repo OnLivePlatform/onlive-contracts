@@ -1,4 +1,5 @@
 declare module 'onlive' {
+  import { BigNumber } from 'bignumber.js';
   import {
     AnyContract,
     Contract,
@@ -8,7 +9,6 @@ declare module 'onlive' {
     TruffleArtifacts
   } from 'truffle';
   import { AnyNumber } from 'web3';
-  import { BigNumber } from 'bignumber.js';
 
   namespace onlive {
     interface Migrations extends ContractBase {
@@ -35,7 +35,7 @@ declare module 'onlive' {
 
       transfer(
         to: Address,
-        value: BigNumber,
+        amount: BigNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
     }
@@ -104,7 +104,7 @@ declare module 'onlive' {
       addr: Address;
     }
 
-    interface ReleasedEvent {}
+    type ReleasedEvent = {};
 
     interface MintableToken extends ERC20Basic, Ownable {
       mintingFinished(): Promise<boolean>;
@@ -131,7 +131,7 @@ declare module 'onlive' {
 
     interface MintedEvent {
       to: Address;
-      value: BigNumber;
+      amount: BigNumber;
     }
 
     interface MintingManagerApprovedEvent {
@@ -142,7 +142,7 @@ declare module 'onlive' {
       addr: Address;
     }
 
-    interface MintingFinishedEvent {}
+    type MintingFinishedEvent = {};
 
     interface CappedMintableToken extends MintableToken {
       maxSupply(): Promise<BigNumber>;
@@ -150,14 +150,14 @@ declare module 'onlive' {
 
     interface BurnableToken extends ERC20Basic {
       burn(
-        value: AnyNumber,
+        amount: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
     }
 
     interface BurnedEvent {
       from: Address;
-      value: BigNumber;
+      amount: BigNumber;
     }
 
     interface DescriptiveToken extends ERC20Basic, Ownable {
@@ -182,6 +182,27 @@ declare module 'onlive' {
         ReleasableToken,
         CappedMintableToken,
         BurnableToken {}
+
+    interface ExternalCrowdsale extends ContractBase {
+      token(): Promise<string>;
+      startBlock(): Promise<BigNumber>;
+      endBlock(): Promise<BigNumber>;
+      tokensAvailable(): Promise<BigNumber>;
+      isPaymentRegistered(paymentId: string): Promise<boolean>;
+
+      registerPurchase(
+        paymentId: string,
+        purchaser: Address,
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface PurchaseRegisteredEvent {
+      paymentId: string;
+      purchaser: Address;
+      amount: BigNumber;
+    }
 
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
@@ -216,6 +237,14 @@ declare module 'onlive' {
       ): Promise<OnLiveToken>;
     }
 
+    interface ExternalCrowdsaleContract extends Contract<ExternalCrowdsale> {
+      'new'(
+        token: Address,
+        tokensAvailable: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<ExternalCrowdsale>;
+    }
+
     interface OnLiveArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
@@ -223,6 +252,7 @@ declare module 'onlive' {
       require(name: './token/MintableToken.sol'): MintableTokenContract;
       require(name: './token/BurnableToken.sol'): BurnableTokenContract;
       require(name: './OnLiveToken.sol'): OnLiveTokenContract;
+      require(name: './ExternalCrowdsale.sol'): ExternalCrowdsaleContract;
     }
   }
 

@@ -5,7 +5,7 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 contract Mintable {
-    function mint(address to, uint256 amount);
+    function mint(address to, uint256 amount) public;
 }
 
 
@@ -29,15 +29,19 @@ contract ExternalCrowdsale is Ownable {
     mapping (bytes32 => Purchase) private purchases;
     uint256 public tokensAvailable;
 
-    function ExternalCrowdsale(Mintable _token, uint256 _tokensAvailable) public {
+    function ExternalCrowdsale(Mintable _token, uint256 _tokensAvailable)
+        public
+        onlyValid(_token)
+        onlyNotZero(_tokensAvailable)
+    {
         token = _token;
         tokensAvailable = _tokensAvailable;
     }
 
     event PurchaseRegistered(bytes32 indexed paymentId, address indexed purchaser, uint256 amount);
 
-    modifier onlyNotRegistered(bytes32 paymentId) {
-        require(!isRegistered(paymentId));
+    modifier onlyUniquePayment(bytes32 paymentId) {
+        require(!isPaymentRegistered(paymentId));
         _;
     }
 
@@ -56,7 +60,7 @@ contract ExternalCrowdsale is Ownable {
         onlyOwner
         onlyValid(purchaser)
         onlyNotZero(amount)
-        onlyNotRegistered(paymentId)
+        onlyUniquePayment(paymentId)
     {
         purchases[paymentId] = Purchase({
             purchaser: purchaser,
@@ -71,7 +75,7 @@ contract ExternalCrowdsale is Ownable {
         PurchaseRegistered(paymentId, purchaser, amount);
     }
 
-    function isRegistered(bytes32 paymentId) public returns (bool) {
+    function isPaymentRegistered(bytes32 paymentId) public view returns (bool) {
         Purchase storage purchase = purchases[paymentId];
         return purchase.purchaser != address(0) && purchase.amount != 0;
     }

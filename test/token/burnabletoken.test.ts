@@ -18,26 +18,26 @@ export function testBurn(
   burnerAccount: Address
 ) {
   it('should reduce total supply', async () => {
-    const value = toONL(1);
-    const expectedSupply = (await ctx.token.totalSupply()).sub(value);
+    const amount = toONL(1);
+    const expectedSupply = (await ctx.token.totalSupply()).sub(amount);
 
-    await ctx.token.burn(value, { from: burnerAccount });
+    await ctx.token.burn(amount, { from: burnerAccount });
     assertTokenEqual(await ctx.token.totalSupply(), expectedSupply);
   });
 
   it('should reduce sender balance', async () => {
-    const value = toONL(1);
+    const amount = toONL(1);
     const expectedBalance = (await ctx.token.balanceOf(burnerAccount)).sub(
-      value
+      amount
     );
 
-    await ctx.token.burn(value, { from: burnerAccount });
+    await ctx.token.burn(amount, { from: burnerAccount });
     assertTokenEqual(await ctx.token.totalSupply(), expectedBalance);
   });
 
   it('should emit Burned event', async () => {
-    const value = toONL(1);
-    const tx = await ctx.token.burn(value, {
+    const amount = toONL(1);
+    const tx = await ctx.token.burn(amount, {
       from: burnerAccount
     });
 
@@ -47,12 +47,12 @@ export function testBurn(
     const event = log.args as BurnedEvent;
     assert.isOk(event);
     assert.equal(event.from, burnerAccount);
-    assertTokenEqual(event.value, value);
+    assertTokenEqual(event.amount, amount);
   });
 
   it('should emit Transfer event', async () => {
-    const value = toONL(1);
-    const tx = await ctx.token.burn(value, {
+    const amount = toONL(1);
+    const tx = await ctx.token.burn(amount, {
       from: burnerAccount
     });
 
@@ -63,7 +63,7 @@ export function testBurn(
     assert.isOk(event);
     assert.equal(event.from, burnerAccount);
     assert.equal(event.to, '0x' + '0'.repeat(40));
-    assertTokenEqual(event.value, value);
+    assertTokenEqual(event.value, amount);
   });
 
   it('should throw when insufficient balance', async () => {
