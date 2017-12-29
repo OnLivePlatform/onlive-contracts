@@ -10,11 +10,11 @@ import {
   MintingManagerRevokedEvent,
   TransferEvent
 } from 'onlive';
+import { toONL } from '../../utils';
 import {
-  assertThrowsInvalidOpcode,
+  assertReverts,
   assertTokenEqual,
-  findLastLog,
-  toONL
+  findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
 
@@ -58,18 +58,18 @@ export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
     assert.equal(event.addr, mintingManager);
   });
 
-  it('should throw when called by non-owner', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by non-owner', async () => {
+    await assertReverts(async () => {
       await ctx.token.approveMintingManager(mintingManager, {
         from: otherAccount
       });
     });
   });
 
-  it('should throw when called after finished minting', async () => {
+  it('should revert when called after finished minting', async () => {
     await ctx.token.finishMinting({ from: ctx.owner });
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.approveMintingManager(otherAccount, { from: ctx.owner });
     });
   });
@@ -102,24 +102,24 @@ export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
     assert.equal(event.addr, mintingManager);
   });
 
-  it('should throw when minting manager does not exist', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when minting manager does not exist', async () => {
+    await assertReverts(async () => {
       await ctx.token.revokeMintingManager(otherAccount, { from: ctx.owner });
     });
   });
 
-  it('should throw when called by non-owner', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by non-owner', async () => {
+    await assertReverts(async () => {
       await ctx.token.revokeMintingManager(mintingManager, {
         from: otherAccount
       });
     });
   });
 
-  it('should throw when called after finished minting', async () => {
+  it('should revert when called after finished minting', async () => {
     await ctx.token.finishMinting({ from: ctx.owner });
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.revokeMintingManager(mintingManager, {
         from: ctx.owner
       });
@@ -190,18 +190,18 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
     assertTokenEqual(event.value, amount);
   });
 
-  it('should throw when minting is finished', async () => {
+  it('should revert when minting is finished', async () => {
     await ctx.token.finishMinting({ from: ctx.owner });
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.mint(destinationAccount, toONL(1), {
         from: mintingManager
       });
     });
   });
 
-  it('should throw when called by not minting manager', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by not minting manager', async () => {
+    await assertReverts(async () => {
       await ctx.token.mint(destinationAccount, toONL(1), {
         from: otherAccount
       });
@@ -228,16 +228,16 @@ export function testFinishMinting(ctx: TokenTestContext<MintableToken>) {
     assert.isOk(event);
   });
 
-  it('should throw when called by not release manager', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by not release manager', async () => {
+    await assertReverts(async () => {
       await ctx.token.finishMinting({ from: otherAccount });
     });
   });
 
-  it('should throw when called after finished minting', async () => {
+  it('should revert when called after finished minting', async () => {
     await ctx.token.finishMinting({ from: ctx.owner });
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.finishMinting({ from: ctx.owner });
     });
   });

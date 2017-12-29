@@ -7,6 +7,8 @@ declare module 'truffle' {
   import { TxData } from 'web3';
 
   namespace truffle {
+    type ScriptFinalizer = ((err?: any) => void);
+
     type ContractCallback = (
       this: Mocha.ISuiteCallbackContext,
       accounts: Address[]

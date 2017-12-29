@@ -3,11 +3,11 @@ import { assert } from 'chai';
 import * as Web3 from 'web3';
 
 import { BurnableToken, BurnedEvent, TransferEvent } from 'onlive';
+import { toONL } from '../../utils';
 import {
-  assertThrowsInvalidOpcode,
+  assertReverts,
   assertTokenEqual,
-  findLastLog,
-  toONL
+  findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
 
@@ -66,11 +66,11 @@ export function testBurn(
     assertTokenEqual(event.value, amount);
   });
 
-  it('should throw when insufficient balance', async () => {
+  it('should revert when insufficient balance', async () => {
     const balance = await ctx.token.balanceOf(burnerAccount);
     const value = balance.add(toONL(1));
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.burn(value, { from: burnerAccount });
     });
   });

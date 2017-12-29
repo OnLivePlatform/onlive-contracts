@@ -5,36 +5,31 @@ import { assert } from 'chai';
 import { findLast, propEq } from 'ramda';
 import { TransactionLog, TransactionResult } from 'truffle';
 
+import { ONL_DECIMALS } from '../utils';
+
 declare const web3: Web3;
 
-const ONL_DECIMALS = 18;
-
-export function toONL(num: number | string) {
-  // assumes that ONL has 18 decimals just like ETH
-  return new BigNumber(web3.toWei(num, 'ether'));
-}
-
-export async function assertThrowsInvalidOpcode(func: () => void) {
+export async function assertReverts(func: () => void) {
   try {
     await func();
   } catch (error) {
-    assertInvalidOpcode(error);
+    assertRevertError(error);
     return;
   }
-  assert.fail({}, {}, 'Should have thrown Invalid Opcode');
+  assert.fail({}, {}, 'Should have reverted');
 }
 
-export function assertInvalidOpcode(error: { message: string }) {
+export function assertRevertError(error: { message: string }) {
   if (error && error.message) {
-    if (error.message.search('invalid opcode') === -1) {
+    if (error.message.search('revert') === -1) {
       assert.fail(
         error,
         {},
-        'Expected Invalid Opcode error, instead got: ' + error.message
+        'Expected revert error, instead got: ' + error.message
       );
     }
   } else {
-    assert.fail(error, {}, 'Expected Invalid Opcode error');
+    assert.fail(error, {}, 'Expected revert error');
   }
 }
 

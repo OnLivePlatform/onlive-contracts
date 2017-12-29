@@ -3,7 +3,7 @@ import { assert } from 'chai';
 import * as Web3 from 'web3';
 
 import { DescriptionChangedEvent, DescriptiveToken } from 'onlive';
-import { assertThrowsInvalidOpcode, findLastLog } from '../helpers';
+import { assertReverts, findLastLog } from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
@@ -42,10 +42,10 @@ export function testChangeDescription(ctx: TokenTestContext<DescriptiveToken>) {
     assert.equal(event.symbol, symbol);
   });
 
-  it('should throw when called by non-owner', async () => {
+  it('should revert when called by non-owner', async () => {
     const otherAccount = ctx.accounts[0];
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.changeDescription(name, symbol, {
         from: otherAccount
       });

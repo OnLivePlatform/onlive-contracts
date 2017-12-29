@@ -24,9 +24,12 @@ declare module 'web3' {
 
   class Web3 {
     public eth: {
-      blockNumber: number;
+      accounts: Address[];
+      coinbase: Address;
+
+      getBlockNumber(callback: Callback<number>): void;
       sendTransaction(txData: Web3.TxData, callback: Callback<string>): void;
-      getBalance(account: Address, callback: Callback<BigNumber>): BigNumber;
+      getBalance(account: Address, callback: Callback<BigNumber>): void;
       sign(account: Address, text: string): string;
     };
 

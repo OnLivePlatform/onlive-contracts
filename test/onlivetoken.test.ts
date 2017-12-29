@@ -1,12 +1,12 @@
 import { assert } from 'chai';
 import { without } from 'ramda';
 
+import { ContractContextDefinition } from 'truffle';
 import * as Web3 from 'web3';
 
 import { OnLiveArtifacts, OnLiveToken } from 'onlive';
-
-import { ContractContextDefinition } from 'truffle';
-import { assertTokenEqual, toONL } from './helpers';
+import { toONL } from '../utils';
+import { assertTokenEqual } from './helpers';
 import { testBurn } from './token/burnabletoken.test';
 import { testMint as testCappedMint } from './token/cappedmintabletoken.test';
 import { TokenTestContext } from './token/context';

@@ -9,11 +9,11 @@ import {
   TransferManagerApprovedEvent,
   TransferManagerRevokedEvent
 } from 'onlive';
+import { toONL } from '../../utils';
 import {
-  assertThrowsInvalidOpcode,
+  assertReverts,
   assertTokenEqual,
-  findLastLog,
-  toONL
+  findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
 
@@ -42,17 +42,17 @@ export function testSetReleaseManager(ctx: TokenTestContext<ReleasableToken>) {
     assert.equal(event.addr, releaseManager);
   });
 
-  it('should throw when called by non-owner', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by non-owner', async () => {
+    await assertReverts(async () => {
       await ctx.token.setReleaseManager(releaseManager, { from: otherAccount });
     });
   });
 
-  it('should throw when called after release', async () => {
+  it('should revert when called after release', async () => {
     await ctx.token.setReleaseManager(releaseManager, { from: ctx.owner });
     await ctx.token.release({ from: releaseManager });
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.setReleaseManager(otherAccount, { from: ctx.owner });
     });
   });
@@ -103,17 +103,17 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
     assert.equal(event.addr, transferManager);
   });
 
-  it('should throw when called by non-owner', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by non-owner', async () => {
+    await assertReverts(async () => {
       await ctx.token.approveTransferManager(transferManager, {
         from: otherAccount
       });
     });
   });
 
-  it('should throw when called after release', async () => {
+  it('should revert when called after release', async () => {
     await ctx.token.release({ from: releaseManager });
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.approveTransferManager(otherAccount, { from: ctx.owner });
     });
   });
@@ -152,24 +152,24 @@ export function testRemoveTransferManager(
     assert.equal(event.addr, transferManager);
   });
 
-  it('should throw when transfer manager does not exist', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when transfer manager does not exist', async () => {
+    await assertReverts(async () => {
       await ctx.token.revokeTransferManager(otherAccount, { from: ctx.owner });
     });
   });
 
-  it('should throw when called by non-owner', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by non-owner', async () => {
+    await assertReverts(async () => {
       await ctx.token.revokeTransferManager(transferManager, {
         from: otherAccount
       });
     });
   });
 
-  it('should throw when called after release', async () => {
+  it('should revert when called after release', async () => {
     await ctx.token.release({ from: releaseManager });
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.revokeTransferManager(transferManager, {
         from: ctx.owner
       });
@@ -201,16 +201,16 @@ export function testRelease(ctx: TokenTestContext<ReleasableToken>) {
     assert.isOk(event);
   });
 
-  it('should throw when called by not release manager', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when called by not release manager', async () => {
+    await assertReverts(async () => {
       await ctx.token.release({ from: otherAccount });
     });
   });
 
-  it('should throw when called after being released', async () => {
+  it('should revert when called after being released', async () => {
     await ctx.token.release({ from: releaseManager });
 
-    await assertThrowsInvalidOpcode(async () => {
+    await assertReverts(async () => {
       await ctx.token.release({ from: releaseManager });
     });
   });
@@ -255,8 +255,8 @@ export function testTransfer(
     );
   });
 
-  it('should throw when not released', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when not released', async () => {
+    await assertReverts(async () => {
       await ctx.token.transfer(destinationAccount, toONL(1), {
         from: sourceAccount
       });
@@ -304,8 +304,8 @@ export function testTransferFrom(
     );
   });
 
-  it('should throw when not released', async () => {
-    await assertThrowsInvalidOpcode(async () => {
+  it('should revert when not released', async () => {
+    await assertReverts(async () => {
       await ctx.token.transferFrom(sourceAccount, destinationAccount, amount, {
         from: approvedAccount
       });

@@ -10,16 +10,16 @@ import {
   PurchaseRegisteredEvent,
   SaleScheduledEvent
 } from 'onlive';
+import { toONL, Web3Utils } from '../utils';
 
 import { BigNumber } from 'bignumber.js';
 import { ContractContextDefinition } from 'truffle';
 import { AnyNumber } from 'web3';
 import {
   assertNumberEqual,
-  assertThrowsInvalidOpcode,
+  assertReverts,
   assertTokenEqual,
-  findLastLog,
-  toONL
+  findLastLog
 } from './helpers';
 
 declare const web3: Web3;
@@ -38,6 +38,8 @@ interface PurchaseOptions {
   amount: AnyNumber;
   from: Address;
 }
+
+const utils = new Web3Utils(web3);
 
 const ExternalCrowdsaleContract = artifacts.require('./ExternalCrowdsale.sol');
 const MintableTokenContract = artifacts.require('./token/MintableToken.sol');
@@ -68,19 +70,19 @@ contract('ExternalCrowdsale', accounts => {
         token.address,
         amount
       );
-      assertTokenEqual(await crowdsale.tokensAvailable(), amount);
+      assertTokenEqual(await crowdsale.availableAmount(), amount);
     });
 
-    it('should throw when token address is zero', async () => {
-      await assertThrowsInvalidOpcode(async () => {
+    it('should revert when token address is zero', async () => {
+      await assertReverts(async () => {
         await ExternalCrowdsaleContract.new('0x0', toONL(1000), {
           from: owner
         });
       });
     });
 
-    it('should throw when available amount is zero', async () => {
-      await assertThrowsInvalidOpcode(async () => {
+    it('should revert when available amount is zero', async () => {
+      await assertReverts(async () => {
         await ExternalCrowdsaleContract.new(token.address, toONL(0), {
           from: owner
         });
@@ -113,8 +115,8 @@ contract('ExternalCrowdsale', accounts => {
     }
 
     describe('#scheduleSale', () => {
-      beforeEach(() => {
-        startBlock = web3.eth.blockNumber;
+      beforeEach(async () => {
+        startBlock = await utils.getBlockNumber();
         endBlock = startBlock + saleDuration;
       });
 
@@ -140,40 +142,40 @@ contract('ExternalCrowdsale', accounts => {
         assertNumberEqual(event.endBlock, endBlock);
       });
 
-      it('should throw when start block is zero', async () => {
-        await assertThrowsInvalidOpcode(async () => {
+      it('should revert when start block is zero', async () => {
+        await assertReverts(async () => {
           await scheduleSale({ startBlock: new BigNumber(0) });
         });
       });
 
-      it('should throw when end block is zero', async () => {
-        await assertThrowsInvalidOpcode(async () => {
+      it('should revert when end block is zero', async () => {
+        await assertReverts(async () => {
           await scheduleSale({ endBlock: new BigNumber(0) });
         });
       });
 
-      it('should throw when end block is equal start block', async () => {
-        await assertThrowsInvalidOpcode(async () => {
+      it('should revert when end block is equal start block', async () => {
+        await assertReverts(async () => {
           await scheduleSale({ endBlock: startBlock });
         });
       });
 
-      it('should throw when end block is lower than start block', async () => {
-        await assertThrowsInvalidOpcode(async () => {
+      it('should revert when end block is lower than start block', async () => {
+        await assertReverts(async () => {
           await scheduleSale({ endBlock: startBlock - 1 });
         });
       });
 
-      it('should throw when called by non-owner', async () => {
-        await assertThrowsInvalidOpcode(async () => {
+      it('should revert when called by non-owner', async () => {
+        await assertReverts(async () => {
           await scheduleSale({ from: nonOwner });
         });
       });
 
-      it('should throw when already scheduled', async () => {
+      it('should revert when already scheduled', async () => {
         await scheduleSale();
 
-        await assertThrowsInvalidOpcode(async () => {
+        await assertReverts(async () => {
           await scheduleSale();
         });
       });
@@ -193,14 +195,14 @@ contract('ExternalCrowdsale', accounts => {
         );
       }
 
-      it('should throw when sale is not scheduled', async () => {
-        await assertThrowsInvalidOpcode(async () => {
+      it('should revert when sale is not scheduled', async () => {
+        await assertReverts(async () => {
           await registerPurchase();
         });
       });
 
-      it('should throw when sale is not active', async () => {
-        const futureStart = web3.eth.blockNumber + 1000;
+      it('should revert when sale is not active', async () => {
+        const futureStart = (await utils.getBlockNumber()) + 1000;
         await scheduleSale({
           endBlock: futureStart + saleDuration,
           startBlock: futureStart
@@ -208,7 +210,7 @@ contract('ExternalCrowdsale', accounts => {
 
         assert.isFalse(await crowdsale.isActive());
 
-        await assertThrowsInvalidOpcode(async () => {
+        await assertReverts(async () => {
           await registerPurchase();
         });
       });
@@ -221,10 +223,10 @@ contract('ExternalCrowdsale', accounts => {
         });
 
         it('should reduce amount of available tokens', async () => {
-          const availableAmount = await crowdsale.tokensAvailable();
+          const availableAmount = await crowdsale.availableAmount();
           const expectedAmount = availableAmount.sub(amount);
           await registerPurchase();
-          assertTokenEqual(await crowdsale.tokensAvailable(), expectedAmount);
+          assertTokenEqual(await crowdsale.availableAmount(), expectedAmount);
         });
 
         it('should mint tokens for purchaser', async () => {
@@ -253,29 +255,36 @@ contract('ExternalCrowdsale', accounts => {
           assertTokenEqual(event.amount, amount);
         });
 
-        it('should throw when called by non-owner', async () => {
-          await assertThrowsInvalidOpcode(async () => {
+        it('should revert when called by non-owner', async () => {
+          await assertReverts(async () => {
             await registerPurchase({ from: nonOwner });
           });
         });
 
-        it('should throw when purchaser address is zero', async () => {
-          await assertThrowsInvalidOpcode(async () => {
+        it('should revert when purchaser address is zero', async () => {
+          await assertReverts(async () => {
             await registerPurchase({ purchaser: '0x' + '0'.repeat(40) });
           });
         });
 
-        it('should throw when purchased amount is zero', async () => {
-          await assertThrowsInvalidOpcode(async () => {
+        it('should revert when amount is zero', async () => {
+          await assertReverts(async () => {
             await registerPurchase({ amount: 0 });
           });
         });
 
-        it('should throw when payment id is duplicated', async () => {
+        it('should revert when amount exceeds availability', async () => {
+          const availableAmount = await crowdsale.availableAmount();
+          await assertReverts(async () => {
+            await registerPurchase({ amount: availableAmount.add(1) });
+          });
+        });
+
+        it('should revert when payment id is duplicated', async () => {
           const duplicatedPaymentId = '0x123';
           await registerPurchase({ paymentId: duplicatedPaymentId });
 
-          await assertThrowsInvalidOpcode(async () => {
+          await assertReverts(async () => {
             await registerPurchase({ paymentId: duplicatedPaymentId });
           });
         });
