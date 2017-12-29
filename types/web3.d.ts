@@ -37,7 +37,7 @@ declare module 'web3' {
       getNetwork(cb: Callback<string>): void;
     };
 
-    public constructor(provider: Web3.Provider);
+    public constructor(provider?: Web3.Provider);
 
     public toWei(amount: Web3.AnyNumber, unit: Unit): string;
     public sha3(str: string, options?: { encoding: 'hex' }): string;

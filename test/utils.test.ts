@@ -7,9 +7,15 @@ import {
   minutesToBlocks,
   secondsToBlocks,
   shiftNumber,
+  toFinney,
+  toGwei,
+  toKwei,
   toMillionsONL,
+  toMwei,
   toONL,
-  toThousandsONL
+  toSzabo,
+  toThousandsONL,
+  toWei
 } from '../utils';
 import { assertNumberEqual, assertTokenEqual } from './helpers';
 
@@ -31,6 +37,33 @@ describe('#shiftNumber', () => {
     assertNumberEqual(shiftNumber(num, -2), num / expectedDiv);
   });
 });
+
+const conversionSpec = [
+  { name: 'toFinney', func: toFinney, base: '1000' },
+  { name: 'toSzabo', func: toSzabo, base: '1000000' },
+  { name: 'toGwei', func: toGwei, base: '1000000000' },
+  { name: 'toMwei', func: toMwei, base: '1000000000000' },
+  { name: 'toKwei', func: toKwei, base: '1000000000000000' },
+  { name: 'toWei', func: toWei, base: '1000000000000000000' }
+];
+
+for (const { name, func, base } of conversionSpec) {
+  describe(`#${name}`, () => {
+    it(`should return ${base} for 1 ETH`, () => {
+      assertNumberEqual(func(1), base);
+    });
+
+    const expectedMul = new BigNumber(base).mul(5);
+    it(`should return ${expectedMul} for 5 ETH`, () => {
+      assertNumberEqual(func(5), expectedMul);
+    });
+
+    const expectedDiv = new BigNumber(base).div(100);
+    it(`should return ${expectedDiv} for 0.01 ETH`, () => {
+      assertNumberEqual(func(0.01), expectedDiv);
+    });
+  });
+}
 
 describe('#toONL', () => {
   it('should return 0 for 0 input', () => {
