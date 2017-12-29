@@ -5,7 +5,7 @@ import { OnLiveArtifacts } from 'onlive';
 import { ScriptFinalizer } from 'truffle';
 import * as Web3 from 'web3';
 
-import { RegexAddress, RegexBytes32, toONL, Web3Utils } from '../utils';
+import { Address, Bytes32, toONL, Web3Utils } from '../utils';
 
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
@@ -34,11 +34,11 @@ async function asyncExec() {
   const isActive = await crowdsale.isActive();
   const owner = await crowdsale.owner();
 
-  if (!RegexBytes32.test(argv.paymentId)) {
+  if (!Bytes32.test(argv.paymentId)) {
     throw new Error(`Invalid payment id: ${argv.paymentId}`);
   }
 
-  if (!RegexAddress.test(argv.purchaser)) {
+  if (!Address.test(argv.purchaser)) {
     throw new Error(`Invalid purchaser address: ${argv.purchaser}`);
   }
 
