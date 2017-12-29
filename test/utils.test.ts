@@ -1,6 +1,16 @@
 import { BigNumber } from 'bignumber.js';
+import { assert } from 'chai';
 
-import { shiftNumber, toMillionsONL, toONL, toThousandsONL } from '../utils';
+import {
+  daysToBlocks,
+  hoursToBlocks,
+  minutesToBlocks,
+  secondsToBlocks,
+  shiftNumber,
+  toMillionsONL,
+  toONL,
+  toThousandsONL
+} from '../utils';
 import { assertNumberEqual, assertTokenEqual } from './helpers';
 
 describe('#shiftNumber', () => {
@@ -74,4 +84,65 @@ describe('#toMillionsONL', () => {
   it('should return 10²² for 0.01 input', () => {
     assertTokenEqual(toMillionsONL(0.01), new BigNumber(10).pow(22));
   });
+});
+
+describe('#secondsToBlocks', () => {
+  const suite = [
+    { seconds: 0, blocks: 0 },
+    { seconds: 5, blocks: 1 },
+    { seconds: 15, blocks: 1 },
+    { seconds: 16, blocks: 2 },
+    { seconds: 30, blocks: 2 },
+    { seconds: 100, blocks: 7 },
+    { seconds: 1000, blocks: 67 }
+  ];
+
+  for (const { seconds, blocks } of suite) {
+    it(`should return ${blocks} blocks for ${seconds} seconds`, () => {
+      assert.equal(secondsToBlocks(seconds), blocks);
+    });
+  }
+});
+
+describe('#minutesToBlocks', () => {
+  const suite = [
+    { minutes: 0, blocks: 0 },
+    { minutes: 5, blocks: 20 },
+    { minutes: 15.5, blocks: 62 },
+    { minutes: 30.1, blocks: 121 }
+  ];
+
+  for (const { minutes, blocks } of suite) {
+    it(`should return ${blocks} blocks for ${minutes} minutes`, () => {
+      assert.equal(minutesToBlocks(minutes), blocks);
+    });
+  }
+});
+
+describe('#hoursToBlocks', () => {
+  const suite = [
+    { hours: 0, blocks: 0 },
+    { hours: 5, blocks: 1200 },
+    { hours: 7.32, blocks: 1757 }
+  ];
+
+  for (const { hours, blocks } of suite) {
+    it(`should return ${blocks} blocks for ${hours} hours`, () => {
+      assert.equal(hoursToBlocks(hours), blocks);
+    });
+  }
+});
+
+describe('#daysToBlocks', () => {
+  const suite = [
+    { days: 0, blocks: 0 },
+    { days: 2, blocks: 11520 },
+    { days: 3.62, blocks: 20852 }
+  ];
+
+  for (const { days, blocks } of suite) {
+    it(`should return ${blocks} blocks for ${days} days`, () => {
+      assert.equal(daysToBlocks(days), blocks);
+    });
+  }
 });

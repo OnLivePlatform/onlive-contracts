@@ -10,7 +10,7 @@ import {
   PurchaseRegisteredEvent,
   SaleScheduledEvent
 } from 'onlive';
-import { toONL } from '../utils';
+import { toONL, Web3Utils } from '../utils';
 
 import { BigNumber } from 'bignumber.js';
 import { ContractContextDefinition } from 'truffle';
@@ -38,6 +38,8 @@ interface PurchaseOptions {
   amount: AnyNumber;
   from: Address;
 }
+
+const utils = new Web3Utils(web3);
 
 const ExternalCrowdsaleContract = artifacts.require('./ExternalCrowdsale.sol');
 const MintableTokenContract = artifacts.require('./token/MintableToken.sol');
@@ -113,8 +115,8 @@ contract('ExternalCrowdsale', accounts => {
     }
 
     describe('#scheduleSale', () => {
-      beforeEach(() => {
-        startBlock = web3.eth.blockNumber;
+      beforeEach(async () => {
+        startBlock = await utils.getBlockNumber();
         endBlock = startBlock + saleDuration;
       });
 
@@ -200,7 +202,7 @@ contract('ExternalCrowdsale', accounts => {
       });
 
       it('should throw when sale is not active', async () => {
-        const futureStart = web3.eth.blockNumber + 1000;
+        const futureStart = (await utils.getBlockNumber()) + 1000;
         await scheduleSale({
           endBlock: futureStart + saleDuration,
           startBlock: futureStart
