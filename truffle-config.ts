@@ -3,6 +3,7 @@ import { toGwei } from './utils';
 export = {
   networks: {
     kovan: {
+      gas: 4600000,
       gasPrice: toGwei(1),
       host: 'localhost',
       network_id: '42',
