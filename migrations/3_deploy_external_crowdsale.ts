@@ -9,7 +9,7 @@ const ExternalCrowdsale = artifacts.require('./ExternalCrowdsale.sol');
 
 async function deploy(deployer: Deployer) {
   const token = await OnLiveToken.deployed();
-  const tokensAvailable = toMillionsONL(5);
+  const tokensAvailable = toMillionsONL(4);
   await deployer.deploy(ExternalCrowdsale, token.address, tokensAvailable);
 
   const crowdsale = await ExternalCrowdsale.deployed();

@@ -7,6 +7,8 @@
     "compile": "run-s compile:ts compile:sol",
     "compile:sol": "truffle compile",
     "compile:ts": "tsc",
+    "develop": "run-s compile:ts develop:js",
+    "develop:js": "truffle develop",
     "test": "run-s compile:ts test:js",
     "test:js": "truffle test",
     "test:token": "run-s compile:ts test:token:js",
