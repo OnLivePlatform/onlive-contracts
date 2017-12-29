@@ -25,11 +25,19 @@ contract BurnableToken is BasicToken {
      */
     event Burned(address indexed from, uint256 amount);
 
+    modifier onlyHolder(uint256 amount) {
+        require(balances[msg.sender] >= amount);
+        _;
+    }
+
     /**
      * @dev Destroy tokens (reduce total supply)
      * @param amount uint256 The amount of tokens to be burned
      */
-    function burn(uint256 amount) public {
+    function burn(uint256 amount)
+        public
+        onlyHolder(amount)
+    {
         balances[msg.sender] = balances[msg.sender].sub(amount);
         totalSupply = totalSupply.sub(amount);
 
