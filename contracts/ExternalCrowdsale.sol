@@ -45,15 +45,15 @@ contract ExternalCrowdsale is Ownable {
     /**
      * @dev Current amount of tokens available for sale
      */
-    uint256 public tokensAvailable;
+    uint256 public availableAmount;
 
-    function ExternalCrowdsale(Mintable _token, uint256 _tokensAvailable)
+    function ExternalCrowdsale(Mintable _token, uint256 _availableAmount)
         public
         onlyValid(_token)
-        onlyNotZero(_tokensAvailable)
+        onlyNotZero(_availableAmount)
     {
         token = _token;
-        tokensAvailable = _tokensAvailable;
+        availableAmount = _availableAmount;
     }
 
     /**
@@ -70,6 +70,11 @@ contract ExternalCrowdsale is Ownable {
      * @param endBlock uint256 The last block of active sale
      */
     event SaleScheduled(uint256 startBlock, uint256 endBlock);
+
+    modifier onlySufficientAvailableTokens(uint256 amount) {
+        require(availableAmount >= amount);
+        _;
+    }
 
     modifier onlyUniquePayment(bytes32 paymentId) {
         require(!isPaymentRegistered(paymentId));
@@ -130,14 +135,14 @@ contract ExternalCrowdsale is Ownable {
         onlyValid(purchaser)
         onlyNotZero(amount)
         onlyUniquePayment(paymentId)
+        onlySufficientAvailableTokens(amount)
     {
         purchases[paymentId] = Purchase({
             purchaser: purchaser,
             amount: amount
         });
 
-        // SafeMath.sub() throws when result is negative
-        tokensAvailable = tokensAvailable.sub(amount);
+        availableAmount = availableAmount.sub(amount);
 
         token.mint(purchaser, amount);
 

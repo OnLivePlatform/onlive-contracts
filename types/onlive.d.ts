@@ -187,7 +187,7 @@ declare module 'onlive' {
       token(): Promise<string>;
       startBlock(): Promise<BigNumber>;
       endBlock(): Promise<BigNumber>;
-      tokensAvailable(): Promise<BigNumber>;
+      availableAmount(): Promise<BigNumber>;
       isPaymentRegistered(paymentId: string): Promise<boolean>;
       isActive(): Promise<boolean>;
 
@@ -252,7 +252,7 @@ declare module 'onlive' {
     interface ExternalCrowdsaleContract extends Contract<ExternalCrowdsale> {
       'new'(
         token: Address,
-        tokensAvailable: AnyNumber,
+        availableAmount: AnyNumber,
         options?: TransactionOptions
       ): Promise<ExternalCrowdsale>;
     }

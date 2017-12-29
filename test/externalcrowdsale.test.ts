@@ -70,7 +70,7 @@ contract('ExternalCrowdsale', accounts => {
         token.address,
         amount
       );
-      assertTokenEqual(await crowdsale.tokensAvailable(), amount);
+      assertTokenEqual(await crowdsale.availableAmount(), amount);
     });
 
     it('should revert when token address is zero', async () => {
@@ -223,10 +223,10 @@ contract('ExternalCrowdsale', accounts => {
         });
 
         it('should reduce amount of available tokens', async () => {
-          const availableAmount = await crowdsale.tokensAvailable();
+          const availableAmount = await crowdsale.availableAmount();
           const expectedAmount = availableAmount.sub(amount);
           await registerPurchase();
-          assertTokenEqual(await crowdsale.tokensAvailable(), expectedAmount);
+          assertTokenEqual(await crowdsale.availableAmount(), expectedAmount);
         });
 
         it('should mint tokens for purchaser', async () => {
@@ -267,9 +267,16 @@ contract('ExternalCrowdsale', accounts => {
           });
         });
 
-        it('should revert when purchased amount is zero', async () => {
+        it('should revert when amount is zero', async () => {
           await assertReverts(async () => {
             await registerPurchase({ amount: 0 });
+          });
+        });
+
+        it('should revert when amount exceeds availability', async () => {
+          const availableAmount = await crowdsale.availableAmount();
+          await assertReverts(async () => {
+            await registerPurchase({ amount: availableAmount.add(1) });
           });
         });
 
