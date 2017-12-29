@@ -9,6 +9,8 @@
     "compile:ts": "tsc",
     "develop": "run-s compile:ts develop:js",
     "develop:js": "truffle develop",
+    "migrate:kovan": "run-s compile:ts migrate:kovan:js",
+    "migrate:kovan:js": "truffle migrate --network kovan",
     "test": "run-s compile:ts test:js",
     "test:js": "truffle test",
     "test:token": "run-s compile:ts test:token:js",

@@ -7,8 +7,12 @@ import { promisify } from './common';
 export class Web3Utils {
   constructor(private web3: Web3) {}
 
-  public toEther(num: number | string) {
+  public toEther(num: Web3.AnyNumber) {
     return new BigNumber(this.web3.toWei(num, 'ether'));
+  }
+
+  public toGwei(num: Web3.AnyNumber) {
+    return new BigNumber(this.web3.toWei(num, 'gwei'));
   }
 
   public async getBlockNumber() {
