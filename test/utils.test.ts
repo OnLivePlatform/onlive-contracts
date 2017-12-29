@@ -1,6 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 
-import { shiftNumber, toONL } from '../utils';
+import { shiftNumber, toMillionsONL, toONL } from '../utils';
 import { assertNumberEqual, assertTokenEqual } from './helpers';
 
 describe('#shiftNumber', () => {
@@ -37,5 +37,23 @@ describe('#toONL', () => {
 
   it('should return 10¹⁶ for 0.01 input', () => {
     assertTokenEqual(toONL(0.01), new BigNumber(10).pow(16));
+  });
+});
+
+describe('#toMillionsONL', () => {
+  it('should return 0 for 0 input', () => {
+    assertTokenEqual(toMillionsONL(0), 0);
+  });
+
+  it('should return 10²⁴ for 1 input', () => {
+    assertTokenEqual(toMillionsONL(1), new BigNumber(10).pow(24));
+  });
+
+  it('should return 10²⁶ for 100 input', () => {
+    assertTokenEqual(toMillionsONL(100), new BigNumber(10).pow(26));
+  });
+
+  it('should return 10²² for 0.01 input', () => {
+    assertTokenEqual(toMillionsONL(0.01), new BigNumber(10).pow(22));
   });
 });

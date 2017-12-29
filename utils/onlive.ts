@@ -7,6 +7,11 @@ export function toONL(num: AnyNumber) {
   return shiftNumber(num, ONL_DECIMALS);
 }
 
+export function toMillionsONL(num: AnyNumber) {
+  const millionDecimals = 6;
+  return shiftNumber(num, millionDecimals + ONL_DECIMALS);
+}
+
 export function shiftNumber(num: AnyNumber, decimals: number): BigNumber {
   const factor = new BigNumber(10).pow(decimals);
   return new BigNumber(num).mul(factor);
