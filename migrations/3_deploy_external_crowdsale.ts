@@ -11,6 +11,9 @@ async function deploy(deployer: Deployer) {
   const token = await OnLiveToken.deployed();
   const tokensAvailable = toMillionsONL(5);
   await deployer.deploy(ExternalCrowdsale, token.address, tokensAvailable);
+
+  const crowdsale = await ExternalCrowdsale.deployed();
+  await token.approveMintingManager(crowdsale.address);
 }
 
 function migrate(deployer: Deployer) {
