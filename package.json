@@ -19,7 +19,7 @@
     "lint:tslint": "tslint --project .",
     "lint:tslint:fix": "tslint --fix --project .",
     "lint:solhint": "solhint contracts/**/*.sol test/**/*.sol",
-    "format": "prettier --write *.ts {migrations,test,types}/**/*.ts"
+    "format": "prettier --write *.ts **/*.ts"
   },
   "repository": {
     "type": "git",
@@ -41,6 +41,7 @@
     "@types/ramda": "^0.25.8",
     "bignumber.js": "^5.0.0",
     "chai": "^4.1.2",
+    "commander": "^2.12.2",
     "npm-run-all": "^4.1.2",
     "prettier": "^1.9.2",
     "ramda": "^0.25.0",
