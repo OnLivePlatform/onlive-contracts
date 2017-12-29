@@ -3,11 +3,11 @@ import { assert } from 'chai';
 import * as Web3 from 'web3';
 
 import { BurnableToken, BurnedEvent, TransferEvent } from 'onlive';
+import { toONL } from '../../utils';
 import {
   assertThrowsInvalidOpcode,
   assertTokenEqual,
-  findLastLog,
-  toONL
+  findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
 

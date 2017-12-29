@@ -10,6 +10,7 @@ import {
   PurchaseRegisteredEvent,
   SaleScheduledEvent
 } from 'onlive';
+import { toONL } from '../utils';
 
 import { BigNumber } from 'bignumber.js';
 import { ContractContextDefinition } from 'truffle';
@@ -18,8 +19,7 @@ import {
   assertNumberEqual,
   assertThrowsInvalidOpcode,
   assertTokenEqual,
-  findLastLog,
-  toONL
+  findLastLog
 } from './helpers';
 
 declare const web3: Web3;

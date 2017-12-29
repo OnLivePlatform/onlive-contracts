@@ -10,11 +10,11 @@ import {
   MintingManagerRevokedEvent,
   TransferEvent
 } from 'onlive';
+import { toONL } from '../../utils';
 import {
   assertThrowsInvalidOpcode,
   assertTokenEqual,
-  findLastLog,
-  toONL
+  findLastLog
 } from '../helpers';
 import { TokenTestContext } from './context';
 
