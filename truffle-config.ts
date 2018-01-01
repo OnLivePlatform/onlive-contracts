@@ -1,16 +1,16 @@
-import { toGwei } from './utils';
+import { fromGwei, shiftNumber } from './utils';
 
 export = {
   networks: {
     kovan: {
-      gas: 4600000,
-      gasPrice: toGwei(1),
+      gas: shiftNumber(4.6, 6),
+      gasPrice: fromGwei(1),
       host: 'localhost',
       network_id: '42',
       port: 8545
     },
     mainnet: {
-      gasPrice: toGwei(20),
+      gasPrice: fromGwei(20),
       host: 'localhost',
       network_id: '1',
       port: 8545

@@ -25,6 +25,30 @@ export function toWei(eth: AnyNumber) {
   return shiftNumber(eth, 18);
 }
 
+export function fromEth(eth: AnyNumber) {
+  return shiftNumber(eth, 18);
+}
+
+export function fromFinney(finney: AnyNumber) {
+  return shiftNumber(finney, 15);
+}
+
+export function fromSzabo(szabo: AnyNumber) {
+  return shiftNumber(szabo, 12);
+}
+
+export function fromGwei(gwei: AnyNumber) {
+  return shiftNumber(gwei, 9);
+}
+
+export function fromMwei(mwei: AnyNumber) {
+  return shiftNumber(mwei, 6);
+}
+
+export function fromKwei(kwei: AnyNumber) {
+  return shiftNumber(kwei, 3);
+}
+
 export function shiftNumber(num: AnyNumber, decimals: number): BigNumber {
   const factor = new BigNumber(10).pow(decimals);
   return new BigNumber(num).mul(factor);
