@@ -17,11 +17,6 @@ contract ExternalCrowdsale is Ownable {
 
     using SafeMath for uint256;
 
-    struct Purchase {
-        address purchaser;
-        uint256 amount;
-    }
-
     /**
      * @dev Address of mintable token instance
      */
@@ -38,9 +33,9 @@ contract ExternalCrowdsale is Ownable {
     uint256 public endBlock;
 
     /**
-     * @dev Registered purchases by payment id
+     * @dev Indicates whether payment identified by bytes32 id is already registered
      */
-    mapping (bytes32 => Purchase) private purchases;
+    mapping (bytes32 => bool) public isPaymentRegistered;
 
     /**
      * @dev Current amount of tokens available for sale
@@ -77,7 +72,7 @@ contract ExternalCrowdsale is Ownable {
     }
 
     modifier onlyUniquePayment(bytes32 paymentId) {
-        require(!isPaymentRegistered(paymentId));
+        require(!isPaymentRegistered[paymentId]);
         _;
     }
 
@@ -137,25 +132,13 @@ contract ExternalCrowdsale is Ownable {
         onlyUniquePayment(paymentId)
         onlySufficientAvailableTokens(amount)
     {
-        purchases[paymentId] = Purchase({
-            purchaser: purchaser,
-            amount: amount
-        });
+        isPaymentRegistered[paymentId] = true;
 
         availableAmount = availableAmount.sub(amount);
 
         token.mint(purchaser, amount);
 
         PurchaseRegistered(paymentId, purchaser, amount);
-    }
-
-    /**
-     * @dev Check whether payment is already registered
-     * @param paymentId bytes32 The payment id
-     */
-    function isPaymentRegistered(bytes32 paymentId) public view returns (bool) {
-        Purchase storage purchase = purchases[paymentId];
-        return purchase.purchaser != address(0) && purchase.amount != 0;
     }
 
     /**
