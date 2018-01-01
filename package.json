@@ -11,6 +11,8 @@
     "develop:js": "truffle develop",
     "migrate:kovan": "run-s compile:ts migrate:kovan:js",
     "migrate:kovan:js": "truffle migrate --network kovan",
+    "migrate:kovan:reset": "run-s compile:ts migrate:kovan:reset:js",
+    "migrate:kovan:reset:js": "truffle migrate --network kovan --reset",
     "test": "run-s compile:ts test:js",
     "test:js": "truffle test",
     "test:token": "run-s compile:ts test:token:js",
