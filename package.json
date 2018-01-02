@@ -9,6 +9,8 @@
     "compile:ts": "tsc",
     "develop": "run-s compile:ts develop:js",
     "develop:js": "truffle develop",
+    "migrate:mainnet": "run-s compile:ts migrate:mainnet:js",
+    "migrate:mainnet:js": "truffle migrate --network mainnet",
     "migrate:rinkeby": "run-s compile:ts migrate:rinkeby:js",
     "migrate:rinkeby:js": "truffle migrate --network rinkeby",
     "migrate:rinkeby:reset": "run-s compile:ts migrate:rinkeby:reset:js",
