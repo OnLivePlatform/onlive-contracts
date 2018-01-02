@@ -721,7 +721,7 @@
       "absolutePath": "/home/js/Projects/pc/onlive/onlive-contracts/contracts/OnLiveToken.sol",
       "exportedSymbols": {
         "OnLiveToken": [
-          381
+          330
         ]
       }
     },
@@ -734,114 +734,114 @@
             ".18"
           ]
         },
-        "id": 342,
+        "id": 291,
         "name": "PragmaDirective",
         "src": "0:23:2"
       },
       {
         "attributes": {
-          "SourceUnit": 988,
+          "SourceUnit": 937,
           "absolutePath": "/home/js/Projects/pc/onlive/onlive-contracts/contracts/token/ReleasableToken.sol",
           "file": "./token/ReleasableToken.sol",
-          "scope": 382,
+          "scope": 331,
           "symbolAliases": [
             {
-              "foreign": 343,
+              "foreign": 292,
               "local": null
             }
           ],
           "unitAlias": ""
         },
-        "id": 344,
+        "id": 293,
         "name": "ImportDirective",
         "src": "25:62:2"
       },
       {
         "attributes": {
-          "SourceUnit": 528,
+          "SourceUnit": 477,
           "absolutePath": "/home/js/Projects/pc/onlive/onlive-contracts/contracts/token/CappedMintableToken.sol",
           "file": "./token/CappedMintableToken.sol",
-          "scope": 382,
+          "scope": 331,
           "symbolAliases": [
             {
-              "foreign": 345,
+              "foreign": 294,
               "local": null
             }
           ],
           "unitAlias": ""
         },
-        "id": 346,
+        "id": 295,
         "name": "ImportDirective",
         "src": "88:70:2"
       },
       {
         "attributes": {
-          "SourceUnit": 462,
+          "SourceUnit": 411,
           "absolutePath": "/home/js/Projects/pc/onlive/onlive-contracts/contracts/token/BurnableToken.sol",
           "file": "./token/BurnableToken.sol",
-          "scope": 382,
+          "scope": 331,
           "symbolAliases": [
             {
-              "foreign": 347,
+              "foreign": 296,
               "local": null
             }
           ],
           "unitAlias": ""
         },
-        "id": 348,
+        "id": 297,
         "name": "ImportDirective",
         "src": "159:58:2"
       },
       {
         "attributes": {
-          "SourceUnit": 618,
+          "SourceUnit": 567,
           "absolutePath": "/home/js/Projects/pc/onlive/onlive-contracts/contracts/token/DescriptiveToken.sol",
           "file": "./token/DescriptiveToken.sol",
-          "scope": 382,
+          "scope": 331,
           "symbolAliases": [
             {
-              "foreign": 349,
+              "foreign": 298,
               "local": null
             }
           ],
           "unitAlias": ""
         },
-        "id": 350,
+        "id": 299,
         "name": "ImportDirective",
         "src": "218:64:2"
       },
       {
         "attributes": {
           "contractDependencies": [
-            461,
-            527,
-            617,
-            781,
-            987,
-            1141,
-            1227,
-            1270,
-            1299,
-            1545
+            410,
+            476,
+            566,
+            730,
+            936,
+            1090,
+            1176,
+            1219,
+            1248,
+            1494
           ],
           "contractKind": "contract",
           "documentation": "@title OnLive Token\n@author Jakub Stefanski\n@dev Implements ERC20 interface\n@dev Mintable by selected addresses until sale finishes\n@dev A cap on total supply of tokens\n@dev Burnable by anyone\n@dev Manual lock-up period (non-transferable) with a non-reversible release by the selected address\n@dev Modifiable symbol and name in case of collision",
           "fullyImplemented": true,
           "linearizedBaseContracts": [
-            381,
-            461,
-            527,
-            781,
-            987,
-            617,
-            1141,
-            1545,
-            1227,
-            1270,
-            1299
+            330,
+            410,
+            476,
+            730,
+            936,
+            566,
+            1090,
+            1494,
+            1176,
+            1219,
+            1248
           ],
           "name": "OnLiveToken",
-          "scope": 382
+          "scope": 331
         },
         "children": [
           {
@@ -855,15 +855,15 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "DescriptiveToken",
-                  "referencedDeclaration": 617,
+                  "referencedDeclaration": 566,
                   "type": "contract DescriptiveToken"
                 },
-                "id": 351,
+                "id": 300,
                 "name": "UserDefinedTypeName",
                 "src": "687:16:2"
               }
             ],
-            "id": 352,
+            "id": 301,
             "name": "InheritanceSpecifier",
             "src": "687:16:2"
           },
@@ -878,15 +878,15 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "ReleasableToken",
-                  "referencedDeclaration": 987,
+                  "referencedDeclaration": 936,
                   "type": "contract ReleasableToken"
                 },
-                "id": 353,
+                "id": 302,
                 "name": "UserDefinedTypeName",
                 "src": "705:15:2"
               }
             ],
-            "id": 354,
+            "id": 303,
             "name": "InheritanceSpecifier",
             "src": "705:15:2"
           },
@@ -901,15 +901,15 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "CappedMintableToken",
-                  "referencedDeclaration": 527,
+                  "referencedDeclaration": 476,
                   "type": "contract CappedMintableToken"
                 },
-                "id": 355,
+                "id": 304,
                 "name": "UserDefinedTypeName",
                 "src": "722:19:2"
               }
             ],
-            "id": 356,
+            "id": 305,
             "name": "InheritanceSpecifier",
             "src": "722:19:2"
           },
@@ -924,15 +924,15 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "BurnableToken",
-                  "referencedDeclaration": 461,
+                  "referencedDeclaration": 410,
                   "type": "contract BurnableToken"
                 },
-                "id": 357,
+                "id": 306,
                 "name": "UserDefinedTypeName",
                 "src": "743:13:2"
               }
             ],
-            "id": 358,
+            "id": 307,
             "name": "InheritanceSpecifier",
             "src": "743:13:2"
           },
@@ -943,7 +943,7 @@
               "isConstructor": true,
               "name": "OnLiveToken",
               "payable": false,
-              "scope": 381,
+              "scope": 330,
               "stateMutability": "nonpayable",
               "superFunction": null,
               "visibility": "public"
@@ -955,7 +955,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "_name",
-                      "scope": 380,
+                      "scope": 329,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "string memory",
@@ -968,12 +968,12 @@
                           "name": "string",
                           "type": "string storage pointer"
                         },
-                        "id": 359,
+                        "id": 308,
                         "name": "ElementaryTypeName",
                         "src": "794:6:2"
                       }
                     ],
-                    "id": 360,
+                    "id": 309,
                     "name": "VariableDeclaration",
                     "src": "794:12:2"
                   },
@@ -981,7 +981,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "_symbol",
-                      "scope": 380,
+                      "scope": 329,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "string memory",
@@ -994,12 +994,12 @@
                           "name": "string",
                           "type": "string storage pointer"
                         },
-                        "id": 361,
+                        "id": 310,
                         "name": "ElementaryTypeName",
                         "src": "816:6:2"
                       }
                     ],
-                    "id": 362,
+                    "id": 311,
                     "name": "VariableDeclaration",
                     "src": "816:14:2"
                   },
@@ -1007,7 +1007,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "_maxSupply",
-                      "scope": 380,
+                      "scope": 329,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "uint256",
@@ -1020,17 +1020,17 @@
                           "name": "uint256",
                           "type": "uint256"
                         },
-                        "id": 363,
+                        "id": 312,
                         "name": "ElementaryTypeName",
                         "src": "840:7:2"
                       }
                     ],
-                    "id": 364,
+                    "id": 313,
                     "name": "VariableDeclaration",
                     "src": "840:18:2"
                   }
                 ],
-                "id": 365,
+                "id": 314,
                 "name": "ParameterList",
                 "src": "784:80:2"
               },
@@ -1041,7 +1041,7 @@
                   ]
                 },
                 "children": [],
-                "id": 373,
+                "id": 322,
                 "name": "ParameterList",
                 "src": "965:0:2"
               },
@@ -1053,11 +1053,11 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 617,
+                      "referencedDeclaration": 566,
                       "type": "type(contract DescriptiveToken)",
                       "value": "DescriptiveToken"
                     },
-                    "id": 366,
+                    "id": 315,
                     "name": "Identifier",
                     "src": "888:16:2"
                   },
@@ -1067,11 +1067,11 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 360,
+                      "referencedDeclaration": 309,
                       "type": "string memory",
                       "value": "_name"
                     },
-                    "id": 367,
+                    "id": 316,
                     "name": "Identifier",
                     "src": "905:5:2"
                   },
@@ -1081,16 +1081,16 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 362,
+                      "referencedDeclaration": 311,
                       "type": "string memory",
                       "value": "_symbol"
                     },
-                    "id": 368,
+                    "id": 317,
                     "name": "Identifier",
                     "src": "912:7:2"
                   }
                 ],
-                "id": 369,
+                "id": 318,
                 "name": "ModifierInvocation",
                 "src": "888:32:2"
               },
@@ -1102,11 +1102,11 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 527,
+                      "referencedDeclaration": 476,
                       "type": "type(contract CappedMintableToken)",
                       "value": "CappedMintableToken"
                     },
-                    "id": 370,
+                    "id": 319,
                     "name": "Identifier",
                     "src": "929:19:2"
                   },
@@ -1116,16 +1116,16 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 364,
+                      "referencedDeclaration": 313,
                       "type": "uint256",
                       "value": "_maxSupply"
                     },
-                    "id": 371,
+                    "id": 320,
                     "name": "Identifier",
                     "src": "949:10:2"
                   }
                 ],
-                "id": 372,
+                "id": 321,
                 "name": "ModifierInvocation",
                 "src": "929:31:2"
               },
@@ -1150,11 +1150,11 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1089,
+                              "referencedDeclaration": 1038,
                               "type": "address",
                               "value": "owner"
                             },
-                            "id": 374,
+                            "id": 323,
                             "name": "Identifier",
                             "src": "975:5:2"
                           },
@@ -1176,46 +1176,46 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 1557,
+                                  "referencedDeclaration": 1506,
                                   "type": "msg",
                                   "value": "msg"
                                 },
-                                "id": 375,
+                                "id": 324,
                                 "name": "Identifier",
                                 "src": "983:3:2"
                               }
                             ],
-                            "id": 376,
+                            "id": 325,
                             "name": "MemberAccess",
                             "src": "983:10:2"
                           }
                         ],
-                        "id": 377,
+                        "id": 326,
                         "name": "Assignment",
                         "src": "975:18:2"
                       }
                     ],
-                    "id": 378,
+                    "id": 327,
                     "name": "ExpressionStatement",
                     "src": "975:18:2"
                   }
                 ],
-                "id": 379,
+                "id": 328,
                 "name": "Block",
                 "src": "965:35:2"
               }
             ],
-            "id": 380,
+            "id": 329,
             "name": "FunctionDefinition",
             "src": "764:236:2"
           }
         ],
-        "id": 381,
+        "id": 330,
         "name": "ContractDefinition",
         "src": "663:339:2"
       }
     ],
-    "id": 382,
+    "id": 331,
     "name": "SourceUnit",
     "src": "0:1004:2"
   },
@@ -1224,7 +1224,7 @@
     "version": "0.4.18+commit.9cf6e910.Emscripten.clang"
   },
   "networks": {
-    "42": {
+    "4": {
       "events": {
         "0x696de425f79f4a40bc6d2122ca50507f0efbeabbff86a84871b7196ab8ea8df7": {
           "anonymous": false,
@@ -1412,9 +1412,9 @@
         }
       },
       "links": {},
-      "address": "0x1ab13c48c56940408945a8c5154918cdef085a4d"
+      "address": "0x317e89f3404ec8821572c6b2328f1f813dad3d66"
     }
   },
   "schemaVersion": "1.0.1",
-  "updatedAt": "2017-12-29T22:52:05.279Z"
+  "updatedAt": "2018-01-02T01:06:32.905Z"
 }
