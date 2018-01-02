@@ -55,6 +55,6 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "zeppelin-solidity": "^1.4.0"
+    "zeppelin-solidity": "^1.5.0"
   }
 }
