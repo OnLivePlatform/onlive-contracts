@@ -21,11 +21,11 @@ export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
   const otherAccount = ctx.accounts[1];
 
   it('should approve minting manager', async () => {
-    assert.isFalse(await ctx.token.mintingManagers(mintingManager));
+    assert.isFalse(await ctx.token.isMintingManager(mintingManager));
 
     await ctx.token.approveMintingManager(mintingManager, { from: ctx.owner });
 
-    assert.isTrue(await ctx.token.mintingManagers(mintingManager));
+    assert.isTrue(await ctx.token.isMintingManager(mintingManager));
   });
 
   it('should approve multiple minting managers', async () => {
@@ -37,7 +37,7 @@ export function testAddMintingManager(ctx: TokenTestContext<MintableToken>) {
     );
 
     for (const account of managers) {
-      assert.isTrue(await ctx.token.mintingManagers(account));
+      assert.isTrue(await ctx.token.isMintingManager(account));
     }
   });
 
@@ -80,9 +80,9 @@ export function testRemoveMintingManager(ctx: TokenTestContext<MintableToken>) {
   });
 
   it('should revoke minting manager', async () => {
-    assert.isTrue(await ctx.token.mintingManagers(mintingManager));
+    assert.isTrue(await ctx.token.isMintingManager(mintingManager));
     await ctx.token.revokeMintingManager(mintingManager, { from: ctx.owner });
-    assert.isFalse(await ctx.token.mintingManagers(mintingManager));
+    assert.isFalse(await ctx.token.isMintingManager(mintingManager));
   });
 
   it('should emit MintingManagerRevoked event', async () => {

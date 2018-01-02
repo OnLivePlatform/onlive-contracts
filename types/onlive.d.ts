@@ -108,7 +108,7 @@ declare module 'onlive' {
 
     interface MintableToken extends ERC20Basic, Ownable {
       mintingFinished(): Promise<boolean>;
-      mintingManagers(addr: Address): Promise<boolean>;
+      isMintingManager(addr: Address): Promise<boolean>;
 
       approveMintingManager(
         addr: Address,
