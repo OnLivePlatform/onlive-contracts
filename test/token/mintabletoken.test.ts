@@ -11,11 +11,7 @@ import {
   TransferEvent
 } from 'onlive';
 import { toONL } from '../../utils';
-import {
-  assertReverts,
-  assertTokenEqual,
-  findLastLog
-} from '../helpers';
+import { assertReverts, assertTokenEqual, findLastLog } from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;

@@ -10,7 +10,10 @@ import { assertTokenEqual } from './helpers';
 import { testBurn } from './token/burnabletoken.test';
 import { testMint as testCappedMint } from './token/cappedmintabletoken.test';
 import { TokenTestContext } from './token/context';
-import { testChangeDescription } from './token/descriptivetoken.test';
+import {
+  testChangeDescription,
+  testFinalizeDescription
+} from './token/descriptivetoken.test';
 import {
   testAddMintingManager,
   testFinishMinting,
@@ -81,6 +84,7 @@ contract('OnLiveToken', accounts => {
 
     describe('DescriptiveToken base', () => {
       describe('#changeDescription', () => testChangeDescription(ctx));
+      describe('#finalizeDescription', () => testFinalizeDescription(ctx));
     });
 
     describe('ReleasableToken base', () => {
