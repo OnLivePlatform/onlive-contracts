@@ -263,7 +263,7 @@
       },
       {
         "attributes": {
-          "SourceUnit": 1035,
+          "SourceUnit": 1065,
           "absolutePath": "zeppelin-solidity/contracts/math/SafeMath.sol",
           "file": "zeppelin-solidity/contracts/math/SafeMath.sol",
           "scope": 249,
@@ -281,7 +281,7 @@
       },
       {
         "attributes": {
-          "SourceUnit": 1091,
+          "SourceUnit": 1121,
           "absolutePath": "zeppelin-solidity/contracts/ownership/Ownable.sol",
           "file": "zeppelin-solidity/contracts/ownership/Ownable.sol",
           "scope": 249,
@@ -415,14 +415,14 @@
       {
         "attributes": {
           "contractDependencies": [
-            1090
+            1120
           ],
           "contractKind": "contract",
           "documentation": "@title Crowdsale for off-chain payment methods\n@author Jakub Stefanski",
           "fullyImplemented": true,
           "linearizedBaseContracts": [
             248,
-            1090
+            1120
           ],
           "name": "ExternalCrowdsale",
           "scope": 249
@@ -439,7 +439,7 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "Ownable",
-                  "referencedDeclaration": 1090,
+                  "referencedDeclaration": 1120,
                   "type": "contract Ownable"
                 },
                 "id": 14,
@@ -457,7 +457,7 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "SafeMath",
-                  "referencedDeclaration": 1034,
+                  "referencedDeclaration": 1064,
                   "type": "library SafeMath"
                 },
                 "id": 16,
@@ -1138,7 +1138,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -1288,7 +1288,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -1450,7 +1450,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -1642,7 +1642,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -1773,7 +1773,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -1870,7 +1870,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -2001,7 +2001,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -2169,7 +2169,7 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 1064,
+                      "referencedDeclaration": 1094,
                       "type": "modifier ()",
                       "value": "onlyOwner"
                     },
@@ -2308,7 +2308,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -2686,7 +2686,7 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 1064,
+                      "referencedDeclaration": 1094,
                       "type": "modifier ()",
                       "value": "onlyOwner"
                     },
@@ -3005,7 +3005,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "sub",
-                                  "referencedDeclaration": 1009,
+                                  "referencedDeclaration": 1039,
                                   "type": "function (uint256,uint256) pure returns (uint256)"
                                 },
                                 "children": [
@@ -3373,7 +3373,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 1498,
+                                      "referencedDeclaration": 1528,
                                       "type": "block",
                                       "value": "block"
                                     },
@@ -3438,7 +3438,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 1498,
+                                      "referencedDeclaration": 1528,
                                       "type": "block",
                                       "value": "block"
                                     },
@@ -3565,9 +3565,9 @@
         }
       },
       "links": {},
-      "address": "0x4094e9ba9dcd45a405b7554549a21989255b94b8"
+      "address": "0xbb4cc236465a385d56df033b16720bae4f0cc97d"
     }
   },
   "schemaVersion": "1.0.1",
-  "updatedAt": "2018-01-02T01:07:31.989Z"
+  "updatedAt": "2018-01-02T14:35:33.127Z"
 }

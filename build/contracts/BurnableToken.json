@@ -155,7 +155,7 @@
       },
       {
         "attributes": {
-          "SourceUnit": 1035,
+          "SourceUnit": 1065,
           "absolutePath": "zeppelin-solidity/contracts/math/SafeMath.sol",
           "file": "zeppelin-solidity/contracts/math/SafeMath.sol",
           "scope": 411,
@@ -173,7 +173,7 @@
       },
       {
         "attributes": {
-          "SourceUnit": 1177,
+          "SourceUnit": 1207,
           "absolutePath": "zeppelin-solidity/contracts/token/BasicToken.sol",
           "file": "zeppelin-solidity/contracts/token/BasicToken.sol",
           "scope": 411,
@@ -192,16 +192,16 @@
       {
         "attributes": {
           "contractDependencies": [
-            1176,
-            1248
+            1206,
+            1278
           ],
           "contractKind": "contract",
           "documentation": "@title A token that can decrease its supply\n@author Jakub Stefanski",
           "fullyImplemented": true,
           "linearizedBaseContracts": [
             410,
-            1176,
-            1248
+            1206,
+            1278
           ],
           "name": "BurnableToken",
           "scope": 411
@@ -218,7 +218,7 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "BasicToken",
-                  "referencedDeclaration": 1176,
+                  "referencedDeclaration": 1206,
                   "type": "contract BasicToken"
                 },
                 "id": 337,
@@ -236,7 +236,7 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "SafeMath",
-                  "referencedDeclaration": 1034,
+                  "referencedDeclaration": 1064,
                   "type": "library SafeMath"
                 },
                 "id": 339,
@@ -479,7 +479,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1509,
+                              "referencedDeclaration": 1539,
                               "type": "function (bool) pure",
                               "value": "require"
                             },
@@ -518,7 +518,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 1103,
+                                      "referencedDeclaration": 1133,
                                       "type": "mapping(address => uint256)",
                                       "value": "balances"
                                     },
@@ -544,7 +544,7 @@
                                           "overloadedDeclarations": [
                                             null
                                           ],
-                                          "referencedDeclaration": 1506,
+                                          "referencedDeclaration": 1536,
                                           "type": "msg",
                                           "value": "msg"
                                         },
@@ -729,7 +729,7 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 1103,
+                                  "referencedDeclaration": 1133,
                                   "type": "mapping(address => uint256)",
                                   "value": "balances"
                                 },
@@ -755,7 +755,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 1506,
+                                      "referencedDeclaration": 1536,
                                       "type": "msg",
                                       "value": "msg"
                                     },
@@ -801,7 +801,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "sub",
-                                  "referencedDeclaration": 1009,
+                                  "referencedDeclaration": 1039,
                                   "type": "function (uint256,uint256) pure returns (uint256)"
                                 },
                                 "children": [
@@ -821,7 +821,7 @@
                                           "overloadedDeclarations": [
                                             null
                                           ],
-                                          "referencedDeclaration": 1103,
+                                          "referencedDeclaration": 1133,
                                           "type": "mapping(address => uint256)",
                                           "value": "balances"
                                         },
@@ -847,7 +847,7 @@
                                               "overloadedDeclarations": [
                                                 null
                                               ],
-                                              "referencedDeclaration": 1506,
+                                              "referencedDeclaration": 1536,
                                               "type": "msg",
                                               "value": "msg"
                                             },
@@ -918,7 +918,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1223,
+                              "referencedDeclaration": 1253,
                               "type": "uint256",
                               "value": "totalSupply"
                             },
@@ -954,7 +954,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "sub",
-                                  "referencedDeclaration": 1009,
+                                  "referencedDeclaration": 1039,
                                   "type": "function (uint256,uint256) pure returns (uint256)"
                                 },
                                 "children": [
@@ -964,7 +964,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 1223,
+                                      "referencedDeclaration": 1253,
                                       "type": "uint256",
                                       "value": "totalSupply"
                                     },
@@ -1064,7 +1064,7 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 1506,
+                                  "referencedDeclaration": 1536,
                                   "type": "msg",
                                   "value": "msg"
                                 },
@@ -1137,7 +1137,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 1247,
+                              "referencedDeclaration": 1277,
                               "type": "function (address,address,uint256)",
                               "value": "Transfer"
                             },
@@ -1163,7 +1163,7 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 1506,
+                                  "referencedDeclaration": 1536,
                                   "type": "msg",
                                   "value": "msg"
                                 },
@@ -1240,5 +1240,5 @@
   },
   "networks": {},
   "schemaVersion": "1.0.1",
-  "updatedAt": "2018-01-02T01:01:08.175Z"
+  "updatedAt": "2018-01-02T14:30:04.867Z"
 }
