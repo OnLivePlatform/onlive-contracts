@@ -12,7 +12,7 @@ const utils = new Web3Utils(web3);
 const ExternalCrowdsale = artifacts.require('./ExternalCrowdsale.sol');
 
 async function deploy() {
-  const duration = daysToBlocks(11);
+  const duration = daysToBlocks(32);
   const startOffset = 0; // TODO: consider setting the offset
 
   const currentBlock = await utils.getBlockNumber();
