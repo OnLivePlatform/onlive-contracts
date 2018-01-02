@@ -12,6 +12,7 @@ contract DescriptiveToken is BasicToken, Ownable {
 
     string public name;
     string public symbol;
+    bool public isDescriptionFinalized;
     uint256 public decimals = 18;
 
     function DescriptiveToken(
@@ -33,8 +34,18 @@ contract DescriptiveToken is BasicToken, Ownable {
      */
     event DescriptionChanged(string name, string symbol);
 
+    /**
+     * @dev Further changes to name and symbol are forbidden
+     */
+    event DescriptionFinalized();
+
     modifier onlyNotEmpty(string str) {
         require(bytes(str).length > 0);
+        _;
+    }
+
+    modifier onlyDescriptionNotFinalized() {
+        require(!isDescriptionFinalized);
         _;
     }
 
@@ -47,6 +58,7 @@ contract DescriptiveToken is BasicToken, Ownable {
     function changeDescription(string _name, string _symbol)
         public
         onlyOwner
+        onlyDescriptionNotFinalized
         onlyNotEmpty(_name)
         onlyNotEmpty(_symbol)
     {
@@ -54,5 +66,18 @@ contract DescriptiveToken is BasicToken, Ownable {
         symbol = _symbol;
 
         DescriptionChanged(name, symbol);
+    }
+
+    /**
+     * @dev Prevents further changes to name and symbol
+     */
+    function finalizeDescription()
+        public
+        onlyOwner
+        onlyDescriptionNotFinalized
+    {
+        isDescriptionFinalized = true;
+
+        DescriptionFinalized();
     }
 }

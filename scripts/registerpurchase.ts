@@ -12,6 +12,8 @@ declare const artifacts: OnLiveArtifacts;
 
 const utils = new Web3Utils(web3);
 
+const OnLiveToken = artifacts.require('./contracts/OnLiveToken.sol');
+
 const ExternalCrowdsale = artifacts.require(
   './contracts/ExternalCrowdsale.sol'
 );
@@ -30,10 +32,32 @@ const argv = (commander
   .opts() as any) as Options;
 
 async function asyncExec() {
-  const crowdsale = await ExternalCrowdsale.deployed();
-  const isActive = await crowdsale.isActive();
-  const owner = await crowdsale.owner();
+  console.log(
+    `Registering purchase of ${argv.amount} ONL`,
+    `with ID ${argv.paymentId} to ${argv.purchaser}`
+  );
 
+  await validate();
+
+  const crowdsale = await ExternalCrowdsale.deployed();
+  const owner = await crowdsale.owner();
+  const tx = await crowdsale.registerPurchase(
+    argv.paymentId,
+    argv.purchaser,
+    toONL(argv.amount),
+    { from: owner }
+  );
+
+  console.log(`Transaction Hash: ${tx.receipt.transactionHash}`);
+}
+
+async function validate() {
+  validateInputParameters();
+  await validateCrowdsaleState();
+  await validateMintingAuthorization();
+}
+
+function validateInputParameters() {
   if (!Bytes32.test(argv.paymentId)) {
     throw new Error(`Invalid payment id: ${argv.paymentId}`);
   }
@@ -45,6 +69,11 @@ async function asyncExec() {
   if (isNaN(argv.amount)) {
     throw new Error('Invalid amount');
   }
+}
+
+async function validateCrowdsaleState() {
+  const crowdsale = await ExternalCrowdsale.deployed();
+  const isActive = await crowdsale.isActive();
 
   if (!isActive) {
     throw new Error(
@@ -56,20 +85,21 @@ async function asyncExec() {
       ].join('\n')
     );
   }
+}
 
-  console.log(
-    `Registering purchase of ${argv.amount} ONL`,
-    `with ID ${argv.paymentId} to ${argv.purchaser}`
-  );
+async function validateMintingAuthorization() {
+  const crowdsale = await ExternalCrowdsale.deployed();
+  const token = await OnLiveToken.deployed();
+  const isMintingManager = await token.isMintingManager(crowdsale.address);
 
-  const tx = await crowdsale.registerPurchase(
-    argv.paymentId,
-    argv.purchaser,
-    toONL(argv.amount),
-    { from: owner }
-  );
-
-  console.log(`Transaction Hash: ${tx.receipt.transactionHash}`);
+  if (!isMintingManager) {
+    throw new Error(
+      [
+        `Crowdsale ${crowdsale.address} is not authorized to`,
+        `mint ${token.address} tokens`
+      ].join(' ')
+    );
+  }
 }
 
 function exec(finalize: ScriptFinalizer) {

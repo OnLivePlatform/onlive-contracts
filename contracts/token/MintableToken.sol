@@ -25,9 +25,9 @@ contract MintableToken is BasicToken, Ownable {
     bool public mintingFinished;
 
     /**
-     * @dev List of addresses allowed to create tokens
+     * @dev Addresses allowed to create tokens
      */
-    mapping (address => bool) public mintingManagers;
+    mapping (address => bool) public isMintingManager;
 
     /**
      * @dev Tokens minted to specified address
@@ -54,7 +54,7 @@ contract MintableToken is BasicToken, Ownable {
     event MintingFinished();
 
     modifier onlyMintingManager(address addr) {
-        require(mintingManagers[addr]);
+        require(isMintingManager[addr]);
         _;
     }
 
@@ -72,7 +72,7 @@ contract MintableToken is BasicToken, Ownable {
         onlyOwner
         onlyMintingNotFinished
     {
-        mintingManagers[addr] = true;
+        isMintingManager[addr] = true;
 
         MintingManagerApproved(addr);
     }
@@ -87,7 +87,7 @@ contract MintableToken is BasicToken, Ownable {
         onlyMintingManager(addr)
         onlyMintingNotFinished
     {
-        delete mintingManagers[addr];
+        delete isMintingManager[addr];
 
         MintingManagerRevoked(addr);
     }

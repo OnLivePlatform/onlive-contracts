@@ -108,7 +108,7 @@ declare module 'onlive' {
 
     interface MintableToken extends ERC20Basic, Ownable {
       mintingFinished(): Promise<boolean>;
-      mintingManagers(addr: Address): Promise<boolean>;
+      isMintingManager(addr: Address): Promise<boolean>;
 
       approveMintingManager(
         addr: Address,
@@ -164,10 +164,15 @@ declare module 'onlive' {
       name(): Promise<string>;
       symbol(): Promise<string>;
       decimals(): Promise<BigNumber>;
+      isDescriptionFinalized(): Promise<boolean>;
 
       changeDescription(
         name: string,
         symbol: string,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      finalizeDescription(
         options?: TransactionOptions
       ): Promise<TransactionResult>;
     }
@@ -176,6 +181,8 @@ declare module 'onlive' {
       name: string;
       symbol: string;
     }
+
+    type DescriptionFinalizedEvent = {};
 
     interface OnLiveToken
       extends DescriptiveToken,

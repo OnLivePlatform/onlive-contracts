@@ -119,7 +119,7 @@
       },
       {
         "attributes": {
-          "SourceUnit": 1091,
+          "SourceUnit": 1121,
           "absolutePath": "zeppelin-solidity/contracts/ownership/Ownable.sol",
           "file": "zeppelin-solidity/contracts/ownership/Ownable.sol",
           "scope": 290,
@@ -138,14 +138,14 @@
       {
         "attributes": {
           "contractDependencies": [
-            1090
+            1120
           ],
           "contractKind": "contract",
           "documentation": null,
           "fullyImplemented": true,
           "linearizedBaseContracts": [
             289,
-            1090
+            1120
           ],
           "name": "Migrations",
           "scope": 290
@@ -162,7 +162,7 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "Ownable",
-                  "referencedDeclaration": 1090,
+                  "referencedDeclaration": 1120,
                   "type": "contract Ownable"
                 },
                 "id": 253,
@@ -270,7 +270,7 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 1064,
+                      "referencedDeclaration": 1094,
                       "type": "modifier ()",
                       "value": "onlyOwner"
                     },
@@ -416,7 +416,7 @@
                       "overloadedDeclarations": [
                         null
                       ],
-                      "referencedDeclaration": 1064,
+                      "referencedDeclaration": 1094,
                       "type": "modifier ()",
                       "value": "onlyOwner"
                     },
@@ -629,9 +629,9 @@
     "4": {
       "events": {},
       "links": {},
-      "address": "0x7a055da1ff6fc1570bfbdbb1fecff4fb4987ab3c"
+      "address": "0xa4a44f67771d719464ca1e2b260426ad83f20f79"
     }
   },
   "schemaVersion": "1.0.1",
-  "updatedAt": "2018-01-02T01:07:31.985Z"
+  "updatedAt": "2018-01-02T14:35:33.123Z"
 }
