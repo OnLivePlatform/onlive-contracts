@@ -25,7 +25,13 @@
     "lint:tslint": "tslint --project .",
     "lint:tslint:fix": "tslint --fix --project .",
     "lint:solhint": "solhint contracts/**/*.sol test/**/*.sol",
-    "format": "prettier --write *.ts **/*.ts"
+    "format": "prettier --write *.ts **/*.ts",
+    "flatten:migrations": "run-s compile:ts flatten:migrations:js",
+    "flatten:migrations:js": "node scripts/flatten.js -c Migrations",
+    "flatten:token": "run-s compile:ts flatten:token:js",
+    "flatten:token:js": "node scripts/flatten.js -c OnLiveToken",
+    "flatten:externalcrowdsale": "run-s compile:ts flatten:externalcrowdsale:js",
+    "flatten:externalcrowdsale:js": "node scripts/flatten.js -c ExternalCrowdsale"
   },
   "repository": {
     "type": "git",
