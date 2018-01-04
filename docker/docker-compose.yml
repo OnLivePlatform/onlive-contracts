@@ -1,0 +1,8 @@
+version: '2'
+services:
+  flatten:
+    build:
+      context: .
+      dockerfile: solidity-flattener/Dockerfile
+    volumes:
+      - ../:/project
