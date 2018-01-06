@@ -1,11 +1,12 @@
 pragma solidity 0.4.18;
 
 
-contract Mintable {
-    function mint(address to, uint256 amount) public;
-}
-
-
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ */
 library SafeMath {
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a == 0) {
@@ -36,6 +37,12 @@ library SafeMath {
 }
 
 
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ */
 contract Ownable {
     address public owner;
 
@@ -69,6 +76,29 @@ contract Ownable {
 }
 
 
+/**
+ * @title Mintable token interface
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
+contract Mintable {
+    function mint(address to, uint256 amount) public;
+}
+
+
+/**
+ * @title Crowdsale for off-chain payment methods
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract ExternalCrowdsale is Ownable {
 
     using SafeMath for uint256;

@@ -1,6 +1,14 @@
+/* solhint-disable no-simple-event-func-name */
+
 pragma solidity 0.4.18;
 
 
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ */
 library SafeMath {
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a == 0) {
@@ -31,6 +39,12 @@ library SafeMath {
 }
 
 
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ */
 contract Ownable {
     address public owner;
 
@@ -64,7 +78,12 @@ contract Ownable {
 }
 
 
-/* solhint-disable no-simple-event-func-name */
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ */
 contract ERC20Basic {
     uint256 public totalSupply;
     function balanceOf(address who) public view returns (uint256);
@@ -73,6 +92,12 @@ contract ERC20Basic {
 }
 
 
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ */
 contract BasicToken is ERC20Basic {
     using SafeMath for uint256;
 
@@ -105,6 +130,15 @@ contract BasicToken is ERC20Basic {
 }
 
 
+/**
+ * @title A token that can decrease its supply
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract BurnableToken is BasicToken {
 
     using SafeMath for uint256;
@@ -144,6 +178,15 @@ contract BurnableToken is BasicToken {
 }
 
 
+/**
+ * @title A token with modifiable name and symbol
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract DescriptiveToken is BasicToken, Ownable {
 
     string public name;
@@ -219,6 +262,15 @@ contract DescriptiveToken is BasicToken, Ownable {
 }
 
 
+/**
+ * @title A token that can increase its supply in initial period
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract MintableToken is BasicToken, Ownable {
 
     using SafeMath for uint256;
@@ -334,6 +386,15 @@ contract MintableToken is BasicToken, Ownable {
 }
 
 
+/**
+ * @title A token that can increase its supply to the specified limit
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract CappedMintableToken is MintableToken {
 
     /**
@@ -373,6 +434,17 @@ contract CappedMintableToken is MintableToken {
 }
 
 
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract ERC20 is ERC20Basic {
     function allowance(address owner, address spender) public view returns (uint256);
     function transferFrom(address from, address to, uint256 value) public returns (bool);
@@ -381,6 +453,17 @@ contract ERC20 is ERC20Basic {
 }
 
 
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract StandardToken is ERC20, BasicToken {
 
     mapping (address => mapping (address => uint256)) internal allowed;
@@ -469,6 +552,15 @@ contract StandardToken is ERC20, BasicToken {
 }
 
 
+/**
+ * @title ERC20 token with manual initial lock up period
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract ReleasableToken is StandardToken, Ownable {
 
     /**
@@ -647,6 +739,21 @@ contract ReleasableToken is StandardToken, Ownable {
 }
 
 
+/**
+ * @title OnLive Token
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ * @dev Implements ERC20 interface
+ * @dev Mintable by selected addresses until sale finishes
+ * @dev A cap on total supply of tokens
+ * @dev Burnable by anyone
+ * @dev Manual lock-up period (non-transferable) with a non-reversible release by the selected address
+ * @dev Modifiable symbol and name in case of collision
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
+ */
 contract OnLiveToken is DescriptiveToken, ReleasableToken, CappedMintableToken, BurnableToken {
 
     function OnLiveToken(
@@ -661,4 +768,3 @@ contract OnLiveToken is DescriptiveToken, ReleasableToken, CappedMintableToken, 
         owner = msg.sender;
     }
 }
-
