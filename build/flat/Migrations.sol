@@ -1,6 +1,12 @@
 pragma solidity 0.4.18;
 
 
+/*
+ * https://github.com/OpenZeppelin/zeppelin-solidity
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ */
 contract Ownable {
 
     address public owner;

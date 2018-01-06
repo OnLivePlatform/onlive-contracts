@@ -7,7 +7,7 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /**
  * @title A token that can increase its supply in initial period
- * @author Jakub Stefanski
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract MintableToken is BasicToken, Ownable {
 

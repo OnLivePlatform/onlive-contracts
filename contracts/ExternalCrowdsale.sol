@@ -4,6 +4,10 @@ import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
 import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
+/**
+ * @title Mintable token interface
+ * @author Jakub Stefanski (https://github.com/jstefanski)
+ */
 contract Mintable {
     function mint(address to, uint256 amount) public;
 }
@@ -11,7 +15,7 @@ contract Mintable {
 
 /**
  * @title Crowdsale for off-chain payment methods
- * @author Jakub Stefanski
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract ExternalCrowdsale is Ownable {
 

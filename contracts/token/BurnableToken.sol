@@ -6,7 +6,7 @@ import { BasicToken } from "zeppelin-solidity/contracts/token/BasicToken.sol";
 
 /**
  * @title A token that can decrease its supply
- * @author Jakub Stefanski
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract BurnableToken is BasicToken {
 

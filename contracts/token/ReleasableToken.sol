@@ -6,7 +6,7 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /**
  * @title ERC20 token with manual initial lock up period
- * @author Jakub Stefanski
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract ReleasableToken is StandardToken, Ownable {
 

@@ -5,7 +5,7 @@ import { MintableToken } from "./MintableToken.sol";
 
 /**
  * @title A token that can increase its supply to the specified limit
- * @author Jakub Stefanski
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract CappedMintableToken is MintableToken {
 

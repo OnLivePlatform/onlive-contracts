@@ -6,7 +6,7 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /**
  * @title A token with modifiable name and symbol
- * @author Jakub Stefanski
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract DescriptiveToken is BasicToken, Ownable {
 

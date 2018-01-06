@@ -8,7 +8,7 @@ import { DescriptiveToken } from "./token/DescriptiveToken.sol";
 
 /**
  * @title OnLive Token
- * @author Jakub Stefanski
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  * @dev Implements ERC20 interface
  * @dev Mintable by selected addresses until sale finishes
  * @dev A cap on total supply of tokens
