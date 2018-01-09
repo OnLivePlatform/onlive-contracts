@@ -212,15 +212,39 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
+    interface SaleScheduledEvent {
+      startBlock: BigNumber;
+      endBlock: BigNumber;
+    }
+
     interface PurchaseRegisteredEvent {
       paymentId: string;
       purchaser: Address;
       amount: BigNumber;
     }
 
-    interface SaleScheduledEvent {
-      startBlock: BigNumber;
-      endBlock: BigNumber;
+    interface Crowdsale extends ContractBase {
+      wallet(): Promise<string>;
+      token(): Promise<string>;
+      price(): Promise<BigNumber>;
+      availableAmount(): Promise<BigNumber>;
+      minValue(): Promise<BigNumber>;
+      startBlock(): Promise<BigNumber>;
+      endBlock(): Promise<BigNumber>;
+
+      scheduleSale(
+        startBlock: AnyNumber,
+        endBlock: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      contribute(options?: TransactionOptions): Promise<TransactionResult>;
+    }
+
+    interface ContributionAcceptedEvent {
+      contributor: Address;
+      value: BigNumber;
+      amount: BigNumber;
     }
 
     interface MigrationsContract extends Contract<Migrations> {
@@ -256,6 +280,17 @@ declare module 'onlive' {
       ): Promise<OnLiveToken>;
     }
 
+    interface CrowdsaleContract extends Contract<Crowdsale> {
+      'new'(
+        wallet: Address,
+        token: Address,
+        price: AnyNumber,
+        availableAmount: AnyNumber,
+        minValue: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<Crowdsale>;
+    }
+
     interface ExternalCrowdsaleContract extends Contract<ExternalCrowdsale> {
       'new'(
         token: Address,
@@ -271,6 +306,7 @@ declare module 'onlive' {
       require(name: './token/MintableToken.sol'): MintableTokenContract;
       require(name: './token/BurnableToken.sol'): BurnableTokenContract;
       require(name: './OnLiveToken.sol'): OnLiveTokenContract;
+      require(name: './Crowdsale.sol'): CrowdsaleContract;
       require(name: './ExternalCrowdsale.sol'): ExternalCrowdsaleContract;
     }
   }
