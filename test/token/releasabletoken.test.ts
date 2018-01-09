@@ -6,6 +6,7 @@ import {
   ReleasableToken,
   ReleasedEvent,
   ReleaseManagerSetEvent,
+  TransferEvent,
   TransferManagerApprovedEvent,
   TransferManagerRevokedEvent
 } from 'onlive';
@@ -258,6 +259,47 @@ export function testTransfer(
       });
     });
   });
+
+  context('Given source account is transfer manager', () => {
+    beforeEach(async () => {
+      await ctx.token.approveTransferManager(sourceAccount, {
+        from: ctx.owner
+      });
+    });
+
+    it('should emit Transfer event when not released', async () => {
+      const amount = toONL(1);
+      const tx = await ctx.token.transfer(destinationAccount, amount, {
+        from: sourceAccount
+      });
+
+      const log = findLastLog(tx, 'Transfer');
+      assert.isOk(log);
+
+      const event = log.args as TransferEvent;
+      assert.isOk(event);
+      assert.equal(event.from, sourceAccount);
+      assert.equal(event.to, destinationAccount);
+      assertTokenEqual(event.value, amount);
+    });
+
+    it('should change balance when not released', async () => {
+      const amount = toONL(1);
+
+      const expectedDestinationBalance = (await ctx.token.balanceOf(
+        destinationAccount
+      )).add(amount);
+
+      await ctx.token.transfer(destinationAccount, amount, {
+        from: sourceAccount
+      });
+
+      assertTokenEqual(
+        await ctx.token.balanceOf(destinationAccount),
+        expectedDestinationBalance
+      );
+    });
+  });
 }
 
 export function testTransferFrom(
@@ -305,6 +347,49 @@ export function testTransferFrom(
       await ctx.token.transferFrom(sourceAccount, destinationAccount, amount, {
         from: approvedAccount
       });
+    });
+  });
+
+  context('Given source account is transfer manager', () => {
+    beforeEach(async () => {
+      await ctx.token.approveTransferManager(sourceAccount, {
+        from: ctx.owner
+      });
+    });
+
+    it('should emit Transfer event when not released', async () => {
+      const tx = await ctx.token.transferFrom(
+        sourceAccount,
+        destinationAccount,
+        amount,
+        {
+          from: approvedAccount
+        }
+      );
+
+      const log = findLastLog(tx, 'Transfer');
+      assert.isOk(log);
+
+      const event = log.args as TransferEvent;
+      assert.isOk(event);
+      assert.equal(event.from, sourceAccount);
+      assert.equal(event.to, destinationAccount);
+      assertTokenEqual(event.value, amount);
+    });
+
+    it('should change balance when not released', async () => {
+      const expectedDestinationBalance = (await ctx.token.balanceOf(
+        destinationAccount
+      )).add(amount);
+
+      await ctx.token.transferFrom(sourceAccount, destinationAccount, amount, {
+        from: approvedAccount
+      });
+
+      assertTokenEqual(
+        await ctx.token.balanceOf(destinationAccount),
+        expectedDestinationBalance
+      );
     });
   });
 }
