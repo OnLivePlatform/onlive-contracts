@@ -46,6 +46,17 @@ contract('Crowdsale', accounts => {
 
   let token: OnLiveToken;
 
+  async function createCrowdsale(options: any = {}) {
+    return await CrowdsaleContract.new(
+      options.wallet || wallet,
+      options.token || token.address,
+      options.price || basePrice,
+      options.availableAmount || cappedAmount,
+      options.minValue || minValue,
+      { from: options.from || owner }
+    );
+  }
+
   beforeEach(async () => {
     token = await OnLiveTokenContract.new('OnLive Token', 'ONL', toONL(1000), {
       from: owner
@@ -55,85 +66,53 @@ contract('Crowdsale', accounts => {
     assertNumberEqual(await token.decimals(), ethDecimals);
   });
 
-  describe.only('#ctor', () => {
+  describe('#ctor', () => {
     it('should set wallet address', async () => {
-      const crowdsale = await CrowdsaleContract.new(
-        wallet,
-        token.address,
-        basePrice,
-        cappedAmount,
-        minValue
-      );
+      const crowdsale = await createCrowdsale();
       assert.equal(await crowdsale.token(), token.address);
     });
 
     it('should set token address', async () => {
-      const crowdsale = await CrowdsaleContract.new(
-        wallet,
-        token.address,
-        basePrice,
-        cappedAmount,
-        minValue
-      );
+      const crowdsale = await createCrowdsale();
       assert.equal(await crowdsale.token(), token.address);
     });
 
+    it('should set token price', async () => {
+      const crowdsale = await createCrowdsale();
+      assertTokenEqual(await crowdsale.price(), basePrice);
+    });
+
     it('should set amount of tokens available', async () => {
-      const crowdsale = await CrowdsaleContract.new(
-        wallet,
-        token.address,
-        basePrice,
-        cappedAmount,
-        minValue
-      );
+      const crowdsale = await createCrowdsale();
       assertTokenEqual(await crowdsale.availableAmount(), cappedAmount);
     });
 
-    it('should revert when token address is zero', async () => {
+    it('should set minimum contribution value', async () => {
+      const crowdsale = await createCrowdsale();
+      assertTokenEqual(await crowdsale.minValue(), minValue);
+    });
+
+    it('should revert when wallet address is zero', async () => {
       await assertReverts(async () => {
-        await CrowdsaleContract.new(
-          '0x0',
-          token.address,
-          basePrice,
-          cappedAmount,
-          minValue
-        );
+        await createCrowdsale({ wallet: '0x0' });
       });
     });
 
     it('should revert when token address is zero', async () => {
       await assertReverts(async () => {
-        await CrowdsaleContract.new(
-          wallet,
-          '0x0',
-          basePrice,
-          cappedAmount,
-          minValue
-        );
+        await createCrowdsale({ token: '0x0' });
       });
     });
 
     it('should revert when price is zero', async () => {
       await assertReverts(async () => {
-        await CrowdsaleContract.new(
-          wallet,
-          token.address,
-          toWei(0),
-          cappedAmount,
-          minValue
-        );
+        await createCrowdsale({ price: toWei(0) });
       });
     });
 
     it('should revert when available amount is zero', async () => {
       await assertReverts(async () => {
-        await CrowdsaleContract.new(
-          wallet,
-          token.address,
-          basePrice,
-          toONL(0),
-          minValue
-        );
+        await createCrowdsale({ availableAmount: toWei(0) });
       });
     });
   });
