@@ -231,6 +231,7 @@ declare module 'onlive' {
       minValue(): Promise<BigNumber>;
       startBlock(): Promise<BigNumber>;
       endBlock(): Promise<BigNumber>;
+      isActive(): Promise<boolean>;
 
       scheduleSale(
         startBlock: AnyNumber,

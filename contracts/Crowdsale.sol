@@ -165,7 +165,7 @@ contract Crowdsale is Ownable {
         onlySufficientAvailableTokens(amount)
         returns (uint256)
     {
-        uint256 amount = value.div(price);
+        uint256 amount = value.mul(1 ether).div(price);
         token.mint(contributor, amount);
         wallet.transfer(value);
 

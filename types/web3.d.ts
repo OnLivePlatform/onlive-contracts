@@ -8,7 +8,7 @@ declare module 'web3' {
   class Web3 {
     public eth: {
       accounts: Address[];
-      coinbase: Address;
+      defaultAccount: Address;
 
       getBlockNumber(callback: Callback<number>): void;
       sendTransaction(txData: Web3.TxData, callback: Callback<string>): void;
@@ -52,8 +52,8 @@ declare module 'web3' {
     }
 
     interface TxData {
-      from: Address;
-      to?: Address;
+      from?: Address;
+      to: Address;
       value?: AnyNumber;
       gas?: AnyNumber;
       gasPrice?: AnyNumber;

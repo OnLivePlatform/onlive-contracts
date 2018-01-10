@@ -2,6 +2,7 @@ import { BigNumber } from 'bignumber.js';
 import { assert } from 'chai';
 
 import {
+  calculateContribution,
   daysToBlocks,
   fromEth,
   fromFinney,
@@ -23,7 +24,11 @@ import {
   toThousandsONL,
   toWei
 } from '../utils';
-import { assertNumberEqual, assertTokenEqual } from './helpers';
+import {
+  assertNumberEqual,
+  assertTokenAlmostEqual,
+  assertTokenEqual
+} from './helpers';
 
 describe('#shiftNumber', () => {
   it('should return the number if decimals is 0', () => {
@@ -150,6 +155,58 @@ describe('#toMillionsONL', () => {
   it('should return 10²² for 0.01 input', () => {
     assertTokenEqual(toMillionsONL(0.01), new BigNumber(10).pow(22));
   });
+});
+
+describe('#calculateContribution', () => {
+  const acceptableError = toONL(shiftNumber(1, -9));
+  const suite = [
+    {
+      amounts: [
+        { eth: 0.1, onl: 87.2143729287 },
+        { eth: 1, onl: 872.143729287 },
+        { eth: 50, onl: 43607.186464329 }
+      ],
+      price: 0.0011466
+    },
+    {
+      amounts: [
+        { eth: 0.1, onl: 76.3358778626 },
+        { eth: 1, onl: 763.358778626 },
+        { eth: 50, onl: 38167.938931297 }
+      ],
+      price: 0.00131
+    },
+    {
+      amounts: [
+        { eth: 0.1, onl: 68.5871056241 },
+        { eth: 1, onl: 685.871056241 },
+        { eth: 50, onl: 34293.552812071 }
+      ],
+      price: 0.001458
+    },
+    {
+      amounts: [
+        { eth: 0.1, onl: 61.0500610501 },
+        { eth: 1, onl: 610.500610501 },
+        { eth: 50, onl: 30525.03052503 }
+      ],
+      price: 0.001638
+    }
+  ];
+
+  for (const { amounts, price } of suite) {
+    context(`Given ONL price ${price} ETH`, () => {
+      for (const { eth, onl } of amounts) {
+        it(`should return ${onl} ONL for ${eth} ETH`, () => {
+          assertTokenAlmostEqual(
+            calculateContribution(toWei(eth), toONL(price)),
+            toONL(onl),
+            acceptableError
+          );
+        });
+      }
+    });
+  }
 });
 
 describe('#secondsToBlocks', () => {

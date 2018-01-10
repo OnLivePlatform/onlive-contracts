@@ -1,6 +1,8 @@
 import { BigNumber } from 'bignumber.js';
 import { AnyNumber } from 'web3';
 
+export const ETH_DECIMALS = 18;
+
 export function toFinney(eth: AnyNumber) {
   return shiftNumber(eth, 3);
 }
@@ -22,11 +24,11 @@ export function toKwei(eth: AnyNumber) {
 }
 
 export function toWei(eth: AnyNumber) {
-  return shiftNumber(eth, 18);
+  return shiftNumber(eth, ETH_DECIMALS);
 }
 
 export function fromEth(eth: AnyNumber) {
-  return shiftNumber(eth, 18);
+  return shiftNumber(eth, ETH_DECIMALS);
 }
 
 export function fromFinney(finney: AnyNumber) {
