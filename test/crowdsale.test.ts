@@ -25,12 +25,6 @@ declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
 declare const contract: ContractContextDefinition;
 
-interface ScheduleOptions {
-  startBlock: AnyNumber;
-  endBlock: AnyNumber;
-  from: Address;
-}
-
 const utils = new Web3Utils(web3);
 
 const CrowdsaleContract = artifacts.require('./Crowdsale.sol');
@@ -40,20 +34,29 @@ contract('Crowdsale', accounts => {
   const owner = accounts[9];
   const nonOwner = accounts[8];
   const wallet = accounts[7];
-  const basePrice = toWei(0.001638);
-  const cappedAmount = toONL(1000);
+  const price = toWei(0.001638);
+  const availableAmount = toONL(1000);
   const minValue = toWei(0.1);
 
   let token: OnLiveToken;
 
-  async function createCrowdsale(options: any = {}) {
+  interface CrowdsaleOptions {
+    wallet: Address;
+    token: Address;
+    price: Web3.AnyNumber;
+    availableAmount?: Web3.AnyNumber;
+    minValue: Web3.AnyNumber;
+    from: Address;
+  }
+
+  async function createCrowdsale(options?: Partial<CrowdsaleOptions>) {
     return await CrowdsaleContract.new(
-      options.wallet || wallet,
-      options.token || token.address,
-      options.price || basePrice,
-      options.availableAmount || cappedAmount,
-      options.minValue || minValue,
-      { from: options.from || owner }
+      propOr(wallet, 'wallet', options),
+      propOr(token.address, 'token', options),
+      propOr(price, 'price', options),
+      propOr(availableAmount, 'availableAmount', options),
+      propOr(minValue, 'minValue', options),
+      { from: propOr(owner, 'from', options) }
     );
   }
 
@@ -79,12 +82,12 @@ contract('Crowdsale', accounts => {
 
     it('should set token price', async () => {
       const crowdsale = await createCrowdsale();
-      assertTokenEqual(await crowdsale.price(), basePrice);
+      assertTokenEqual(await crowdsale.price(), price);
     });
 
     it('should set amount of tokens available', async () => {
       const crowdsale = await createCrowdsale();
-      assertTokenEqual(await crowdsale.availableAmount(), cappedAmount);
+      assertTokenEqual(await crowdsale.availableAmount(), availableAmount);
     });
 
     it('should set minimum contribution value', async () => {
@@ -128,7 +131,7 @@ contract('Crowdsale', accounts => {
       crowdsale = await CrowdsaleContract.new(
         wallet,
         token.address,
-        basePrice,
+        price,
         toONL(1000),
         minValue,
         {
@@ -137,6 +140,12 @@ contract('Crowdsale', accounts => {
       );
       await token.approveMintingManager(crowdsale.address, { from: owner });
     });
+
+    interface ScheduleOptions {
+      startBlock: AnyNumber;
+      endBlock: AnyNumber;
+      from: Address;
+    }
 
     async function scheduleSale(options?: Partial<ScheduleOptions>) {
       return await crowdsale.scheduleSale(

@@ -32,7 +32,7 @@ contract Crowdsale is Ownable {
     Mintable public token;
 
     /**
-     * @dev Price of single grain of token in Wei
+     * @dev Price of token in Wei
      */
     uint256 public price;
 
@@ -150,6 +150,13 @@ contract Crowdsale is Ownable {
         return acceptContribution(msg.sender, msg.value);
     }
 
+    /**
+     * @dev Check whether sale is currently active
+     */
+    function isActive() public view returns (bool) {
+        return block.number >= startBlock && block.number <= endBlock;
+    }
+
     function acceptContribution(address contributor, uint256 value)
         private
         onlyActive
@@ -165,12 +172,5 @@ contract Crowdsale is Ownable {
         ContributionAccepted(contributor, value, amount);
 
         return amount;
-    }
-
-    /**
-     * @dev Check whether sale is currently active
-     */
-    function isActive() public view returns (bool) {
-        return block.number >= startBlock && block.number <= endBlock;
     }
 }
