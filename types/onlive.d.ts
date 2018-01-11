@@ -232,6 +232,7 @@ declare module 'onlive' {
       startBlock(): Promise<BigNumber>;
       endBlock(): Promise<BigNumber>;
       isActive(): Promise<boolean>;
+      calculateContribution(value: AnyNumber): Promise<BigNumber>;
 
       scheduleSale(
         startBlock: AnyNumber,
@@ -239,7 +240,10 @@ declare module 'onlive' {
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
-      contribute(options?: TransactionOptions): Promise<TransactionResult>;
+      contribute(
+        contributor: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
     }
 
     interface ContributionAcceptedEvent {

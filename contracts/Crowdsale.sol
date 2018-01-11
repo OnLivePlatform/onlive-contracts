@@ -85,7 +85,7 @@ contract Crowdsale is Ownable {
     event ContributionAccepted(address indexed contributor, uint256 value, uint256 amount);
 
     /**
-     * @dev Sale scheduled on the given blocks
+     * @dev Sale is scheduled between given blocks
      * @param startBlock uint256 The first block of active sale
      * @param endBlock uint256 The last block of active sale
      */
@@ -146,8 +146,8 @@ contract Crowdsale is Ownable {
         SaleScheduled(_startBlock, _endBlock);
     }
 
-    function contribute() public payable returns (uint256) {
-        return acceptContribution(msg.sender, msg.value);
+    function contribute(address contributor) public payable returns (uint256) {
+        return acceptContribution(contributor, msg.value);
     }
 
     /**
@@ -155,6 +155,10 @@ contract Crowdsale is Ownable {
      */
     function isActive() public view returns (bool) {
         return block.number >= startBlock && block.number <= endBlock;
+    }
+
+    function calculateContribution(uint256 value) public view returns (uint256) {
+        return value.mul(1 ether).div(price);
     }
 
     function acceptContribution(address contributor, uint256 value)
@@ -165,7 +169,7 @@ contract Crowdsale is Ownable {
         onlySufficientAvailableTokens(amount)
         returns (uint256)
     {
-        uint256 amount = value.mul(1 ether).div(price);
+        uint256 amount = calculateContribution(value);
         token.mint(contributor, amount);
         wallet.transfer(value);
 

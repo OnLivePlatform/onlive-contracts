@@ -13,7 +13,7 @@ import {
 import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
 
 import { BigNumber } from 'bignumber.js';
-import { ContractContextDefinition } from 'truffle';
+import { ContractContextDefinition, TransactionResult } from 'truffle';
 import { AnyNumber } from 'web3';
 import {
   assertEtherEqual,
@@ -223,105 +223,138 @@ contract('Crowdsale', accounts => {
       });
     });
 
-    const contributionFunctions = [
-      {
-        contribute: (from: Address, value: Web3.AnyNumber) => {
-          return crowdsale.sendTransaction({ from, value });
-        },
-        name: '#fallback'
-      },
-      {
-        contribute: (from: Address, value: Web3.AnyNumber) => {
-          return crowdsale.contribute({ from, value });
-        },
-        name: '#contribute'
-      }
-    ];
+    type ContributionFunction = (
+      from: Address,
+      value: Web3.AnyNumber
+    ) => Promise<TransactionResult>;
 
-    for (const { contribute, name } of contributionFunctions) {
-      describe(name, () => {
-        it('should revert when sale is not scheduled', async () => {
-          await assertReverts(async () => {
-            await contribute(contributor, minValue);
-          });
+    function testContribute(contribute: ContributionFunction) {
+      it('should revert when sale is not scheduled', async () => {
+        await assertReverts(async () => {
+          await contribute(contributor, minValue);
+        });
+      });
+
+      it('should revert when sale is not active', async () => {
+        const futureStart = (await utils.getBlockNumber()) + 1000;
+        await scheduleSale({
+          endBlock: futureStart + saleDuration,
+          startBlock: futureStart
         });
 
-        it('should revert when sale is not active', async () => {
-          const futureStart = (await utils.getBlockNumber()) + 1000;
-          await scheduleSale({
-            endBlock: futureStart + saleDuration,
-            startBlock: futureStart
-          });
+        assert.isFalse(await crowdsale.isActive());
 
-          assert.isFalse(await crowdsale.isActive());
+        await assertReverts(async () => {
+          await contribute(contributor, minValue);
+        });
+      });
 
-          await assertReverts(async () => {
-            await contribute(contributor, minValue);
-          });
+      context('Given sale is active', () => {
+        beforeEach(async () => {
+          await scheduleSale();
+
+          assert.isTrue(await crowdsale.isActive());
         });
 
-        context('Given sale is active', () => {
-          beforeEach(async () => {
-            await scheduleSale();
+        it('should forward funds to wallet', async () => {
+          const prevBalance = await utils.getBalance(wallet);
+          await contribute(contributor, minValue);
 
-            assert.isTrue(await crowdsale.isActive());
-          });
+          assertEtherEqual(
+            await utils.getBalance(wallet),
+            prevBalance.add(minValue)
+          );
+        });
 
-          it('should forward funds to wallet', async () => {
-            const prevBalance = await utils.getBalance(wallet);
-            await contribute(contributor, minValue);
+        const acceptableError = toONL(shiftNumber(1, -9));
+        const conversions = [
+          { eth: 0.1, onl: 87.2143729287 },
+          { eth: 0.5, onl: 436.071864643 },
+          { eth: 1, onl: 872.143729287 }
+        ];
 
-            assertEtherEqual(
-              await utils.getBalance(wallet),
-              prevBalance.add(minValue)
-            );
-          });
+        for (const { eth, onl } of conversions) {
+          context(`Given contribution of ${eth} ETH`, () => {
+            it(`should assign ${onl} ONL`, async () => {
+              const prevBalance = await token.balanceOf(contributor);
+              const expectedAmount = toONL(onl);
 
-          const acceptableError = toONL(shiftNumber(1, -9));
-          const conversions = [
-            { eth: 0.1, onl: 87.2143729287 },
-            { eth: 0.5, onl: 436.071864643 },
-            { eth: 1, onl: 872.143729287 }
-          ];
+              await contribute(contributor, toWei(eth));
 
-          for (const { eth, onl } of conversions) {
-            context(`Given contribution of ${eth} ETH`, () => {
-              it(`should assign ${onl} ONL`, async () => {
-                const prevBalance = await token.balanceOf(contributor);
-                const expectedAmount = toONL(onl);
-
-                await contribute(contributor, toWei(eth));
-
-                assertTokenAlmostEqual(
-                  await token.balanceOf(contributor),
-                  prevBalance.add(expectedAmount),
-                  acceptableError
-                );
-              });
-
-              it(`should emit ContributionAccepted event`, async () => {
-                const value = toWei(eth);
-                const expectedAmount = toONL(onl);
-
-                const tx = await contribute(contributor, value);
-
-                const log = findLastLog(tx, 'ContributionAccepted');
-                assert.isOk(log);
-
-                const event = log.args as ContributionAcceptedEvent;
-                assert.isOk(event);
-                assert.equal(event.contributor, contributor);
-                assertEtherEqual(event.value, value);
-                assertTokenAlmostEqual(
-                  event.amount,
-                  expectedAmount,
-                  acceptableError
-                );
-              });
+              assertTokenAlmostEqual(
+                await token.balanceOf(contributor),
+                prevBalance.add(expectedAmount),
+                acceptableError
+              );
             });
-          }
+
+            it(`should emit ContributionAccepted event`, async () => {
+              const value = toWei(eth);
+              const expectedAmount = toONL(onl);
+
+              const tx = await contribute(contributor, value);
+
+              const log = findLastLog(tx, 'ContributionAccepted');
+              assert.isOk(log);
+
+              const event = log.args as ContributionAcceptedEvent;
+              assert.isOk(event);
+              assert.equal(event.contributor, contributor);
+              assertEtherEqual(event.value, value);
+              assertTokenAlmostEqual(
+                event.amount,
+                expectedAmount,
+                acceptableError
+              );
+            });
+          });
+        }
+
+        it('should revert when value is zero', async () => {
+          await assertReverts(async () => {
+            await contribute(contributor, toWei(0));
+          });
+        });
+
+        it('should revert when value is below threshold', async () => {
+          await assertReverts(async () => {
+            await contribute(contributor, minValue.sub(1));
+          });
+        });
+
+        it('should revert when there is not enough tokens', async () => {
+          const bigValue = toWei(2);
+          const expectedAmount = await crowdsale.calculateContribution(
+            bigValue
+          );
+          assert.isTrue(expectedAmount.gt(availableAmount));
+
+          await assertReverts(async () => {
+            await contribute(contributor, bigValue);
+          });
         });
       });
     }
+
+    describe('#fallback', () => {
+      testContribute((from: Address, value: Web3.AnyNumber) => {
+        return crowdsale.sendTransaction({ from, value });
+      });
+    });
+
+    describe('#contribute', () => {
+      testContribute((from: Address, value: Web3.AnyNumber) => {
+        return crowdsale.contribute(contributor, { from: nonOwner, value });
+      });
+
+      it('should revert when contributor address is zero', async () => {
+        await assertReverts(async () => {
+          await crowdsale.contribute('0x0', {
+            from: nonOwner,
+            value: minValue
+          });
+        });
+      });
+    });
   });
 });
