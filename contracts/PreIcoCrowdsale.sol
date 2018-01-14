@@ -1,7 +1,7 @@
 pragma solidity 0.4.18;
 
 import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import { Schedulable } from "./crowdsale/Schedulable.sol";
 
 
 /**
@@ -14,10 +14,10 @@ contract Mintable {
 
 
 /**
- * @title Crowdsale with constant price and limited supply
+ * @title Pre-ICO Crowdsale with constant price and limited supply
  * @author Jakub Stefanski (https://github.com/jstefanski)
  */
-contract Crowdsale is Ownable {
+contract PreIcoCrowdsale is Schedulable {
 
     using SafeMath for uint256;
 
@@ -32,14 +32,14 @@ contract Crowdsale is Ownable {
     Mintable public token;
 
     /**
-     * @dev Price of token in Wei
-     */
-    uint256 public price;
-
-    /**
      * @dev Current amount of tokens available for sale
      */
     uint256 public availableAmount;
+
+    /**
+     * @dev Price of token in Wei
+     */
+    uint256 public price;
 
     /**
      * @dev Minimum ETH value sent as contribution
@@ -47,32 +47,27 @@ contract Crowdsale is Ownable {
     uint256 public minValue;
 
     /**
-     * @dev Start block of active sale (inclusive). Zero if not scheduled.
+     * @dev Indicates whether contribution identified by bytes32 id is already registered
      */
-    uint256 public startBlock;
+    mapping (bytes32 => bool) public isContributionRegistered;
 
-    /**
-     * @dev End block of active sale (inclusive). Zero if not scheduled.
-     */
-    uint256 public endBlock;
-
-    function Crowdsale(
+    function PreIcoCrowdsale(
         address _wallet,
         Mintable _token,
-        uint256 _price,
         uint256 _availableAmount,
+        uint256 _price,
         uint256 _minValue
     )
         public
         onlyValid(_wallet)
         onlyValid(_token)
-        onlyNotZero(_price)
         onlyNotZero(_availableAmount)
+        onlyNotZero(_price)
     {
         wallet = _wallet;
         token = _token;
-        price = _price;
         availableAmount = _availableAmount;
+        price = _price;
         minValue = _minValue;
     }
 
@@ -85,30 +80,15 @@ contract Crowdsale is Ownable {
     event ContributionAccepted(address indexed contributor, uint256 value, uint256 amount);
 
     /**
-     * @dev Sale is scheduled between given blocks
-     * @param startBlock uint256 The first block of active sale
-     * @param endBlock uint256 The last block of active sale
+     * @dev Off-chain contribution registered
+     * @param id bytes32 A unique contribution id
+     * @param contributor address The recipient of the tokens
+     * @param amount uint256 The amount of tokens
      */
-    event SaleScheduled(uint256 startBlock, uint256 endBlock);
+    event ContributionRegistered(bytes32 indexed id, address indexed contributor, uint256 amount);
 
     modifier onlyValid(address addr) {
         require(addr != address(0));
-        _;
-    }
-
-    modifier onlyNotZero(uint256 value) {
-        require(value != 0);
-        _;
-    }
-
-    modifier onlyNotScheduled() {
-        require(startBlock == 0);
-        require(endBlock == 0);
-        _;
-    }
-
-    modifier onlyActive() {
-        require(isActive());
         _;
     }
 
@@ -122,41 +102,52 @@ contract Crowdsale is Ownable {
         _;
     }
 
+    modifier onlyUniqueContribution(bytes32 id) {
+        require(!isContributionRegistered[id]);
+        _;
+    }
+
+    /**
+     * @dev Accept ETH transfers as contributions
+     */
     function () public payable {
         acceptContribution(msg.sender, msg.value);
     }
 
     /**
-     * @dev Schedule sale for given block range
-     * @param _startBlock uint256 The first block of sale
-     * @param _endBlock uint256 The last block of sale
+     * @dev Contribute ETH in exchange for tokens
+     * @param contributor address The address that receives tokens
      */
-    function scheduleSale(uint256 _startBlock, uint256 _endBlock)
-        public
-        onlyOwner
-        onlyNotScheduled
-        onlyNotZero(_startBlock)
-        onlyNotZero(_endBlock)
-    {
-        require(_startBlock < _endBlock);
-
-        startBlock = _startBlock;
-        endBlock = _endBlock;
-
-        SaleScheduled(_startBlock, _endBlock);
-    }
-
     function contribute(address contributor) public payable returns (uint256) {
         return acceptContribution(contributor, msg.value);
     }
 
     /**
-     * @dev Check whether sale is currently active
+     * @dev Register contribution with given id
+     * @param id bytes32 A unique contribution id
+     * @param contributor address The recipient of the tokens
+     * @param amount uint256 The amount of tokens
      */
-    function isActive() public view returns (bool) {
-        return block.number >= startBlock && block.number <= endBlock;
+    function registerContribution(bytes32 id, address contributor, uint256 amount)
+        public
+        onlyOwner
+        onlyActive
+        onlyValid(contributor)
+        onlyNotZero(amount)
+        onlyUniqueContribution(id)
+    {
+        isContributionRegistered[id] = true;
+
+        transferTokens(contributor, amount);
+
+        ContributionRegistered(id, contributor, amount);
     }
 
+    /**
+     * @dev Calculate amount of ONL tokens received for given ETH value
+     * @param value uint256 Contribution value in ETH
+     * @return uint256 Amount of received ONL tokens
+     */
     function calculateContribution(uint256 value) public view returns (uint256) {
         return value.mul(1 ether).div(price);
     }
@@ -166,15 +157,23 @@ contract Crowdsale is Ownable {
         onlyActive
         onlyValid(contributor)
         onlySufficientValue(value)
-        onlySufficientAvailableTokens(amount)
         returns (uint256)
     {
         uint256 amount = calculateContribution(value);
-        token.mint(contributor, amount);
+        transferTokens(contributor, amount);
+
         wallet.transfer(value);
 
         ContributionAccepted(contributor, value, amount);
 
         return amount;
+    }
+
+    function transferTokens(address to, uint256 amount)
+        private
+        onlySufficientAvailableTokens(amount)
+    {
+        availableAmount = availableAmount.sub(amount);
+        token.mint(to, amount);
     }
 }

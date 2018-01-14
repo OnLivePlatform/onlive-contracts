@@ -5,10 +5,11 @@ import * as Web3 from 'web3';
 
 import {
   ContributionAcceptedEvent,
-  Crowdsale,
+  ContributionRegisteredEvent,
   OnLiveArtifacts,
   OnLiveToken,
-  SaleScheduledEvent
+  PreIcoCrowdsale,
+  ScheduledEvent
 } from 'onlive';
 import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
 
@@ -30,10 +31,10 @@ declare const contract: ContractContextDefinition;
 
 const utils = new Web3Utils(web3);
 
-const CrowdsaleContract = artifacts.require('./Crowdsale.sol');
+const PreIcoCrowdsaleContract = artifacts.require('./PreIcoCrowdsale.sol');
 const OnLiveTokenContract = artifacts.require('./OnLiveToken.sol');
 
-contract('Crowdsale', accounts => {
+contract('PreIcoCrowdsale', accounts => {
   const owner = accounts[9];
   const nonOwner = accounts[8];
   const contributor = accounts[7];
@@ -47,18 +48,18 @@ contract('Crowdsale', accounts => {
   interface CrowdsaleOptions {
     wallet: Address;
     token: Address;
-    price: Web3.AnyNumber;
     availableAmount?: Web3.AnyNumber;
+    price: Web3.AnyNumber;
     minValue: Web3.AnyNumber;
     from: Address;
   }
 
   async function createCrowdsale(options?: Partial<CrowdsaleOptions>) {
-    return await CrowdsaleContract.new(
+    return await PreIcoCrowdsaleContract.new(
       propOr(wallet, 'wallet', options),
       propOr(token.address, 'token', options),
-      propOr(price, 'price', options),
       propOr(availableAmount, 'availableAmount', options),
+      propOr(price, 'price', options),
       propOr(minValue, 'minValue', options),
       { from: propOr(owner, 'from', options) }
     );
@@ -110,15 +111,15 @@ contract('Crowdsale', accounts => {
       });
     });
 
-    it('should revert when price is zero', async () => {
-      await assertReverts(async () => {
-        await createCrowdsale({ price: toWei(0) });
-      });
-    });
-
     it('should revert when available amount is zero', async () => {
       await assertReverts(async () => {
         await createCrowdsale({ availableAmount: toWei(0) });
+      });
+    });
+
+    it('should revert when price is zero', async () => {
+      await assertReverts(async () => {
+        await createCrowdsale({ price: toWei(0) });
       });
     });
   });
@@ -126,7 +127,7 @@ contract('Crowdsale', accounts => {
   context('Given deployed token contract', () => {
     const saleDuration = 1000;
 
-    let crowdsale: Crowdsale;
+    let crowdsale: PreIcoCrowdsale;
     let startBlock: number;
     let endBlock: number;
 
@@ -134,11 +135,11 @@ contract('Crowdsale', accounts => {
       startBlock = await utils.getBlockNumber();
       endBlock = startBlock + saleDuration;
 
-      crowdsale = await CrowdsaleContract.new(
+      crowdsale = await PreIcoCrowdsaleContract.new(
         wallet,
         token.address,
-        price,
         toONL(1000),
+        price,
         minValue,
         {
           from: owner
@@ -153,32 +154,32 @@ contract('Crowdsale', accounts => {
       from: Address;
     }
 
-    async function scheduleSale(options?: Partial<ScheduleOptions>) {
-      return await crowdsale.scheduleSale(
+    async function schedule(options?: Partial<ScheduleOptions>) {
+      return await crowdsale.schedule(
         propOr(startBlock, 'startBlock', options),
         propOr(endBlock, 'endBlock', options),
         { from: propOr(owner, 'from', options) }
       );
     }
 
-    describe('#scheduleSale', () => {
+    describe('#schedule', () => {
       it('should set startBlock', async () => {
-        await scheduleSale();
+        await schedule();
         assertNumberEqual(await crowdsale.startBlock(), startBlock);
       });
 
       it('should set endBlock', async () => {
-        await scheduleSale();
+        await schedule();
         assertNumberEqual(await crowdsale.endBlock(), endBlock);
       });
 
       it('should emit SaleScheduled event', async () => {
-        const tx = await scheduleSale();
+        const tx = await schedule();
 
-        const log = findLastLog(tx, 'SaleScheduled');
+        const log = findLastLog(tx, 'Scheduled');
         assert.isOk(log);
 
-        const event = log.args as SaleScheduledEvent;
+        const event = log.args as ScheduledEvent;
         assert.isOk(event);
         assertNumberEqual(event.startBlock, startBlock);
         assertNumberEqual(event.endBlock, endBlock);
@@ -186,39 +187,39 @@ contract('Crowdsale', accounts => {
 
       it('should revert when start block is zero', async () => {
         await assertReverts(async () => {
-          await scheduleSale({ startBlock: new BigNumber(0) });
+          await schedule({ startBlock: new BigNumber(0) });
         });
       });
 
       it('should revert when end block is zero', async () => {
         await assertReverts(async () => {
-          await scheduleSale({ endBlock: new BigNumber(0) });
+          await schedule({ endBlock: new BigNumber(0) });
         });
       });
 
       it('should revert when end block is equal start block', async () => {
         await assertReverts(async () => {
-          await scheduleSale({ endBlock: startBlock });
+          await schedule({ endBlock: startBlock });
         });
       });
 
       it('should revert when end block is lower than start block', async () => {
         await assertReverts(async () => {
-          await scheduleSale({ endBlock: startBlock - 1 });
+          await schedule({ endBlock: startBlock - 1 });
         });
       });
 
       it('should revert when called by non-owner', async () => {
         await assertReverts(async () => {
-          await scheduleSale({ from: nonOwner });
+          await schedule({ from: nonOwner });
         });
       });
 
       it('should revert when already scheduled', async () => {
-        await scheduleSale();
+        await schedule();
 
         await assertReverts(async () => {
-          await scheduleSale();
+          await schedule();
         });
       });
     });
@@ -230,6 +231,8 @@ contract('Crowdsale', accounts => {
 
     function testContribute(contribute: ContributionFunction) {
       it('should revert when sale is not scheduled', async () => {
+        assert.isFalse(await crowdsale.isScheduled());
+
         await assertReverts(async () => {
           await contribute(contributor, minValue);
         });
@@ -237,7 +240,7 @@ contract('Crowdsale', accounts => {
 
       it('should revert when sale is not active', async () => {
         const futureStart = (await utils.getBlockNumber()) + 1000;
-        await scheduleSale({
+        await schedule({
           endBlock: futureStart + saleDuration,
           startBlock: futureStart
         });
@@ -251,8 +254,9 @@ contract('Crowdsale', accounts => {
 
       context('Given sale is active', () => {
         beforeEach(async () => {
-          await scheduleSale();
+          await schedule();
 
+          assert.isTrue(await crowdsale.isScheduled());
           assert.isTrue(await crowdsale.isActive());
         });
 
@@ -352,6 +356,123 @@ contract('Crowdsale', accounts => {
           await crowdsale.contribute('0x0', {
             from: nonOwner,
             value: minValue
+          });
+        });
+      });
+    });
+
+    describe('#registerContribution', () => {
+      const id = '0x414243' + '0'.repeat(58);
+      const amount = toONL(100);
+
+      interface ContributionOptions {
+        id: string;
+        contributor: Address;
+        amount: AnyNumber;
+        from: Address;
+      }
+
+      async function registerContribution(
+        options?: Partial<ContributionOptions>
+      ) {
+        return await crowdsale.registerContribution(
+          propOr(id, 'id', options),
+          propOr(contributor, 'contributor', options),
+          propOr(amount, 'amount', options),
+          { from: propOr(owner, 'from', options) }
+        );
+      }
+
+      it('should revert when sale is not scheduled', async () => {
+        await assertReverts(async () => {
+          await registerContribution();
+        });
+      });
+
+      it('should revert when sale is not active', async () => {
+        const futureStart = (await utils.getBlockNumber()) + 1000;
+        await schedule({
+          endBlock: futureStart + saleDuration,
+          startBlock: futureStart
+        });
+
+        assert.isFalse(await crowdsale.isActive());
+
+        await assertReverts(async () => {
+          await registerContribution();
+        });
+      });
+
+      context('Given sale is active', () => {
+        beforeEach(async () => {
+          await schedule();
+
+          assert.isTrue(await crowdsale.isScheduled());
+          assert.isTrue(await crowdsale.isActive());
+        });
+
+        it('should reduce amount of available tokens', async () => {
+          const expectedAmount = availableAmount.sub(amount);
+          await registerContribution();
+          assertTokenEqual(await crowdsale.availableAmount(), expectedAmount);
+        });
+
+        it('should mint tokens for contributor', async () => {
+          const balance = await token.balanceOf(contributor);
+          const expectedBalance = balance.add(amount);
+          await registerContribution();
+          assertTokenEqual(await token.balanceOf(contributor), expectedBalance);
+        });
+
+        it('should mark id as registered', async () => {
+          assert.isFalse(await crowdsale.isContributionRegistered(id));
+          await registerContribution();
+          assert.isTrue(await crowdsale.isContributionRegistered(id));
+        });
+
+        it('should emit ContributionRegistered event', async () => {
+          const tx = await registerContribution();
+
+          const log = findLastLog(tx, 'ContributionRegistered');
+          assert.isOk(log);
+
+          const event = log.args as ContributionRegisteredEvent;
+          assert.isOk(event);
+          assert.equal(event.id, id);
+          assert.equal(event.contributor, contributor);
+          assertTokenEqual(event.amount, amount);
+        });
+
+        it('should revert when called by non-owner', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ from: nonOwner });
+          });
+        });
+
+        it('should revert when contributor address is zero', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ contributor: '0x' + '0'.repeat(40) });
+          });
+        });
+
+        it('should revert when amount is zero', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ amount: 0 });
+          });
+        });
+
+        it('should revert when amount exceeds availability', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ amount: availableAmount.add(1) });
+          });
+        });
+
+        it('should revert when id is duplicated', async () => {
+          const duplicatedId = '0x123';
+          await registerContribution({ id: duplicatedId });
+
+          await assertReverts(async () => {
+            await registerContribution({ id: duplicatedId });
           });
         });
       });

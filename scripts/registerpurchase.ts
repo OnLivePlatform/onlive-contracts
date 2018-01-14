@@ -41,7 +41,7 @@ async function asyncExec() {
 
   const crowdsale = await ExternalCrowdsale.deployed();
   const owner = await crowdsale.owner();
-  const tx = await crowdsale.registerPurchase(
+  const tx = await crowdsale.registerContribution(
     argv.paymentId,
     argv.purchaser,
     toONL(argv.amount),

@@ -1,6 +1,7 @@
-import { AnyNumber } from 'web3';
-import { ETH_DECIMALS, shiftNumber } from './number';
 import { BigNumber } from 'bignumber.js';
+import { AnyNumber } from 'web3';
+
+import { ETH_DECIMALS, shiftNumber } from './number';
 
 export const ONL_DECIMALS = 18;
 
