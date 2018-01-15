@@ -11,7 +11,12 @@ import {
   TransferEvent
 } from 'onlive';
 import { toONL } from '../../utils';
-import { assertReverts, assertTokenEqual, findLastLog } from '../helpers';
+import {
+  assertReverts,
+  assertTokenEqual,
+  findLastLog,
+  ZERO_ADDRESS
+} from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
@@ -181,7 +186,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 
     const event = log.args as TransferEvent;
     assert.isOk(event);
-    assert.equal(event.from, '0x' + '0'.repeat(40));
+    assert.equal(event.from, ZERO_ADDRESS);
     assert.equal(event.to, destinationAccount);
     assertTokenEqual(event.value, amount);
   });

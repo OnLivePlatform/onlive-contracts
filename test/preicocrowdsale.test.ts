@@ -22,7 +22,8 @@ import {
   assertReverts,
   assertTokenAlmostEqual,
   assertTokenEqual,
-  findLastLog
+  findLastLog,
+  ZERO_ADDRESS
 } from './helpers';
 
 declare const web3: Web3;
@@ -146,6 +147,27 @@ contract('PreIcoCrowdsale', accounts => {
         }
       );
       await token.approveMintingManager(crowdsale.address, { from: owner });
+    });
+
+    describe('#setWallet', () => {
+      const newWallet = accounts[5];
+
+      it('should update wallet address', async () => {
+        await crowdsale.setWallet(newWallet, { from: owner });
+        assert.equal(await crowdsale.wallet(), newWallet);
+      });
+
+      it('should revert when called by non-owner', async () => {
+        await assertReverts(async () => {
+          await crowdsale.setWallet(newWallet, { from: nonOwner });
+        });
+      });
+
+      it('should revert when contributor address is zero', async () => {
+        await assertReverts(async () => {
+          await crowdsale.setWallet(ZERO_ADDRESS, { from: owner });
+        });
+      });
     });
 
     interface ScheduleOptions {
@@ -451,7 +473,7 @@ contract('PreIcoCrowdsale', accounts => {
 
         it('should revert when contributor address is zero', async () => {
           await assertReverts(async () => {
-            await registerContribution({ contributor: '0x' + '0'.repeat(40) });
+            await registerContribution({ contributor: ZERO_ADDRESS });
           });
         });
 

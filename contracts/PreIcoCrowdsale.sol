@@ -115,6 +115,18 @@ contract PreIcoCrowdsale is Schedulable {
     }
 
     /**
+     * @dev Set funds wallet address
+     * @param _wallet address The funds wallet address
+     */
+    function setWallet(address _wallet)
+        public
+        onlyOwner
+        onlyValid(_wallet)
+    {
+        wallet = _wallet;
+    }
+
+    /**
      * @dev Contribute ETH in exchange for tokens
      * @param contributor address The address that receives tokens
      */

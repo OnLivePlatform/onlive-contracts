@@ -217,6 +217,11 @@ declare module 'onlive' {
       isContributionRegistered(id: string): Promise<boolean>;
       calculateContribution(value: AnyNumber): Promise<BigNumber>;
 
+      setWallet(
+        wallet: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
       contribute(
         contributor: Address,
         options?: TransactionOptions
