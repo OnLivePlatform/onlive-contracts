@@ -14,36 +14,36 @@ const utils = new Web3Utils(web3);
 
 const OnLiveToken = artifacts.require('./contracts/OnLiveToken.sol');
 
-const ExternalCrowdsale = artifacts.require(
-  './contracts/ExternalCrowdsale.sol'
+const Crowdsale = artifacts.require(
+  './contracts/Crowdsale.sol'
 );
 
 interface Options {
-  paymentId: string;
-  purchaser: Address;
+  id: string;
+  contributor: Address;
   amount: number;
 }
 
 const argv = (commander
-  .option('-i, --payment-id <paymentId>', 'unique payment id')
-  .option('-p, --purchaser <purchaser>', 'recipient of the tokens')
+  .option('-i, --id <id>', 'unique contribution id')
+  .option('-p, --contributor <contributor>', 'recipient of the tokens')
   .option('-a, --amount <amount>', 'amount of tokens', parseFloat)
   .parse(process.argv)
   .opts() as any) as Options;
 
 async function asyncExec() {
   console.log(
-    `Registering purchase of ${argv.amount} ONL`,
-    `with ID ${argv.paymentId} to ${argv.purchaser}`
+    `Registering ${argv.amount} ONL`,
+    `with contribution ID ${argv.id} to ${argv.contributor}`
   );
 
   await validate();
 
-  const crowdsale = await ExternalCrowdsale.deployed();
+  const crowdsale = await Crowdsale.deployed();
   const owner = await crowdsale.owner();
   const tx = await crowdsale.registerContribution(
-    argv.paymentId,
-    argv.purchaser,
+    argv.id,
+    argv.contributor,
     toONL(argv.amount),
     { from: owner }
   );
@@ -58,12 +58,12 @@ async function validate() {
 }
 
 function validateInputParameters() {
-  if (!Bytes32.test(argv.paymentId)) {
-    throw new Error(`Invalid payment id: ${argv.paymentId}`);
+  if (!Bytes32.test(argv.id)) {
+    throw new Error(`Invalid contribution id: ${argv.id}`);
   }
 
-  if (!Address.test(argv.purchaser)) {
-    throw new Error(`Invalid purchaser address: ${argv.purchaser}`);
+  if (!Address.test(argv.contributor)) {
+    throw new Error(`Invalid contributor address: ${argv.contributor}`);
   }
 
   if (isNaN(argv.amount)) {
@@ -72,7 +72,7 @@ function validateInputParameters() {
 }
 
 async function validateCrowdsaleState() {
-  const crowdsale = await ExternalCrowdsale.deployed();
+  const crowdsale = await Crowdsale.deployed();
   const isActive = await crowdsale.isActive();
 
   if (!isActive) {
@@ -88,7 +88,7 @@ async function validateCrowdsaleState() {
 }
 
 async function validateMintingAuthorization() {
-  const crowdsale = await ExternalCrowdsale.deployed();
+  const crowdsale = await Crowdsale.deployed();
   const token = await OnLiveToken.deployed();
   const isMintingManager = await token.isMintingManager(crowdsale.address);
 
