@@ -71,7 +71,7 @@ declare module 'onlive' {
 
     interface ReleasableToken extends ERC20, Ownable {
       releaseManager(): Promise<Address>;
-      transferManagers(addr: Address): Promise<boolean>;
+      isTransferManager(addr: Address): Promise<boolean>;
       released(): Promise<boolean>;
 
       setReleaseManager(

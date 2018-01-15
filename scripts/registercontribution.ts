@@ -14,9 +14,7 @@ const utils = new Web3Utils(web3);
 
 const OnLiveToken = artifacts.require('./contracts/OnLiveToken.sol');
 
-const Crowdsale = artifacts.require(
-  './contracts/Crowdsale.sol'
-);
+const Crowdsale = artifacts.require('./contracts/Crowdsale.sol');
 
 interface Options {
   id: string;

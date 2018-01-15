@@ -64,13 +64,13 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
   });
 
   it('should approve transfer manager', async () => {
-    assert.isFalse(await ctx.token.transferManagers(transferManager));
+    assert.isFalse(await ctx.token.isTransferManager(transferManager));
 
     await ctx.token.approveTransferManager(transferManager, {
       from: ctx.owner
     });
 
-    assert.isTrue(await ctx.token.transferManagers(transferManager));
+    assert.isTrue(await ctx.token.isTransferManager(transferManager));
   });
 
   it('should approve multiple transfer managers', async () => {
@@ -82,7 +82,7 @@ export function testAddTransferManager(ctx: TokenTestContext<ReleasableToken>) {
     );
 
     for (const account of managers) {
-      assert.isTrue(await ctx.token.transferManagers(account));
+      assert.isTrue(await ctx.token.isTransferManager(account));
     }
   });
 
@@ -130,9 +130,9 @@ export function testRemoveTransferManager(
   });
 
   it('should revoke transfer manager', async () => {
-    assert.isTrue(await ctx.token.transferManagers(transferManager));
+    assert.isTrue(await ctx.token.isTransferManager(transferManager));
     await ctx.token.revokeTransferManager(transferManager, { from: ctx.owner });
-    assert.isFalse(await ctx.token.transferManagers(transferManager));
+    assert.isFalse(await ctx.token.isTransferManager(transferManager));
   });
 
   it('should emit TransferManagerRevoked event', async () => {
