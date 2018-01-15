@@ -13,7 +13,7 @@ const PreIcoCrowdsale = artifacts.require('./PreIcoCrowdsale.sol');
 
 async function deploy() {
   const duration = daysToBlocks(32);
-  const startOffset = 0; // TODO: consider setting the offset
+  const startOffset = daysToBlocks(5);
 
   const currentBlock = await utils.getBlockNumber();
   const startBlock = currentBlock + startOffset;
@@ -24,8 +24,7 @@ async function deploy() {
 }
 
 function migrate(deployer: Deployer) {
-  // TODO: restore migration
-  // deployer.then(() => deploy());
+  deployer.then(() => deploy());
 }
 
 export = migrate;
