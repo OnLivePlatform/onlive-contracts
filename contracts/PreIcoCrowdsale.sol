@@ -9,6 +9,8 @@ import { Schedulable } from "./crowdsale/Schedulable.sol";
  * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract Mintable {
+    uint256 public decimals;
+
     function mint(address to, uint256 amount) public;
 }
 
@@ -87,6 +89,12 @@ contract PreIcoCrowdsale is Schedulable {
      */
     event ContributionRegistered(bytes32 indexed id, address indexed contributor, uint256 amount);
 
+    /**
+     * @dev Wallet address changed
+     * @param wallet address The new wallet address
+     */
+    event WalletChanged(address indexed wallet);
+
     modifier onlyValid(address addr) {
         require(addr != address(0));
         _;
@@ -124,6 +132,8 @@ contract PreIcoCrowdsale is Schedulable {
         onlyValid(_wallet)
     {
         wallet = _wallet;
+
+        WalletChanged(wallet);
     }
 
     /**
@@ -149,8 +159,7 @@ contract PreIcoCrowdsale is Schedulable {
         onlyUniqueContribution(id)
     {
         isContributionRegistered[id] = true;
-
-        transferTokens(contributor, amount);
+        mintTokens(contributor, amount);
 
         ContributionRegistered(id, contributor, amount);
     }
@@ -161,7 +170,7 @@ contract PreIcoCrowdsale is Schedulable {
      * @return uint256 Amount of received ONL tokens
      */
     function calculateContribution(uint256 value) public view returns (uint256) {
-        return value.mul(1 ether).div(price);
+        return value.mul(10 ** token.decimals()).div(price);
     }
 
     function acceptContribution(address contributor, uint256 value)
@@ -172,7 +181,7 @@ contract PreIcoCrowdsale is Schedulable {
         returns (uint256)
     {
         uint256 amount = calculateContribution(value);
-        transferTokens(contributor, amount);
+        mintTokens(contributor, amount);
 
         wallet.transfer(value);
 
@@ -181,7 +190,7 @@ contract PreIcoCrowdsale is Schedulable {
         return amount;
     }
 
-    function transferTokens(address to, uint256 amount)
+    function mintTokens(address to, uint256 amount)
         private
         onlySufficientAvailableTokens(amount)
     {

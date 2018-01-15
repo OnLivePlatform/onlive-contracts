@@ -235,6 +235,10 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
+    interface WalletChangedEvent {
+      wallet: Address;
+    }
+
     interface ContributionAcceptedEvent {
       contributor: Address;
       value: BigNumber;

@@ -9,7 +9,8 @@ import {
   OnLiveArtifacts,
   OnLiveToken,
   PreIcoCrowdsale,
-  ScheduledEvent
+  ScheduledEvent,
+  WalletChangedEvent
 } from 'onlive';
 import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
 
@@ -155,6 +156,17 @@ contract('PreIcoCrowdsale', accounts => {
       it('should update wallet address', async () => {
         await crowdsale.setWallet(newWallet, { from: owner });
         assert.equal(await crowdsale.wallet(), newWallet);
+      });
+
+      it('should emit WalletChanged event', async () => {
+        const tx = await crowdsale.setWallet(newWallet, { from: owner });
+
+        const log = findLastLog(tx, 'WalletChanged');
+        assert.isOk(log);
+
+        const event = log.args as WalletChangedEvent;
+        assert.isOk(event);
+        assert.equal(event.wallet, newWallet);
       });
 
       it('should revert when called by non-owner', async () => {
