@@ -1253,6 +1253,202 @@
     "version": "0.4.18+commit.9cf6e910.Emscripten.clang"
   },
   "networks": {
+    "1": {
+      "events": {
+        "0x696de425f79f4a40bc6d2122ca50507f0efbeabbff86a84871b7196ab8ea8df7": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "from",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "Burned",
+          "type": "event"
+        },
+        "0x30385c845b448a36257a6a1716e6ad2e1bc2cbe333cde1e69fe849ad6511adfe": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "Minted",
+          "type": "event"
+        },
+        "0xe51e88bd9ebff6e735eefe034d049d93b496e774a0ff56d16a13fc36cf689636": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "MintingManagerApproved",
+          "type": "event"
+        },
+        "0xc21afa55c927bd0de399897b42b5bc046faddff7ba7f059f8cf8ed07cdaa43c6": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "MintingManagerRevoked",
+          "type": "event"
+        },
+        "0xb828d9b5c78095deeeeff2eca2e5d4fe046ce3feb4c99702624a3fd384ad2dbc": {
+          "anonymous": false,
+          "inputs": [],
+          "name": "MintingFinished",
+          "type": "event"
+        },
+        "0x66234c4af04fd27783c022105ed85b455d750f8d0ef06f46e92c9eda4b3a505e": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "ReleaseManagerSet",
+          "type": "event"
+        },
+        "0x23724ffd98c8f39c7b5c43982c298ac0cdc6e7848155cb4ad39d06f54692a72e": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "TransferManagerApproved",
+          "type": "event"
+        },
+        "0xf6eb58de45158f4d163191f2e8eaa27e1f70e2fa7207360d651843ab3f32772a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "TransferManagerRevoked",
+          "type": "event"
+        },
+        "0x20d29efe076941f73e5574acb023c424d63cd6d3d12eb5ac3108a5eaf177daed": {
+          "anonymous": false,
+          "inputs": [],
+          "name": "Released",
+          "type": "event"
+        },
+        "0x4c714ed400777523a08c9a597a0c014afca0780da3f4b607abb5f9829eb73552": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "indexed": false,
+              "name": "symbol",
+              "type": "string"
+            }
+          ],
+          "name": "DescriptionChanged",
+          "type": "event"
+        },
+        "0x438bdc6d03f0933e768dea87718d87f62a6768195153c07f98ebf4ae4a8ae923": {
+          "anonymous": false,
+          "inputs": [],
+          "name": "DescriptionFinalized",
+          "type": "event"
+        },
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event"
+        },
+        "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "spender",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "Approval",
+          "type": "event"
+        },
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "from",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "Transfer",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x6863be0e7cf7ce860a574760e9020d519a8bdc47"
+    },
     "4": {
       "events": {
         "0x696de425f79f4a40bc6d2122ca50507f0efbeabbff86a84871b7196ab8ea8df7": {
@@ -1451,5 +1647,5 @@
     }
   },
   "schemaVersion": "1.0.1",
-  "updatedAt": "2018-01-17T11:07:12.729Z"
+  "updatedAt": "2018-01-17T11:51:27.026Z"
 }
