@@ -89,12 +89,6 @@ contract PreIcoCrowdsale is Schedulable {
      */
     event ContributionRegistered(bytes32 indexed id, address indexed contributor, uint256 amount);
 
-    /**
-     * @dev Wallet address changed
-     * @param wallet address The new wallet address
-     */
-    event WalletChanged(address indexed wallet);
-
     modifier onlyValid(address addr) {
         require(addr != address(0));
         _;
@@ -120,20 +114,6 @@ contract PreIcoCrowdsale is Schedulable {
      */
     function () public payable {
         acceptContribution(msg.sender, msg.value);
-    }
-
-    /**
-     * @dev Set funds wallet address
-     * @param _wallet address The funds wallet address
-     */
-    function setWallet(address _wallet)
-        public
-        onlyOwner
-        onlyValid(_wallet)
-    {
-        wallet = _wallet;
-
-        WalletChanged(wallet);
     }
 
     /**
