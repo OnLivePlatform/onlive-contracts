@@ -71,7 +71,7 @@ declare module 'onlive' {
 
     interface ReleasableToken extends ERC20, Ownable {
       releaseManager(): Promise<Address>;
-      transferManagers(addr: Address): Promise<boolean>;
+      isTransferManager(addr: Address): Promise<boolean>;
       released(): Promise<boolean>;
 
       setReleaseManager(
@@ -190,37 +190,56 @@ declare module 'onlive' {
         CappedMintableToken,
         BurnableToken {}
 
-    interface ExternalCrowdsale extends ContractBase {
-      token(): Promise<string>;
+    interface Schedulable extends ContractBase {
       startBlock(): Promise<BigNumber>;
       endBlock(): Promise<BigNumber>;
-      availableAmount(): Promise<BigNumber>;
-      isPaymentRegistered(paymentId: string): Promise<boolean>;
       isActive(): Promise<boolean>;
+      isScheduled(): Promise<boolean>;
 
-      scheduleSale(
+      schedule(
         startBlock: AnyNumber,
         endBlock: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
+    }
 
-      registerPurchase(
-        paymentId: string,
-        purchaser: Address,
+    interface ScheduledEvent {
+      startBlock: BigNumber;
+      endBlock: BigNumber;
+    }
+
+    interface PreIcoCrowdsale extends Schedulable {
+      wallet(): Promise<string>;
+      token(): Promise<string>;
+      availableAmount(): Promise<BigNumber>;
+      price(): Promise<BigNumber>;
+      minValue(): Promise<BigNumber>;
+      isContributionRegistered(id: string): Promise<boolean>;
+      calculateContribution(value: AnyNumber): Promise<BigNumber>;
+
+      contribute(
+        contributor: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      registerContribution(
+        id: string,
+        contributor: Address,
         amount: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
     }
 
-    interface PurchaseRegisteredEvent {
-      paymentId: string;
-      purchaser: Address;
+    interface ContributionAcceptedEvent {
+      contributor: Address;
+      value: BigNumber;
       amount: BigNumber;
     }
 
-    interface SaleScheduledEvent {
-      startBlock: BigNumber;
-      endBlock: BigNumber;
+    interface ContributionRegisteredEvent {
+      id: string;
+      contributor: Address;
+      amount: BigNumber;
     }
 
     interface MigrationsContract extends Contract<Migrations> {
@@ -256,12 +275,15 @@ declare module 'onlive' {
       ): Promise<OnLiveToken>;
     }
 
-    interface ExternalCrowdsaleContract extends Contract<ExternalCrowdsale> {
+    interface PreIcoCrowdsaleContract extends Contract<PreIcoCrowdsale> {
       'new'(
+        wallet: Address,
         token: Address,
         availableAmount: AnyNumber,
+        price: AnyNumber,
+        minValue: AnyNumber,
         options?: TransactionOptions
-      ): Promise<ExternalCrowdsale>;
+      ): Promise<PreIcoCrowdsale>;
     }
 
     interface OnLiveArtifacts extends TruffleArtifacts {
@@ -271,7 +293,7 @@ declare module 'onlive' {
       require(name: './token/MintableToken.sol'): MintableTokenContract;
       require(name: './token/BurnableToken.sol'): BurnableTokenContract;
       require(name: './OnLiveToken.sol'): OnLiveTokenContract;
-      require(name: './ExternalCrowdsale.sol'): ExternalCrowdsaleContract;
+      require(name: './PreIcoCrowdsale.sol'): PreIcoCrowdsaleContract;
     }
   }
 

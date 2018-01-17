@@ -5,9 +5,11 @@ import { assert } from 'chai';
 import { findLast, propEq } from 'ramda';
 import { TransactionLog, TransactionResult } from 'truffle';
 
-import { ONL_DECIMALS } from '../utils';
+import { ETH_DECIMALS, ONL_DECIMALS } from '../utils';
 
 declare const web3: Web3;
+
+export const ZERO_ADDRESS = '0x' + '0'.repeat(40);
 
 export async function assertReverts(func: () => void) {
   try {
@@ -52,8 +54,52 @@ export function assertNumberEqual(
   }
 }
 
-export function assertTokenEqual(actual: any, expect: any) {
+export function assertNumberAlmostEqual(
+  actual: Web3.AnyNumber,
+  expect: Web3.AnyNumber,
+  epsilon: Web3.AnyNumber,
+  decimals: number = 0
+) {
+  const actualNum = new BigNumber(actual);
+  const expectNum = new BigNumber(expect);
+  const epsilonNum = new BigNumber(epsilon);
+
+  if (
+    actualNum.lessThan(expectNum.sub(epsilonNum)) ||
+    actualNum.greaterThan(expectNum.add(epsilonNum))
+  ) {
+    const div = decimals ? Math.pow(10, decimals) : 1;
+    assert.fail(
+      actualNum.toFixed(),
+      expectNum.toFixed(),
+      `${actualNum.div(div).toFixed()} == ${expectNum
+        .div(div)
+        .toFixed()} (precision ${epsilonNum.div(div).toFixed()})`,
+      '=='
+    );
+  }
+}
+
+export function assertEtherEqual(
+  actual: Web3.AnyNumber,
+  expect: Web3.AnyNumber
+) {
+  return assertNumberEqual(actual, expect, ETH_DECIMALS);
+}
+
+export function assertTokenEqual(
+  actual: Web3.AnyNumber,
+  expect: Web3.AnyNumber
+) {
   return assertNumberEqual(actual, expect, ONL_DECIMALS);
+}
+
+export function assertTokenAlmostEqual(
+  actual: Web3.AnyNumber,
+  expect: Web3.AnyNumber,
+  epsilon: Web3.AnyNumber
+) {
+  return assertNumberAlmostEqual(actual, expect, epsilon, ONL_DECIMALS);
 }
 
 export function findLastLog(

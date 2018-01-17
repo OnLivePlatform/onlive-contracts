@@ -4,7 +4,12 @@ import * as Web3 from 'web3';
 
 import { BurnableToken, BurnedEvent, TransferEvent } from 'onlive';
 import { toONL } from '../../utils';
-import { assertReverts, assertTokenEqual, findLastLog } from '../helpers';
+import {
+  assertReverts,
+  assertTokenEqual,
+  findLastLog,
+  ZERO_ADDRESS
+} from '../helpers';
 import { TokenTestContext } from './context';
 
 declare const web3: Web3;
@@ -58,7 +63,7 @@ export function testBurn(
     const event = log.args as TransferEvent;
     assert.isOk(event);
     assert.equal(event.from, burnerAccount);
-    assert.equal(event.to, '0x' + '0'.repeat(40));
+    assert.equal(event.to, ZERO_ADDRESS);
     assertTokenEqual(event.value, amount);
   });
 

@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { without } from 'ramda';
+import { propOr, without } from 'ramda';
 
 import { ContractContextDefinition } from 'truffle';
 import * as Web3 from 'web3';
@@ -35,18 +35,25 @@ declare const contract: ContractContextDefinition;
 
 const OnLiveTokenContract = artifacts.require('./OnLiveToken.sol');
 
+interface TokenOptions {
+  name: string;
+  symbol: string;
+  maxSupply: Web3.AnyNumber;
+  from: Address;
+}
+
 contract('OnLiveToken', accounts => {
   const owner = accounts[9];
   const name = 'OnLive Token';
   const symbol = 'ONL';
   const maxSupply = toONL(1000);
 
-  async function createToken(options: any = {}) {
+  async function createToken(options?: Partial<TokenOptions>) {
     return await OnLiveTokenContract.new(
-      options.name || name,
-      options.symbol || symbol,
-      options.maxSupply || maxSupply,
-      { from: options.from || owner }
+      propOr(name, 'name', options),
+      propOr(symbol, 'symbol', options),
+      propOr(maxSupply, 'maxSupply', options),
+      { from: propOr(owner, 'from', options) }
     );
   }
 

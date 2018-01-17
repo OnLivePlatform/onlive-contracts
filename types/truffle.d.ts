@@ -4,7 +4,7 @@ declare module '*.json' {
 }
 
 declare module 'truffle' {
-  import { TxData } from 'web3';
+  import { AnyNumber, TxData } from 'web3';
 
   namespace truffle {
     type ScriptFinalizer = ((err?: any) => void);
@@ -38,7 +38,7 @@ declare module 'truffle' {
 
     interface ContractBase {
       address: Address;
-      sendTransaction(txData: TxData): Promise<TransactionResult>;
+      sendTransaction(txData: Partial<TxData>): Promise<TransactionResult>;
     }
 
     interface Contract<T> extends ContractBase {
@@ -58,6 +58,7 @@ declare module 'truffle' {
       from?: Address;
       gas?: number;
       gasPrice?: number;
+      value?: AnyNumber;
     };
 
     type TransactionReceipt = {

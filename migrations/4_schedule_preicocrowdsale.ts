@@ -9,18 +9,18 @@ declare const web3: Web3;
 
 const utils = new Web3Utils(web3);
 
-const ExternalCrowdsale = artifacts.require('./ExternalCrowdsale.sol');
+const PreIcoCrowdsale = artifacts.require('./PreIcoCrowdsale.sol');
 
 async function deploy() {
   const duration = daysToBlocks(32);
-  const startOffset = 0; // TODO: consider setting the offset
+  const startOffset = daysToBlocks(1);
 
   const currentBlock = await utils.getBlockNumber();
   const startBlock = currentBlock + startOffset;
   const endBlock = startBlock + duration;
 
-  const crowdsale = await ExternalCrowdsale.deployed();
-  await crowdsale.scheduleSale(startBlock, endBlock);
+  const crowdsale = await PreIcoCrowdsale.deployed();
+  await crowdsale.schedule(startBlock, endBlock);
 }
 
 function migrate(deployer: Deployer) {

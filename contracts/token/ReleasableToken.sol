@@ -24,7 +24,7 @@ contract ReleasableToken is StandardToken, Ownable {
     /**
      * @dev Map of addresses allowed to transfer tokens despite the lock up period
      */
-    mapping (address => bool) public transferManagers;
+    mapping (address => bool) public isTransferManager;
 
     /**
      * @dev Specified address set as a Release Manager
@@ -54,7 +54,7 @@ contract ReleasableToken is StandardToken, Ownable {
      */
     modifier onlyTransferableFrom(address from) {
         if (!released) {
-            require(transferManagers[from]);
+            require(isTransferManager[from]);
         }
 
         _;
@@ -64,7 +64,7 @@ contract ReleasableToken is StandardToken, Ownable {
      * @dev Specified address is transfer manager
      */
     modifier onlyTransferManager(address addr) {
-        require(transferManagers[addr]);
+        require(isTransferManager[addr]);
         _;
     }
 
@@ -115,7 +115,7 @@ contract ReleasableToken is StandardToken, Ownable {
         onlyOwner
         onlyNotReleased
     {
-        transferManagers[addr] = true;
+        isTransferManager[addr] = true;
 
         TransferManagerApproved(addr);
     }
@@ -130,7 +130,7 @@ contract ReleasableToken is StandardToken, Ownable {
         onlyTransferManager(addr)
         onlyNotReleased
     {
-        delete transferManagers[addr];
+        delete isTransferManager[addr];
 
         TransferManagerRevoked(addr);
     }
