@@ -18,7 +18,7 @@ async function deploy(deployer: Deployer, network: string) {
 
   let wallet = web3.eth.accounts[0];
   if (network === 'mainnet') {
-    wallet = '0x'; // TODO: update with multisig address
+    wallet = '0xd0078f5c7E33BaD8767c602D3aaEe6e38481c9A1';
   }
 
   await deployer.deploy(
