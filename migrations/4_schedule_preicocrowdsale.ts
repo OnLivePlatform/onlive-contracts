@@ -13,7 +13,7 @@ const PreIcoCrowdsale = artifacts.require('./PreIcoCrowdsale.sol');
 
 async function deploy() {
   const duration = daysToBlocks(32);
-  const startOffset = daysToBlocks(5);
+  const startOffset = daysToBlocks(1);
 
   const currentBlock = await utils.getBlockNumber();
   const startBlock = currentBlock + startOffset;
