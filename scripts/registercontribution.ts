@@ -24,7 +24,7 @@ interface Options {
 
 const argv = (commander
   .option('-i, --id <id>', 'unique contribution id')
-  .option('-p, --contributor <contributor>', 'recipient of the tokens')
+  .option('-c, --contributor <contributor>', 'recipient of the tokens')
   .option('-a, --amount <amount>', 'amount of tokens', parseFloat)
   .parse(process.argv)
   .opts() as any) as Options;
