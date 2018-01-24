@@ -242,6 +242,21 @@ declare module 'onlive' {
       amount: BigNumber;
     }
 
+    interface TokenPool extends Ownable {
+      token(): Promise<string>;
+
+      register(
+        pool: string,
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface PoolRegisteredEvent {
+      pool: string;
+      amount: BigNumber;
+    }
+
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
@@ -286,6 +301,10 @@ declare module 'onlive' {
       ): Promise<PreIcoCrowdsale>;
     }
 
+    interface TokenPoolContract extends Contract<TokenPool> {
+      'new'(token: Address, options?: TransactionOptions): Promise<TokenPool>;
+    }
+
     interface OnLiveArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
@@ -294,6 +313,7 @@ declare module 'onlive' {
       require(name: './token/BurnableToken.sol'): BurnableTokenContract;
       require(name: './OnLiveToken.sol'): OnLiveTokenContract;
       require(name: './PreIcoCrowdsale.sol'): PreIcoCrowdsaleContract;
+      require(name: './TokenPool.sol'): TokenPoolContract;
     }
   }
 
