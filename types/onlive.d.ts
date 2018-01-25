@@ -245,14 +245,29 @@ declare module 'onlive' {
     interface TokenPool extends Ownable {
       token(): Promise<string>;
 
-      register(
+      registerPool(
+        name: string,
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      transfer(
+        to: Address,
         pool: string,
         amount: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
+
+      getAvailableAmount(pool: string): Promise<AnyNumber>;
     }
 
     interface PoolRegisteredEvent {
+      pool: string;
+      amount: BigNumber;
+    }
+
+    interface TransferredEvent {
+      to: Address;
       pool: string;
       amount: BigNumber;
     }

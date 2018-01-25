@@ -7,19 +7,15 @@ import {
   OnLiveArtifacts,
   OnLiveToken,
   PoolRegisteredEvent,
-  TokenPool
+  TokenPool,
+  TransferredEvent
 } from 'onlive';
-import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
+import { ETH_DECIMALS, toONL } from '../utils';
 
-import { BigNumber } from 'bignumber.js';
-import { ContractContextDefinition, TransactionResult } from 'truffle';
-import { AnyNumber } from 'web3';
+import { ContractContextDefinition } from 'truffle';
 import {
-  assertEtherEqual,
   assertNumberEqual,
   assertReverts,
-  assertTokenAlmostEqual,
-  assertTokenEqual,
   findLastLog,
   ZERO_ADDRESS
 } from './helpers';
@@ -27,8 +23,6 @@ import {
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
 declare const contract: ContractContextDefinition;
-
-const utils = new Web3Utils(web3);
 
 const TokenPoolContract = artifacts.require('./TokenPool.sol');
 const OnLiveTokenContract = artifacts.require('./OnLiveToken.sol');
@@ -53,32 +47,25 @@ contract('TokenPool', accounts => {
     assertNumberEqual(await token.decimals(), ETH_DECIMALS);
   });
 
-  describe.only('#ctor', () => {
+  describe('#ctor', () => {
     it('should set token address', async () => {
       const tokenPool = await createTokenPool();
       assert.equal(await tokenPool.token(), token.address);
     });
   });
 
-  describe.only('#register', () => {
+  describe('#registerPool', () => {
     const poolName = 'testPool';
-    const poolTokenAmount = toONL(10);
+    const poolTokenAmount = toONL(1);
     let tokenPool: TokenPool;
 
     beforeEach(async () => {
       tokenPool = await createTokenPool();
+      await token.approveMintingManager(tokenPool.address, { from: owner });
     });
 
-    it('should revert for non-owner', async () => {
-      await assertReverts(async () => {
-        await tokenPool.register(poolName, poolTokenAmount, {
-          from: accounts[1]
-        });
-      });
-    });
-
-    it('should emit PoolRegisteredEvent', async () => {
-      const tx = await tokenPool.register(poolName, 0, {
+    it('should emit PoolRegistered event', async () => {
+      const tx = await tokenPool.registerPool(poolName, poolTokenAmount, {
         from: owner
       });
 
@@ -86,7 +73,126 @@ contract('TokenPool', accounts => {
       assert.isOk(log);
 
       const event = log.args as PoolRegisteredEvent;
-      assert.isOk(event);
+      assert.equal(event.pool, poolName);
+      assertNumberEqual(event.amount, poolTokenAmount);
+    });
+
+    it('should set amount for given pool', async () => {
+      await tokenPool.registerPool(poolName, poolTokenAmount, {
+        from: owner
+      });
+
+      assertNumberEqual(
+        await tokenPool.getAvailableAmount(poolName),
+        poolTokenAmount
+      );
+    });
+
+    it('should revert for non-owner', async () => {
+      await assertReverts(async () => {
+        await tokenPool.registerPool(poolName, poolTokenAmount, {
+          from: accounts[1]
+        });
+      });
+    });
+
+    it('should revert for zero amount', async () => {
+      await assertReverts(async () => {
+        await tokenPool.registerPool(poolName, 0, {
+          from: owner
+        });
+      });
+    });
+
+    it('should revert for not unique pool', async () => {
+      await tokenPool.registerPool(poolName, poolTokenAmount, {
+        from: owner
+      });
+
+      await assertReverts(async () => {
+        await tokenPool.registerPool(poolName, poolTokenAmount, {
+          from: owner
+        });
+      });
+    });
+  });
+
+  describe('#transfer', () => {
+    const poolName = 'testPool';
+    const poolTokenAmount = toONL(1);
+    const transferredAmount = toONL(0.43);
+    const transferTo = accounts[1];
+    let tokenPool: TokenPool;
+
+    beforeEach(async () => {
+      tokenPool = await createTokenPool();
+      await token.approveMintingManager(tokenPool.address, { from: owner });
+      await tokenPool.registerPool(poolName, poolTokenAmount, {
+        from: owner
+      });
+      await token.approveTransferManager(tokenPool.address, { from: owner });
+    });
+
+    it('should emit Transferred event', async () => {
+      const tx = await tokenPool.transfer(
+        transferTo,
+        poolName,
+        transferredAmount,
+        {
+          from: owner
+        }
+      );
+
+      const log = findLastLog(tx, 'Transferred');
+      assert.isOk(log);
+
+      const event = log.args as TransferredEvent;
+      assert.equal(event.to, transferTo);
+      assert.equal(event.pool, poolName);
+      assertNumberEqual(event.amount, transferredAmount);
+    });
+
+    it('should set new mount for given pool', async () => {
+      await tokenPool.transfer(transferTo, poolName, transferredAmount, {
+        from: owner
+      });
+
+      assertNumberEqual(
+        await tokenPool.getAvailableAmount(poolName),
+        poolTokenAmount.sub(transferredAmount)
+      );
+    });
+
+    it('should revert for non-owner', async () => {
+      await assertReverts(async () => {
+        await tokenPool.transfer(transferTo, poolName, transferredAmount, {
+          from: accounts[1]
+        });
+      });
+    });
+
+    it('should revert for invalid address', async () => {
+      await assertReverts(async () => {
+        await tokenPool.transfer(ZERO_ADDRESS, poolName, transferredAmount, {
+          from: owner
+        });
+      });
+    });
+
+    it('should revert for zero amount', async () => {
+      await assertReverts(async () => {
+        await tokenPool.transfer(transferTo, poolName, 0, {
+          from: owner
+        });
+      });
+    });
+
+    it('should revert for amount exceeding limit', async () => {
+      await assertReverts(async () => {
+        await tokenPool.transfer(transferTo, poolName, toONL(1.1), {
+          from: owner
+        });
+      });
     });
   });
 });

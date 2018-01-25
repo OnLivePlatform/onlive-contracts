@@ -27,8 +27,23 @@ contract TokenPool is Ownable {
      */
     mapping (string => uint256) private availableAmount;
 
-    modifier onlyUnique(string pool){
+    modifier onlyNotZero(uint256 amount){
+        require(amount != 0);
+        _;
+    }
+
+    modifier onlySufficientAmount(string pool, uint256 amount) {
+        require(amount <= availableAmount[pool]);
+        _;
+    }
+
+    modifier onlyUnique(string pool) {
         require(availableAmount[pool] == 0);
+        _;
+    }
+
+    modifier onlyValid(address _address) {
+        require(_address != 0);
         _;
     }
 
@@ -43,21 +58,47 @@ contract TokenPool is Ownable {
      * @param pool bytes32 A unique pool name
      * @param amount uint256 The amount of available tokens
      */
-    event PoolRegistered(string indexed pool, uint256 amount);
+    event PoolRegistered(string pool, uint256 amount);
+
+    /**
+     * @dev Requested amount transferred
+     * @param pool bytes32 The pool name
+     * @param amount uint256 The amount of available tokens
+     */
+    event Transferred(address to, string pool, uint256 amount);
 
     /**
      * @dev Register pool with its token limit
-     * @param pool string The name of pool
+     * @param name string The name of a pool
      * @param amount uint256 The amount of available tokens
      */
-    function register(string pool, uint256 amount)
-    public
-    onlyOwner
-    onlyUnique(pool)
+    function registerPool(string name, uint256 amount)
+        public
+        onlyOwner
+        onlyNotZero(amount)
+        onlyUnique(name)
     {
-        availableAmount[pool] = amount;
+        availableAmount[name] = amount;
         token.mint(this, amount);
-        PoolRegistered(pool, amount);
+        PoolRegistered(name, amount);
+    }
+
+    /**
+     * @dev Transfer given amount of tokens to to specified address
+     * @param to address The address to transfer to
+     * @param pool string The name of pool
+     * @param amount uint256 The amount of tokens to transfer
+     */
+    function transfer(address to, string pool, uint256 amount)
+        public
+        onlyOwner
+        onlyValid(to)
+        onlyNotZero(amount)
+        onlySufficientAmount(pool, amount)
+    {
+        token.transfer(to, amount);
+        availableAmount[pool] -= amount;
+        Transferred(to, pool, amount);
     }
 
     /**
