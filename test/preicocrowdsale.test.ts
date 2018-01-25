@@ -77,7 +77,7 @@ contract('PreIcoCrowdsale', accounts => {
   describe('#ctor', () => {
     it('should set wallet address', async () => {
       const crowdsale = await createCrowdsale();
-      assert.equal(await crowdsale.token(), token.address);
+      assert.equal(await crowdsale.wallet(), wallet);
     });
 
     it('should set token address', async () => {
