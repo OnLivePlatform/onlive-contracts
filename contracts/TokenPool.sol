@@ -18,6 +18,14 @@ contract Mintable is ERC20Basic{
 contract TokenPool is Ownable {
 
     /**
+     * @dev Represents registered pool
+     */
+    struct Pool {
+        uint256 amount;
+        uint256 lockTimestamp;
+    }
+
+    /**
      * @dev Address of mintable token instance
      */
     Mintable public token;
@@ -25,7 +33,8 @@ contract TokenPool is Ownable {
     /**
      * @dev Indicates available token amount for each pool
      */
-    mapping (string => uint256) private availableAmount;
+    mapping (string => Pool) private poolRegister;
+
 
     modifier onlyNotZero(uint256 amount){
         require(amount != 0);
@@ -33,13 +42,18 @@ contract TokenPool is Ownable {
     }
 
     modifier onlySufficientAmount(string pool, uint256 amount) {
-        require(amount <= availableAmount[pool]);
+        require(amount <= poolRegister[pool].amount);
+        _;
+    }
+
+    modifier onlyUnlocked(string pool) {
+        require(now > poolRegister[pool].lockTimestamp);
         _;
     }
 
     modifier onlyUnique(string pool) {
-        require(availableAmount[pool] == 0);
-        _;
+        require(poolRegister[pool].amount == 0);
+    _;
     }
 
     modifier onlyValid(address _address) {
@@ -54,6 +68,13 @@ contract TokenPool is Ownable {
     }
 
     /**
+     * @dev Registered pool locked until the timestamp
+     * @param pool bytes32 The pool name
+     * @param timestamp uint256 Lock's expiration timestamp
+     */
+    event PoolLocked(string pool, uint256 timestamp);
+
+    /**
      * @dev New pool registered
      * @param pool bytes32 A unique pool name
      * @param amount uint256 The amount of available tokens
@@ -63,28 +84,31 @@ contract TokenPool is Ownable {
     /**
      * @dev Requested amount transferred
      * @param pool bytes32 The pool name
-     * @param amount uint256 The amount of available tokens
+     * @param amount uint256 The amount of transferred tokens
      */
     event Transferred(address to, string pool, uint256 amount);
 
     /**
-     * @dev Register pool with its token limit
+     * @dev Register pool with its token availability
      * @param name string The name of a pool
      * @param amount uint256 The amount of available tokens
+     * @param lockTimestamp uint256 Optional lock timestamp in milliseconds
      */
-    function registerPool(string name, uint256 amount)
+    function registerPool(string name, uint256 amount, uint256 lockTimestamp)
         public
         onlyOwner
         onlyNotZero(amount)
         onlyUnique(name)
     {
-        availableAmount[name] = amount;
+        poolRegister[name] = Pool(amount, 0);
         token.mint(this, amount);
         PoolRegistered(name, amount);
+
+        if(lockTimestamp > 0) lockPool(name, lockTimestamp);
     }
 
     /**
-     * @dev Transfer given amount of tokens to to specified address
+     * @dev Transfer given amount of tokens to specified address
      * @param to address The address to transfer to
      * @param pool string The name of pool
      * @param amount uint256 The amount of tokens to transfer
@@ -95,22 +119,48 @@ contract TokenPool is Ownable {
         onlyValid(to)
         onlyNotZero(amount)
         onlySufficientAmount(pool, amount)
+        onlyUnlocked(pool)
     {
         token.transfer(to, amount);
-        availableAmount[pool] -= amount;
+        poolRegister[pool].amount -= amount;
         Transferred(to, pool, amount);
     }
 
     /**
-     * @dev Get available amount of tokens for given pool
+     * @dev Get available amount of pool's tokens
      * @param pool string The name of pool
-     * @return Available amount of tokens for given pool
+     * @return Available amount of tokens
      */
     function getAvailableAmount(string pool)
         public
         view
         returns (uint256)
     {
-        return availableAmount[pool];
+        return poolRegister[pool].amount;
+    }
+
+    /**
+     * @dev Get pool's lock timestamp
+     * @param pool string The name of pool
+     * @return Pool's lock expiration timestamp
+     */
+    function getLockTimestamp(string pool)
+        public
+        view
+        returns (uint256)
+    {
+        return poolRegister[pool].lockTimestamp;
+    }
+
+    /**
+     * @dev Sets pool's lock timestamp
+     * @param name string The name of a pool
+     * @param lockTimestamp uint256 Lock timestamp in milliseconds
+     */
+    function lockPool(string name, uint256 lockTimestamp)
+        internal
+    {
+        poolRegister[name].lockTimestamp = lockTimestamp;
+        PoolLocked(name, lockTimestamp);
     }
 }

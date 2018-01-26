@@ -49,6 +49,7 @@
   },
   "homepage": "https://github.com/OnLivePlatform/onlive-contracts#readme",
   "devDependencies": {
+    "@digix/tempo": "^0.2.0",
     "@types/chai": "^4.0.8",
     "@types/mocha": "^2.2.44",
     "@types/node": "^8.0.57",

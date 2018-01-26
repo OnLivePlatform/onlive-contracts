@@ -248,6 +248,7 @@ declare module 'onlive' {
       registerPool(
         name: string,
         amount: AnyNumber,
+        lockTimestamp: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
@@ -259,6 +260,13 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
 
       getAvailableAmount(pool: string): Promise<AnyNumber>;
+
+      getLockTimestamp(pool: string): Promise<AnyNumber>;
+    }
+
+    interface PoolLockedEvent {
+      pool: string;
+      timestamp: BigNumber;
     }
 
     interface PoolRegisteredEvent {
