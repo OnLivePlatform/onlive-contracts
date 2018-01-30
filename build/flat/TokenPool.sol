@@ -1,14 +1,40 @@
-pragma solidity 0.4.18;
+pragma solidity ^0.4.13;
 
-import { ERC20Basic } from "zeppelin-solidity/contracts/token/ERC20Basic.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+contract Ownable {
+  address public owner;
 
-/**
- * @title Mintable token interface
- * @author Wojciech Harzowski (https://github.com/harzo)
- */
-contract Mintable is ERC20Basic{
-    function mint(address to, uint256 amount) public;
+
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+
+  /**
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+   * account.
+   */
+  function Ownable() public {
+    owner = msg.sender;
+  }
+
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+
+  /**
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.
+   * @param newOwner The address to transfer ownership to.
+   */
+  function transferOwnership(address newOwner) public onlyOwner {
+    require(newOwner != address(0));
+    OwnershipTransferred(owner, newOwner);
+    owner = newOwner;
+  }
+
 }
 
 /**
@@ -165,3 +191,19 @@ contract TokenPool is Ownable {
         PoolLocked(name, lockTimestamp);
     }
 }
+
+contract ERC20Basic {
+  uint256 public totalSupply;
+  function balanceOf(address who) public view returns (uint256);
+  function transfer(address to, uint256 value) public returns (bool);
+  event Transfer(address indexed from, address indexed to, uint256 value);
+}
+
+/**
+ * @title Mintable token interface
+ * @author Wojciech Harzowski (https://github.com/harzo)
+ */
+contract Mintable is ERC20Basic{
+    function mint(address to, uint256 amount) public;
+}
+
