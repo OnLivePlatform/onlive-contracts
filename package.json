@@ -26,7 +26,7 @@
     "lint": "run-p -c --aggregate-output lint:solhint lint:tslint",
     "lint:tslint": "tslint --project .",
     "lint:tslint:fix": "tslint --fix --project .",
-    "lint:solhint": "solhint contracts/**/*.sol test/**/*.sol build/flat/**/*.sol",
+    "lint:solhint": "solhint \"contracts/**/*.sol\" \"build/flat/*.sol\"",
     "format": "prettier --write *.ts **/*.ts test/**/*.ts",
     "flatten:migrations": "run-s compile:ts flatten:migrations:js",
     "flatten:migrations:js": "node scripts/flatten.js -c Migrations",
