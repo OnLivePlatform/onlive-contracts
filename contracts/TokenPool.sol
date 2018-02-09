@@ -2,6 +2,7 @@ pragma solidity 0.4.18;
 
 import { ERC20Basic } from "zeppelin-solidity/contracts/token/ERC20Basic.sol";
 import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 /**
@@ -20,6 +21,8 @@ contract Mintable is ERC20Basic {
  */
 contract TokenPool is Ownable {
 
+    using SafeMath for uint256;
+    
     /**
      * @dev Represents registered pool
      */
@@ -48,14 +51,14 @@ contract TokenPool is Ownable {
         _;
     }
 
-    modifier onlyUnlocked(string pool) {
+    modifier onlyUnlockedPool(string pool) {
         /* solhint-disable not-rely-on-time */
         require(now > poolRegister[pool].lockTimestamp);
         /* solhint-enable not-rely-on-time */
         _;
     }
 
-    modifier onlyUnique(string pool) {
+    modifier onlyUniquePool(string pool) {
         require(poolRegister[pool].amount == 0);
         _;
     }
@@ -65,9 +68,7 @@ contract TokenPool is Ownable {
         _;
     }
 
-    function TokenPool(Mintable _token)
-        public
-    {
+    function TokenPool(Mintable _token) public {
         token = _token;
     }
 
@@ -102,13 +103,15 @@ contract TokenPool is Ownable {
         public
         onlyOwner
         onlyNotZero(amount)
-        onlyUnique(name)
+        onlyUniquePool(name)
     {
         poolRegister[name] = Pool(amount, 0);
         token.mint(this, amount);
         PoolRegistered(name, amount);
 
-        if (lockTimestamp > 0) lockPool(name, lockTimestamp);
+        if (lockTimestamp > 0) {
+            lockPool(name, lockTimestamp);
+        }
     }
 
     /**
@@ -123,10 +126,10 @@ contract TokenPool is Ownable {
         onlyValid(to)
         onlyNotZero(amount)
         onlySufficientAmount(pool, amount)
-        onlyUnlocked(pool)
+        onlyUnlockedPool(pool)
     {
-        token.transfer(to, amount);
-        poolRegister[pool].amount -= amount;
+        poolRegister[pool].amount = poolRegister[pool].amount.sub(amount);
+        require(token.transfer(to, amount));
         Transferred(to, pool, amount);
     }
 
