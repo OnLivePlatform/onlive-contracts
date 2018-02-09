@@ -3,13 +3,15 @@ pragma solidity 0.4.18;
 import { ERC20Basic } from "zeppelin-solidity/contracts/token/ERC20Basic.sol";
 import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
+
 /**
  * @title Mintable token interface
  * @author Wojciech Harzowski (https://github.com/harzo)
  */
-contract Mintable is ERC20Basic{
+contract Mintable is ERC20Basic {
     function mint(address to, uint256 amount) public;
 }
+
 
 /**
  * @title Token pools register
@@ -36,8 +38,7 @@ contract TokenPool is Ownable {
      */
     mapping (string => Pool) private poolRegister;
 
-
-    modifier onlyNotZero(uint256 amount){
+    modifier onlyNotZero(uint256 amount) {
         require(amount != 0);
         _;
     }
@@ -48,13 +49,15 @@ contract TokenPool is Ownable {
     }
 
     modifier onlyUnlocked(string pool) {
+        /* solhint-disable not-rely-on-time */
         require(now > poolRegister[pool].lockTimestamp);
+        /* solhint-enable not-rely-on-time */
         _;
     }
 
     modifier onlyUnique(string pool) {
         require(poolRegister[pool].amount == 0);
-    _;
+        _;
     }
 
     modifier onlyValid(address _address) {
@@ -105,7 +108,7 @@ contract TokenPool is Ownable {
         token.mint(this, amount);
         PoolRegistered(name, amount);
 
-        if(lockTimestamp > 0) lockPool(name, lockTimestamp);
+        if (lockTimestamp > 0) lockPool(name, lockTimestamp);
     }
 
     /**

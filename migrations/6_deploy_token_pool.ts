@@ -9,10 +9,7 @@ const TokenPool = artifacts.require('./TokenPool.sol');
 async function deploy(deployer: Deployer) {
   const token = await OnLiveToken.deployed();
 
-  await deployer.deploy(
-    TokenPool,
-    token.address,
-  );
+  await deployer.deploy(TokenPool, token.address);
 }
 
 function migrate(deployer: Deployer) {
