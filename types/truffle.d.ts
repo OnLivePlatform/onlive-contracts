@@ -44,6 +44,7 @@ declare module 'truffle' {
     interface Contract<T> extends ContractBase {
       at(address: Address): Promise<T>;
       deployed(): Promise<T>;
+      link<TOther>(contract: Contract<TOther>): void;
     }
 
     interface AnyContract extends Contract<any> {

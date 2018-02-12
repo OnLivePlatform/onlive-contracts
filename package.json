@@ -23,6 +23,8 @@
     "test:crowdsale:js": "truffle test test/crowdsale.test.js",
     "test:preicocrowdsale": "run-s compile:ts test:preicocrowdsale:js",
     "test:preicocrowdsale:js": "truffle test test/preicocrowdsale.test.js",
+    "test:tokenpool": "run-s compile:ts test:tokenpool:js",
+    "test:tokenpool:js": "truffle test test/tokenpool.test.js",
     "lint": "run-p -c --aggregate-output lint:solhint lint:tslint",
     "lint:tslint": "tslint --project .",
     "lint:tslint:fix": "tslint --fix --project .",
