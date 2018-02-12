@@ -27,6 +27,7 @@ import {
   findLastLog,
   ZERO_ADDRESS
 } from './helpers';
+import {AnyNumber} from "web3";
 
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
@@ -49,6 +50,8 @@ contract('IcoCrowdsale', accounts => {
 
   const minValue = toWei(0.1);
 
+  const price = toWei(0.0011466);
+
   let token: OnLiveToken;
 
   interface CrowdsaleOptions {
@@ -65,6 +68,20 @@ contract('IcoCrowdsale', accounts => {
       propOr(token.address, 'token', options),
       propOr(availableAmount, 'availableAmount', options),
       propOr(minValue, 'minValue', options),
+      { from: propOr(owner, 'from', options) }
+    );
+  }
+
+  interface ScheduleOptions {
+    start: AnyNumber;
+    price: AnyNumber;
+    from: Address;
+  }
+
+  async function schedulePricePeriod(crowdsale: IcoCrowdsale, options?: Partial<ScheduleOptions>) {
+    return await crowdsale.schedulePricePeriod(
+      propOr(getUnixNow(), 'start', options),
+      propOr(price, 'price', options),
       { from: propOr(owner, 'from', options) }
     );
   }
@@ -124,7 +141,6 @@ contract('IcoCrowdsale', accounts => {
   describe('#schedulePricePeriod', () => {
     let crowdsale: IcoCrowdsale;
     const start = getUnixNow();
-    const price = 10000000;
 
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
@@ -132,9 +148,7 @@ contract('IcoCrowdsale', accounts => {
 
     it('should emit PeriodScheduled event', async () => {
 
-      const tx = await crowdsale.schedulePricePeriod(start, price, {
-        from: owner
-      });
+      const tx = await schedulePricePeriod(crowdsale, { start });
 
       const log = findLastLog(tx, 'PeriodScheduled');
       assert.isOk(log);
@@ -146,9 +160,7 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should store new period', async () => {
-      await crowdsale.schedulePricePeriod(start, price, {
-        from: owner
-      });
+      await schedulePricePeriod(crowdsale, { start });
 
       assertNumberEqual((await crowdsale.pricePeriods(0))[0], start);
       assertNumberEqual((await crowdsale.pricePeriods(0))[1], price);
