@@ -330,6 +330,7 @@ declare module 'onlive' {
       availableAmount(): Promise<BigNumber>;
       minValue(): Promise<BigNumber>;
       pricePeriods(index: AnyNumber): Promise<BigNumber[]>;
+      end(): Promise<BigNumber>;
       isContributionRegistered(id: string): Promise<boolean>;
       calculateContribution(value: AnyNumber): Promise<BigNumber>;
 
@@ -362,6 +363,10 @@ declare module 'onlive' {
     interface PeriodScheduledEvent {
       start: BigNumber;
       price: BigNumber;
+    }
+
+    interface CrowdsaleEndScheduledEvent {
+      end: BigNumber;
     }
 
     interface IcoCrowdsaleContract extends Contract<IcoCrowdsale> {
