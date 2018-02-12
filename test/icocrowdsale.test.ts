@@ -13,6 +13,7 @@ import {
   OnLiveArtifacts,
   OnLiveToken,
   PeriodScheduledEvent,
+  PreIcoCrowdsale,
   ScheduledEvent
 } from 'onlive';
 import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
@@ -28,7 +29,6 @@ import {
   findLastLog,
   ZERO_ADDRESS
 } from './helpers';
-import { AnyNumber } from 'web3';
 
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
@@ -41,9 +41,27 @@ const OnLiveTokenContract = artifacts.require('./OnLiveToken.sol');
 
 contract('IcoCrowdsale', accounts => {
   const owner = accounts[9];
+  const nonOwner = accounts[8];
+  const contributor = accounts[7];
   const wallet = accounts[6];
-
   const dayInSeconds = 24 * 3600;
+  const createPeriods = (start: Web3.AnyNumber) => {
+    return [
+      {
+        from: owner,
+        price: toWei(0.0011466),
+        start
+      },
+      {
+        from: owner,
+        price: toWei(0.0011466),
+        start: new BigNumber(start).add(2 * dayInSeconds)
+      }
+    ];
+  };
+  const createEnd = (start: Web3.AnyNumber) => {
+    return new BigNumber(start).add(7 * dayInSeconds);
+  };
 
   const availableAmount = toONL(1000);
 
@@ -72,8 +90,8 @@ contract('IcoCrowdsale', accounts => {
   }
 
   interface ScheduleOptions {
-    start: AnyNumber;
-    price: AnyNumber;
+    start: Web3.AnyNumber;
+    price: Web3.AnyNumber;
     from: Address;
   }
 
@@ -85,6 +103,29 @@ contract('IcoCrowdsale', accounts => {
       propOr(getUnixNow(), 'start', options),
       propOr(price, 'price', options),
       { from: propOr(owner, 'from', options) }
+    );
+  }
+
+  interface ScheduleAllOptions {
+    periods: ScheduleOptions[];
+    end: Web3.AnyNumber;
+  }
+
+  async function schedule(
+    crowdsale: IcoCrowdsale,
+    options?: Partial<ScheduleAllOptions>
+  ) {
+    const periods: ScheduleOptions[] = propOr(
+      createPeriods(getUnixNow()),
+      'periods',
+      options
+    );
+    await periods.forEach(async period => {
+      await schedulePricePeriod(crowdsale, period);
+    });
+    await crowdsale.scheduleCrowdsaleEnd(
+      propOr(createEnd(periods[0].start), 'end', options),
+      { from: owner }
     );
   }
 
@@ -166,7 +207,7 @@ contract('IcoCrowdsale', accounts => {
         const start = getUnixNow();
         for (let j = 0; j <= i; j++) {
           await schedulePricePeriod(crowdsale, {
-            start: start + dayInSeconds * j,
+            start: start + dayInSeconds * j
           });
         }
 
@@ -272,6 +313,66 @@ contract('IcoCrowdsale', accounts => {
       await assertReverts(async () => {
         await crowdsale.scheduleCrowdsaleEnd(end, {
           from: owner
+        });
+      });
+    });
+  });
+
+  context('Given deployed token contract', () => {
+    const saleDuration = 1000;
+
+    let crowdsale: IcoCrowdsale;
+
+    beforeEach(async () => {
+      crowdsale = await createCrowdsale();
+      await token.approveMintingManager(crowdsale.address, { from: owner });
+    });
+
+    type ContributionFunction = (
+      from: Address,
+      value: Web3.AnyNumber
+    ) => Promise<TransactionResult>;
+
+    function testContribute(contribute: ContributionFunction) {
+      it('should revert when crowdsale end is not scheduled', async () => {
+        assert.isFalse(await crowdsale.isCrowdsaleEndScheduled());
+
+        await assertReverts(async () => {
+          await contribute(contributor, minValue);
+        });
+      });
+
+      it('should revert when sale is not active', async () => {
+        const start = getUnixNow() + 1 * dayInSeconds;
+        const end = start + 7 * dayInSeconds;
+        await schedule(crowdsale, { periods: createPeriods(start), end });
+
+        assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+        assert.isFalse(await crowdsale.isActive());
+
+        await assertReverts(async () => {
+          await contribute(contributor, minValue);
+        });
+      });
+    }
+
+    describe('#fallback', () => {
+      testContribute((from: Address, value: Web3.AnyNumber) => {
+        return crowdsale.sendTransaction({ from, value });
+      });
+    });
+
+    describe('#contribute', () => {
+      testContribute((from: Address, value: Web3.AnyNumber) => {
+        return crowdsale.contribute(contributor, { from: nonOwner, value });
+      });
+
+      it('should revert when contributor address is zero', async () => {
+        await assertReverts(async () => {
+          await crowdsale.contribute('0x0', {
+            from: nonOwner,
+            value: minValue
+          });
         });
       });
     });

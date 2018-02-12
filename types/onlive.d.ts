@@ -333,6 +333,8 @@ declare module 'onlive' {
       end(): Promise<BigNumber>;
       isContributionRegistered(id: string): Promise<boolean>;
       calculateContribution(value: AnyNumber): Promise<BigNumber>;
+      isCrowdsaleEndScheduled(): Promise<boolean>;
+      isActive(): Promise<boolean>;
 
       contribute(
         contributor: Address,

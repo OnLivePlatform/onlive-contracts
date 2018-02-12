@@ -270,6 +270,7 @@ contract IcoCrowdsale is Ownable {
 
     function acceptContribution(address contributor, uint256 value)
         private
+        onlyScheduledPeriods
         onlyActive
         onlyValid(contributor)
         onlySufficientValue(value)
