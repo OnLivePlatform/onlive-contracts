@@ -323,7 +323,7 @@ declare module 'onlive' {
         options?: TransactionOptions
       ): Promise<PreIcoCrowdsale>;
     }
-    // todo ----------------------------------------------------temprary coment
+
     interface IcoCrowdsale extends Ownable {
       wallet(): Promise<string>;
       token(): Promise<string>;
@@ -357,7 +357,6 @@ declare module 'onlive' {
         end: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
-
     }
 
     interface PeriodScheduledEvent {

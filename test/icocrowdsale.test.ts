@@ -27,7 +27,7 @@ import {
   findLastLog,
   ZERO_ADDRESS
 } from './helpers';
-import {AnyNumber} from "web3";
+import { AnyNumber } from 'web3';
 
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
@@ -40,8 +40,6 @@ const OnLiveTokenContract = artifacts.require('./OnLiveToken.sol');
 
 contract('IcoCrowdsale', accounts => {
   const owner = accounts[9];
-  const nonOwner = accounts[8];
-  const contributor = accounts[7];
   const wallet = accounts[6];
 
   const dayInSeconds = 24 * 3600;
@@ -78,7 +76,10 @@ contract('IcoCrowdsale', accounts => {
     from: Address;
   }
 
-  async function schedulePricePeriod(crowdsale: IcoCrowdsale, options?: Partial<ScheduleOptions>) {
+  async function schedulePricePeriod(
+    crowdsale: IcoCrowdsale,
+    options?: Partial<ScheduleOptions>
+  ) {
     return await crowdsale.schedulePricePeriod(
       propOr(getUnixNow(), 'start', options),
       propOr(price, 'price', options),
@@ -140,13 +141,13 @@ contract('IcoCrowdsale', accounts => {
 
   describe('#schedulePricePeriod', () => {
     let crowdsale: IcoCrowdsale;
-    const start = getUnixNow();
 
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
     });
 
     it('should emit PeriodScheduled event', async () => {
+      const start = getUnixNow();
 
       const tx = await schedulePricePeriod(crowdsale, { start });
 
@@ -160,10 +161,51 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should store new period', async () => {
+      const start = getUnixNow();
       await schedulePricePeriod(crowdsale, { start });
 
       assertNumberEqual((await crowdsale.pricePeriods(0))[0], start);
       assertNumberEqual((await crowdsale.pricePeriods(0))[1], price);
+    });
+
+    it('should revert for not owner', async () => {
+      await assertReverts(async () => {
+        await schedulePricePeriod(crowdsale, { from: accounts[1] });
+      });
+    });
+
+    it('should revert for zero start', async () => {
+      await assertReverts(async () => {
+        await schedulePricePeriod(crowdsale, { start: 0 });
+      });
+    });
+
+    it('should revert for zero price', async () => {
+      await assertReverts(async () => {
+        await schedulePricePeriod(crowdsale, { price: 0 });
+      });
+    });
+
+    it('should revert for start earlier than existing period', async () => {
+      await schedulePricePeriod(crowdsale);
+      await assertReverts(async () => {
+        await schedulePricePeriod(crowdsale, {
+          start: getUnixNow() - dayInSeconds
+        });
+      });
+    });
+
+    it('should revert when crowdsale end is scheduled', async () => {
+      const start = getUnixNow();
+
+      await schedulePricePeriod(crowdsale, { start });
+      await crowdsale.scheduleCrowdsaleEnd(start + dayInSeconds, { from: owner})
+
+      await assertReverts(async () => {
+        await schedulePricePeriod(crowdsale, {
+          start: start + dayInSeconds
+        });
+      });
     });
   });
 });
