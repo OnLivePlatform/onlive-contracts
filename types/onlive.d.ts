@@ -324,11 +324,12 @@ declare module 'onlive' {
       ): Promise<PreIcoCrowdsale>;
     }
     // todo ----------------------------------------------------temprary coment
-    interface IcoCrowdsale extends TimeSchedulable {
+    interface IcoCrowdsale extends Ownable {
       wallet(): Promise<string>;
       token(): Promise<string>;
       availableAmount(): Promise<BigNumber>;
       minValue(): Promise<BigNumber>;
+      pricePeriods(index: AnyNumber): Promise<BigNumber[]>;
       isContributionRegistered(id: string): Promise<boolean>;
       calculateContribution(value: AnyNumber): Promise<BigNumber>;
 
@@ -343,6 +344,25 @@ declare module 'onlive' {
         amount: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
+
+      getActualPrice(): Promise<BigNumber>;
+
+      schedulePricePeriod(
+        start: AnyNumber,
+        price: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      scheduleCrowdsaleEnd(
+        end: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+    }
+
+    interface PeriodScheduledEvent {
+      start: BigNumber;
+      price: BigNumber;
     }
 
     interface IcoCrowdsaleContract extends Contract<IcoCrowdsale> {
@@ -351,28 +371,8 @@ declare module 'onlive' {
         token: Address,
         availableAmount: AnyNumber,
         minValue: AnyNumber,
-        pricePeriodsStart: AnyNumber[],
-        pricePeriodsPrice: AnyNumber[],
         options?: TransactionOptions
       ): Promise<IcoCrowdsale>;
-    }
-
-    interface TimeSchedulable extends ContractBase {
-      start(): Promise<BigNumber>;
-      end(): Promise<BigNumber>;
-      isActive(): Promise<boolean>;
-      isScheduled(): Promise<boolean>;
-
-      schedule(
-        start: AnyNumber,
-        end: AnyNumber,
-        options?: TransactionOptions
-      ): Promise<TransactionResult>;
-    }
-
-    interface TimeScheduledEvent {
-      start: BigNumber;
-      end: BigNumber;
     }
 
     interface TokenPoolContract extends Contract<TokenPool> {

@@ -1,7 +1,7 @@
 pragma solidity 0.4.18;
 
 import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
-import { TimeSchedulable } from "./crowdsale/TimeSchedulable.sol";
+import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
@@ -20,7 +20,7 @@ contract Mintable {
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Dominik Króliczek (https://github.com/krolis)
  */
-contract IcoCrowdsale is TimeSchedulable {
+contract IcoCrowdsale is Ownable {
 
     using SafeMath for uint256;
 
@@ -66,28 +66,23 @@ contract IcoCrowdsale is TimeSchedulable {
 
     PricePeriod[] public pricePeriods;
 
+    uint256 public end;
+
     function IcoCrowdsale(
         address _wallet,
         Mintable _token,
         uint256 _availableAmount,
-        uint256 _minValue,
-        uint256[1] _pricePeriodsStart,
-        uint256[1] _pricePeriodsPrice
+        uint256 _minValue
     )
         public
         onlyValid(_wallet)
         onlyValid(_token)
         onlyNotZero(_availableAmount)
-        onlyNotZero(_pricePeriodsStart.length)
-        onlyNotZero(_pricePeriodsPrice.length)
-        onlyEqual(_pricePeriodsStart.length, _pricePeriodsPrice.length)
     {
         wallet = _wallet;
         token = _token;
         availableAmount = _availableAmount;
         minValue = _minValue;
-
-        //setPeriods(_pricePeriodsStart, _pricePeriodsPrice);
     }
 
     /**
@@ -105,6 +100,15 @@ contract IcoCrowdsale is TimeSchedulable {
      * @param amount uint256 The amount of tokens
      */
     event ContributionRegistered(bytes32 indexed id, address indexed contributor, uint256 amount);
+
+    /**
+     * @dev Contract scheduled within given timestamps
+     * @param start uint256 Timestamp when contract activating
+     * @param price uint256 Price
+     */
+    event PeriodScheduled(uint256 start, uint256 price);
+
+    event CrowdsaleEndScheduled(uint256 end);
 
     modifier onlyValid(address addr) {
         require(addr != address(0));
@@ -126,8 +130,29 @@ contract IcoCrowdsale is TimeSchedulable {
         _;
     }
 
-    modifier onlyEqual(uint256 a, uint256 b){
+    modifier onlyEqual(uint256 a, uint256 b) {
         require(a == b);
+        _;
+    }
+
+    modifier onlyActive() {
+        require(isActive());
+        _;
+    }
+
+    modifier onlyScheduledPeriods() {
+        require(pricePeriods.length > 0);
+        require(pricePeriods.length > 0);
+        _;
+    }
+
+    modifier onlyNotZero(uint256 a) {
+        require(a != 0);
+        _;
+    }
+
+    modifier onlyNotScheduledCrowdsaleEnd() {
+        require(!isCrowdsaleEndScheduled());
         _;
     }
 
@@ -139,16 +164,40 @@ contract IcoCrowdsale is TimeSchedulable {
     }
 
     /**
-    * @dev Set price for price period specified by periodIndex
-    */
-    function setPrice(uint256 periodIndex, uint256 price)
+     * @dev Schedule contract activation for given timestamp range
+     */
+    function schedulePricePeriod(uint256 _start, uint _price)
         public
         onlyOwner
-        onlyNotScheduled
+        onlyNotScheduledCrowdsaleEnd
+        onlyNotZero(_start)
+        onlyNotZero(_price)
     {
-        require(periodIndex < pricePeriods.length);
-        pricePeriods[periodIndex].price = price;
-        //todo event?
+        if (pricePeriods.length > 0) {
+            require(_start > pricePeriods[pricePeriods.length - 1].start);
+        }
+
+        pricePeriods.push(
+            PricePeriod({
+                start: _start,
+                price: _price
+            })
+        );
+
+        PeriodScheduled(_start, _price);
+    }
+
+    /**
+     * @dev Schedule contract activation for given timestamp range
+     */
+    function scheduleCrowdsaleEnd(uint256 _end)
+        public
+        onlyOwner
+        onlyScheduledPeriods
+        onlyNotZero(_end)
+    {
+        end = _end;
+        CrowdsaleEndScheduled(_end);
     }
 
     /**
@@ -184,26 +233,39 @@ contract IcoCrowdsale is TimeSchedulable {
      * @param value uint256 Contribution value in ETH
      * @return uint256 Amount of received ONL tokens
      */
-    function calculateContribution(uint256 value) public view returns (uint256) {
-        // todo
-        return value.mul(10 ** token.decimals()).div(1146600000000000);
+    function calculateContribution(uint256 value)
+        public
+        view
+        returns (uint256)
+    {
+        return value.mul(10 ** token.decimals()).div(getActualPrice());
     }
 
-    function setPeriods(uint256[] _pricePeriodsStart, uint256[] _pricePeriodsPrice)
-        internal
+    function getActualPrice()
+        public
+        view
+        returns (uint256)
     {
-        uint256 prevStart = 0;
-        for(uint256 i  = 0; i < _pricePeriodsStart.length; i++){
-            require(_pricePeriodsStart[i] > prevStart);
-            require(_pricePeriodsPrice[i] > 0);
-            pricePeriods.push(
-                PricePeriod({
-                start: _pricePeriodsStart[i],
-                price: _pricePeriodsPrice[i]
-                })
-            );
-            prevStart = _pricePeriodsStart[i];
+        for (uint256 i = pricePeriods.length - 1; i >= 0; i--) {
+            if (now >= pricePeriods[i].start) {
+                return pricePeriods[i].price;
+            }
         }
+        return pricePeriods[0].price;
+    }
+
+    /**
+     * @dev Check whether activation is scheduled
+     */
+    function isCrowdsaleEndScheduled() public view returns (bool) {
+        return end != 0;
+    }
+
+    /**
+    * @dev Check whether contract is currently active
+    */
+    function isActive() public view returns (bool) {
+        return now >= pricePeriods[0].start && now <= end;
     }
 
     function acceptContribution(address contributor, uint256 value)
