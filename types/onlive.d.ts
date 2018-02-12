@@ -323,6 +323,57 @@ declare module 'onlive' {
         options?: TransactionOptions
       ): Promise<PreIcoCrowdsale>;
     }
+    // todo ----------------------------------------------------temprary coment
+    interface IcoCrowdsale extends TimeSchedulable {
+      wallet(): Promise<string>;
+      token(): Promise<string>;
+      availableAmount(): Promise<BigNumber>;
+      minValue(): Promise<BigNumber>;
+      isContributionRegistered(id: string): Promise<boolean>;
+      calculateContribution(value: AnyNumber): Promise<BigNumber>;
+
+      contribute(
+        contributor: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      registerContribution(
+        id: string,
+        contributor: Address,
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface IcoCrowdsaleContract extends Contract<IcoCrowdsale> {
+      'new'(
+        wallet: Address,
+        token: Address,
+        availableAmount: AnyNumber,
+        minValue: AnyNumber,
+        pricePeriodsStart: AnyNumber[],
+        pricePeriodsPrice: AnyNumber[],
+        options?: TransactionOptions
+      ): Promise<IcoCrowdsale>;
+    }
+
+    interface TimeSchedulable extends ContractBase {
+      start(): Promise<BigNumber>;
+      end(): Promise<BigNumber>;
+      isActive(): Promise<boolean>;
+      isScheduled(): Promise<boolean>;
+
+      schedule(
+        start: AnyNumber,
+        end: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface TimeScheduledEvent {
+      start: BigNumber;
+      end: BigNumber;
+    }
 
     interface TokenPoolContract extends Contract<TokenPool> {
       'new'(token: Address, options?: TransactionOptions): Promise<TokenPool>;
@@ -337,6 +388,7 @@ declare module 'onlive' {
       require(name: './OnLiveToken.sol'): OnLiveTokenContract;
       require(name: './PreIcoCrowdsale.sol'): PreIcoCrowdsaleContract;
       require(name: './TokenPool.sol'): TokenPoolContract;
+      require(name: './IcoCrowdsale.sol'): IcoCrowdsaleContract;
     }
   }
 
