@@ -12,7 +12,7 @@ import {
   IcoCrowdsale,
   OnLiveArtifacts,
   OnLiveToken,
-  PeriodScheduledEvent,
+  PeriodScheduledEvent
 } from 'onlive';
 import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
 
@@ -25,6 +25,7 @@ import {
   assertTokenAlmostEqual,
   assertTokenEqual,
   calculateContribution,
+  DAY_IN_SECONDS,
   findLastLog,
   sendRpc,
   ZERO_ADDRESS
@@ -47,114 +48,14 @@ contract('IcoCrowdsale', accounts => {
   const contributor = accounts[7];
   const wallet = accounts[6];
 
-  const dayInSeconds = 24 * 3600;
   const defaultPeriodsCount = 3;
   const defaultPrice = toWei(0.0011466);
-
-  let networkTimeshift = 0;
-
-  interface ScheduleOptions {
-    start: Web3.AnyNumber;
-    price: Web3.AnyNumber;
-    from: Address;
-  }
-
-  const createPeriods = (options?: any) => {
-    const start = new BigNumber(propOr(
-      getUnixNow(),
-      'start',
-      options
-    ) as Web3.AnyNumber);
-    const price = new BigNumber(propOr(
-      defaultPrice,
-      'price',
-      options
-    ) as Web3.AnyNumber);
-    const periodsCount = propOr(defaultPeriodsCount, 'count', options);
-    const periodInterval = new BigNumber(propOr(
-      dayInSeconds,
-      'interval',
-      options
-    ) as Web3.AnyNumber);
-
-    const periods = [];
-    for (let i = 0; i < periodsCount; i++) {
-      periods.push({
-        from: propOr(owner, 'owner', options),
-        price: price.add(toWei(0.0001).mul(i)),
-        start: start.add(periodInterval.mul(i))
-      } as ScheduleOptions);
-    }
-
-    return periods;
-  };
-  const createEnd = (start: Web3.AnyNumber) => {
-    return new BigNumber(start).add(7 * dayInSeconds);
-  };
-
   const availableAmount = toONL(10000);
-
   const minValue = toWei(0.1);
 
   let token: OnLiveToken;
-
-  interface CrowdsaleOptions {
-    wallet: Address;
-    token: Address;
-    availableAmount?: Web3.AnyNumber;
-    minValue: Web3.AnyNumber;
-    from: Address;
-  }
-
-  async function createCrowdsale(options?: Partial<CrowdsaleOptions>) {
-    return await IcoCrowdsaleContract.new(
-      propOr(wallet, 'wallet', options),
-      propOr(token.address, 'token', options),
-      propOr(availableAmount, 'availableAmount', options),
-      propOr(minValue, 'minValue', options),
-      { from: propOr(owner, 'from', options) }
-    );
-  }
-
-  async function schedulePricePeriod(
-    crowdsale: IcoCrowdsale,
-    options?: Partial<ScheduleOptions>
-  ) {
-    return await crowdsale.schedulePricePeriod(
-      propOr(getUnixNow(), 'start', options),
-      propOr(defaultPrice, 'price', options),
-      { from: propOr(owner, 'from', options) }
-    );
-  }
-
-  interface ScheduleAllOptions {
-    periods: ScheduleOptions[];
-    end: Web3.AnyNumber;
-  }
-
-  async function schedule(
-    crowdsale: IcoCrowdsale,
-    options?: Partial<ScheduleAllOptions>
-  ) {
-    const periods: ScheduleOptions[] = propOr(
-      createPeriods(getUnixNow()),
-      'periods',
-      options
-    );
-    await periods.forEach(async period => {
-      await schedulePricePeriod(crowdsale, period);
-    });
-    await crowdsale.scheduleCrowdsaleEnd(
-      propOr(createEnd(periods[0].start), 'end', options),
-      { from: owner }
-    );
-  }
-
-  function getUnixNow() {
-    return Math.round(new Date().getTime() / 1000) + networkTimeshift;
-  }
-
-  let snapshotId: any;
+  let snapshotId: number;
+  let networkTimeshift: number = 0;
 
   before(async () => {
     const response = await sendRpc('evm_snapshot');
@@ -239,7 +140,7 @@ contract('IcoCrowdsale', accounts => {
     for (let i = 0; i < 5; i++) {
       it(`should store ${i + 1} period(s)`, async () => {
         const start = getUnixNow();
-        periods = createPeriods({ count: i, start });
+        periods = createPeriodsOrDefault({ count: i, start });
 
         await periods.forEach(async period => {
           await schedulePricePeriod(crowdsale, period as ScheduleOptions);
@@ -271,11 +172,11 @@ contract('IcoCrowdsale', accounts => {
       });
     });
 
-    it('should revert for start earlier than last scheduled period', async () => {
+    it('should revert for start earlier than last period', async () => {
       await schedulePricePeriod(crowdsale);
       await assertReverts(async () => {
         await schedulePricePeriod(crowdsale, {
-          start: getUnixNow() - dayInSeconds
+          start: getUnixNow() - DAY_IN_SECONDS
         });
       });
     });
@@ -284,13 +185,13 @@ contract('IcoCrowdsale', accounts => {
       const start = getUnixNow();
 
       await schedulePricePeriod(crowdsale, { start });
-      await crowdsale.scheduleCrowdsaleEnd(start + dayInSeconds, {
+      await crowdsale.scheduleCrowdsaleEnd(start + DAY_IN_SECONDS, {
         from: owner
       });
 
       await assertReverts(async () => {
         await schedulePricePeriod(crowdsale, {
-          start: start + dayInSeconds
+          start: start + DAY_IN_SECONDS
         });
       });
     });
@@ -298,7 +199,7 @@ contract('IcoCrowdsale', accounts => {
 
   describe('#scheduleCrowdsaleEnd', () => {
     let crowdsale: IcoCrowdsale;
-    const end = getUnixNow() + dayInSeconds;
+    const end = getUnixNow() + DAY_IN_SECONDS;
 
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
@@ -364,7 +265,7 @@ contract('IcoCrowdsale', accounts => {
     ) => Promise<TransactionResult>;
 
     function testContribute(contribute: ContributionFunction) {
-      it('should revert when sale end is not scheduled', async () => {
+      it('should revert when is not scheduled', async () => {
         assert.isFalse(await crowdsale.isCrowdsaleEndScheduled());
 
         await assertReverts(async () => {
@@ -373,9 +274,10 @@ contract('IcoCrowdsale', accounts => {
       });
 
       it('should revert when sale is not active', async () => {
-        const start = getUnixNow() + 1 * dayInSeconds;
-        const end = start + 7 * dayInSeconds;
-        await schedule(crowdsale, { periods: createPeriods({ start }), end });
+        const start = getUnixNow() + 1 * DAY_IN_SECONDS;
+        const end = start + 7 * DAY_IN_SECONDS;
+        const periods = createPeriodsOrDefault({ start });
+        await schedule(crowdsale, { periods, end });
 
         assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
         assert.isFalse(await crowdsale.isActive());
@@ -386,13 +288,13 @@ contract('IcoCrowdsale', accounts => {
       });
 
       context('Given sale is active', () => {
-        let periods: ScheduleOptions[] = [];
+        let periods: ScheduleOptions[];
 
         beforeEach(async () => {
           const start = getUnixNow() - 3600;
-          const end = start + 7 * dayInSeconds;
+          const end = start + 7 * DAY_IN_SECONDS;
           const periodsCount = 3;
-          periods = createPeriods({ start, count: periodsCount });
+          periods = createPeriodsOrDefault({ start, count: periodsCount });
           await schedule(crowdsale, { periods, end });
 
           assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
@@ -407,49 +309,6 @@ contract('IcoCrowdsale', accounts => {
             prevBalance.add(minValue)
           );
         });
-
-        const acceptableError = toONL(shiftNumber(1, -9));
-
-        const conversions = [
-          { eth: 0.1, onl: 87.2143729287 },
-          { eth: 0.5, onl: 436.071864643 },
-          { eth: 1, onl: 872.143729287 }
-        ];
-
-        for (const { eth, onl } of conversions) {
-          it(`should assign ${onl} ONL`, async () => {
-            const prevBalance = await token.balanceOf(contributor);
-            const expectedAmount = toONL(onl); // .mul(i + 1);
-
-            await contribute(contributor, toWei(eth));
-
-            assertTokenAlmostEqual(
-              await token.balanceOf(contributor),
-              prevBalance.add(expectedAmount),
-              acceptableError
-            );
-          });
-
-          it(`should emit ContributionAccepted event`, async () => {
-            const value = toWei(eth);
-            const expectedAmount = toONL(onl);
-
-            const tx = await contribute(contributor, value);
-
-            const log = findLastLog(tx, 'ContributionAccepted');
-            assert.isOk(log);
-
-            const event = log.args as ContributionAcceptedEvent;
-            assert.isOk(event);
-            assert.equal(event.contributor, contributor);
-            assertEtherEqual(event.value, value);
-            assertTokenAlmostEqual(
-              event.amount,
-              expectedAmount,
-              acceptableError
-            );
-          });
-        }
 
         it('should revert when value is zero', async () => {
           await assertReverts(async () => {
@@ -477,13 +336,14 @@ contract('IcoCrowdsale', accounts => {
       });
 
       context('Periods changes', async () => {
-        const periodInterval = dayInSeconds;
+        const acceptableError = toONL(shiftNumber(1, -9));
+        const periodInterval = DAY_IN_SECONDS;
 
         async function setup() {
           const start = getUnixNow() - 3600;
-          const end = start + 7 * dayInSeconds;
+          const end = start + 7 * DAY_IN_SECONDS;
           const periodsCount = 3;
-          const periods = createPeriods({
+          const periods = createPeriodsOrDefault({
             count: periodsCount,
             interval: periodInterval,
             start
@@ -495,23 +355,35 @@ contract('IcoCrowdsale', accounts => {
           return periods;
         }
 
-        const acceptableError = toONL(shiftNumber(1, -9));
+        type PeriodContributionFunction = (
+          period: ScheduleOptions,
+          value: Web3.AnyNumber
+        ) => Promise<void>;
 
-        it('should assign ONL to contributor in all periods', async () => {
+        async function testContributeForAllPeriod(
+          testFunction: PeriodContributionFunction
+        ) {
           const periods = await setup();
           const waitUntilNextPeriod = tempo(web3).wait;
 
           for (const period of periods) {
-            const conversions = [
-              { eth: 0.1, onl: calculateContribution(0.1, period.price) },
-              { eth: 0.5, onl: calculateContribution(0.5, period.price) },
-              { eth: 1, onl: calculateContribution(1, period.price) }
-            ];
+            const contributionAmounts = [0.1, 0.5, 1];
+            for (const eth of contributionAmounts) {
+              await testFunction(period, eth);
+            }
 
-            for (const { eth, onl } of conversions) {
+            await waitUntilNextPeriod(periodInterval);
+            networkTimeshift += periodInterval;
+          }
+        }
+
+        it('should assign ONL to contributor in all periods', async () => {
+          await testContributeForAllPeriod(
+            async (period: ScheduleOptions, eth: Web3.AnyNumber) => {
               const prevBalance = await token.balanceOf(contributor);
-              const expectedAmount = toONL(onl); // .mul(i + 1);
-
+              const expectedAmount = toONL(
+                calculateContribution(eth, period.price)
+              );
               await contribute(contributor, toWei(eth));
 
               assertTokenAlmostEqual(
@@ -520,26 +392,16 @@ contract('IcoCrowdsale', accounts => {
                 acceptableError
               );
             }
-
-            await waitUntilNextPeriod(periodInterval);
-            networkTimeshift += periodInterval;
-          }
+          );
         });
 
-        it(`should emit ContributionAccepted event in all periods`, async () => {
-          const periods = await setup();
-          const waitUntilNextPeriod = tempo(web3).wait;
-
-          for (const period of periods) {
-            const conversions = [
-              { eth: 0.1, onl: calculateContribution(0.1, period.price) },
-              { eth: 0.5, onl: calculateContribution(0.5, period.price) },
-              { eth: 1, onl: calculateContribution(1, period.price) }
-            ];
-
-            for (const { eth, onl } of conversions) {
+        it(`should emit ContributionAccepted in all periods`, async () => {
+          await testContributeForAllPeriod(
+            async (period: ScheduleOptions, eth: Web3.AnyNumber) => {
               const value = toWei(eth);
-              const expectedAmount = toONL(onl);
+              const expectedAmount = toONL(
+                calculateContribution(eth, period.price)
+              );
 
               const tx = await contribute(contributor, value);
 
@@ -556,10 +418,7 @@ contract('IcoCrowdsale', accounts => {
                 acceptableError
               );
             }
-
-            await waitUntilNextPeriod(periodInterval);
-            networkTimeshift += periodInterval;
-          }
+          );
         });
       });
     }
@@ -589,13 +448,6 @@ contract('IcoCrowdsale', accounts => {
       const id = '0x414243' + '0'.repeat(58);
       const amount = toONL(100);
 
-      interface ContributionOptions {
-        id: string;
-        contributor: Address;
-        amount: AnyNumber;
-        from: Address;
-      }
-
       async function registerContribution(
         options?: Partial<ContributionOptions>
       ) {
@@ -616,9 +468,12 @@ contract('IcoCrowdsale', accounts => {
       });
 
       it('should revert when sale is not active', async () => {
-        const start = getUnixNow() + 1 * dayInSeconds;
-        const end = start + 7 * dayInSeconds;
-        await schedule(crowdsale, { periods: createPeriods({ start }), end });
+        const start = getUnixNow() + 1 * DAY_IN_SECONDS;
+        const end = start + 7 * DAY_IN_SECONDS;
+        await schedule(crowdsale, {
+          end,
+          periods: createPeriodsOrDefault({ start })
+        });
 
         assert.isFalse(await crowdsale.isActive());
 
@@ -630,8 +485,11 @@ contract('IcoCrowdsale', accounts => {
       context('Given sale is active', () => {
         beforeEach(async () => {
           const start = getUnixNow() - 3600;
-          const end = start + 7 * dayInSeconds;
-          await schedule(crowdsale, { periods: createPeriods({ start }), end });
+          const end = start + 7 * DAY_IN_SECONDS;
+          await schedule(crowdsale, {
+            end,
+            periods: createPeriodsOrDefault({ start })
+          });
 
           assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
           assert.isTrue(await crowdsale.isActive());
@@ -708,4 +566,107 @@ contract('IcoCrowdsale', accounts => {
   after(async () => {
     await sendRpc('evm_revert', [snapshotId]);
   });
+
+  function createPeriodsOrDefault(options?: any) {
+    const start = new BigNumber(propOr(
+      getUnixNow(),
+      'start',
+      options
+    ) as Web3.AnyNumber);
+    const price = new BigNumber(propOr(
+      defaultPrice,
+      'price',
+      options
+    ) as Web3.AnyNumber);
+    const periodsCount = propOr(defaultPeriodsCount, 'count', options);
+    const periodInterval = new BigNumber(propOr(
+      DAY_IN_SECONDS,
+      'interval',
+      options
+    ) as Web3.AnyNumber);
+
+    const periods = [];
+    for (let i = 0; i < periodsCount; i++) {
+      periods.push({
+        from: propOr(owner, 'owner', options),
+        price: price.add(toWei(0.0001).mul(i)),
+        start: start.add(periodInterval.mul(i))
+      } as ScheduleOptions);
+    }
+
+    return periods;
+  }
+
+  function createEnd(start: Web3.AnyNumber) {
+    return new BigNumber(start).add(7 * DAY_IN_SECONDS);
+  }
+
+  async function createCrowdsale(options?: Partial<CrowdsaleOptions>) {
+    return await IcoCrowdsaleContract.new(
+      propOr(wallet, 'wallet', options),
+      propOr(token.address, 'token', options),
+      propOr(availableAmount, 'availableAmount', options),
+      propOr(minValue, 'minValue', options),
+      { from: propOr(owner, 'from', options) }
+    );
+  }
+
+  async function schedulePricePeriod(
+    crowdsale: IcoCrowdsale,
+    options?: Partial<ScheduleOptions>
+  ) {
+    return await crowdsale.schedulePricePeriod(
+      propOr(getUnixNow(), 'start', options),
+      propOr(defaultPrice, 'price', options),
+      { from: propOr(owner, 'from', options) }
+    );
+  }
+
+  async function schedule(
+    crowdsale: IcoCrowdsale,
+    options?: Partial<ScheduleAllOptions>
+  ) {
+    const periods: ScheduleOptions[] = propOr(
+      createPeriodsOrDefault(getUnixNow()),
+      'periods',
+      options
+    );
+    await periods.forEach(async period => {
+      await schedulePricePeriod(crowdsale, period);
+    });
+    await crowdsale.scheduleCrowdsaleEnd(
+      propOr(createEnd(periods[0].start), 'end', options),
+      { from: owner }
+    );
+  }
+
+  function getUnixNow() {
+    return Math.round(new Date().getTime() / 1000) + networkTimeshift;
+  }
 });
+
+interface ScheduleOptions {
+  start: Web3.AnyNumber;
+  price: Web3.AnyNumber;
+  from: Address;
+}
+
+interface CrowdsaleOptions {
+  wallet: Address;
+  token: Address;
+  availableAmount?: Web3.AnyNumber;
+  minValue: Web3.AnyNumber;
+  from: Address;
+}
+
+interface ContributionOptions {
+  id: string;
+  contributor: Address;
+  amount: AnyNumber;
+  from: Address;
+}
+
+interface ScheduleAllOptions {
+  periods: ScheduleOptions[];
+  end: Web3.AnyNumber;
+}

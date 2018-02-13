@@ -11,6 +11,8 @@ declare const web3: Web3;
 
 export const ZERO_ADDRESS = '0x' + '0'.repeat(40);
 
+export const DAY_IN_SECONDS = 24 * 3600;
+
 export async function assertReverts(func: () => void) {
   try {
     await func();
@@ -123,10 +125,10 @@ export function sendRpc(method: any, params?: any) {
   return new Promise(resolve => {
     web3.currentProvider.sendAsync(
       {
+        id: new Date().getTime(),
         jsonrpc: '2.0',
-        method: method,
-        params: params || [],
-        id: new Date().getTime()
+        method,
+        params: params || []
       },
       (err, res) => {
         resolve(res);
