@@ -8,16 +8,18 @@ import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
 /**
  * @title Mintable token interface
  * @author Wojciech Harzowski (https://github.com/harzo)
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
-contract Mintable is ERC20Basic {
+contract MintableToken is ERC20Basic {
     function mint(address to, uint256 amount) public;
 }
 
 
 /**
- * @title Token pools register
+ * @title Token pools registry
  * @dev Allows to register multiple pools of token with lockup period
  * @author Wojciech Harzowski (https://github.com/harzo)
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract TokenPool is Ownable {
 
@@ -27,147 +29,136 @@ contract TokenPool is Ownable {
      * @dev Represents registered pool
      */
     struct Pool {
-        uint256 amount;
+        uint256 availableAmount;
         uint256 lockTimestamp;
     }
 
     /**
      * @dev Address of mintable token instance
      */
-    Mintable public token;
+    MintableToken public token;
 
     /**
-     * @dev Indicates available token amount for each pool
+     * @dev Indicates available token amounts for each pool
      */
-    mapping (string => Pool) private poolRegister;
+    mapping (string => Pool) private pools;
 
     modifier onlyNotZero(uint256 amount) {
         require(amount != 0);
         _;
     }
 
-    modifier onlySufficientAmount(string pool, uint256 amount) {
-        require(amount <= poolRegister[pool].amount);
+    modifier onlySufficientAmount(string id, uint256 amount) {
+        require(amount <= pools[id].availableAmount);
         _;
     }
 
-    modifier onlyUnlockedPool(string pool) {
+    modifier onlyUnlockedPool(string id) {
         /* solhint-disable not-rely-on-time */
-        require(now > poolRegister[pool].lockTimestamp);
+        require(block.timestamp > pools[id].lockTimestamp);
         /* solhint-enable not-rely-on-time */
         _;
     }
 
-    modifier onlyUniquePool(string pool) {
-        require(poolRegister[pool].amount == 0);
+    modifier onlyUniquePool(string id) {
+        require(pools[id].availableAmount == 0);
         _;
     }
 
     modifier onlyValid(address _address) {
-        require(_address != 0);
+        require(_address != address(0));
         _;
     }
 
-    function TokenPool(Mintable _token) public {
+    function TokenPool(MintableToken _token)
+        public
+        onlyValid(_token)
+    {
         token = _token;
     }
 
     /**
-     * @dev Registered pool locked until the timestamp
-     * @param pool bytes32 The pool name
-     * @param timestamp uint256 Lock's expiration timestamp
-     */
-    event PoolLocked(string pool, uint256 timestamp);
-
-    /**
      * @dev New pool registered
-     * @param pool bytes32 A unique pool name
+     * @param id string The unique pool id
      * @param amount uint256 The amount of available tokens
      */
-    event PoolRegistered(string pool, uint256 amount);
+    event PoolRegistered(string id, uint256 amount);
 
     /**
-     * @dev Requested amount transferred
-     * @param pool bytes32 The pool name
-     * @param amount uint256 The amount of transferred tokens
+     * @dev Pool locked until the specified timestamp
+     * @param id string The unique pool id
+     * @param timestamp uint256 The expiration timestamp of the pool or zero
      */
-    event Transferred(address to, string pool, uint256 amount);
+    event PoolLocked(string id, uint256 timestamp);
 
     /**
-     * @dev Register pool with its token availability
-     * @param name string The name of a pool
-     * @param amount uint256 The amount of available tokens
-     * @param lockTimestamp uint256 Optional lock timestamp in milliseconds
+     * @dev Register a new pool and mint its tokens
+     * @param id string The id of the pool
+     * @param availableAmount uint256 The amount of available tokens
+     * @param lockTimestamp uint256 The optional lock timestamp as Unix Epoch (seconds from 1970),
+     *                              leave zero if not applicable
      */
-    function registerPool(string name, uint256 amount, uint256 lockTimestamp)
+    function registerPool(string id, uint256 availableAmount, uint256 lockTimestamp)
         public
         onlyOwner
-        onlyNotZero(amount)
-        onlyUniquePool(name)
+        onlyNotZero(availableAmount)
+        onlyUniquePool(id)
     {
-        poolRegister[name] = Pool(amount, 0);
-        token.mint(this, amount);
-        PoolRegistered(name, amount);
+        pools[id] = Pool({
+            availableAmount: availableAmount,
+            lockTimestamp: lockTimestamp
+        });
+
+        token.mint(this, availableAmount);
+
+        PoolRegistered(id, availableAmount);
 
         if (lockTimestamp > 0) {
-            lockPool(name, lockTimestamp);
+            PoolLocked(id, lockTimestamp);
         }
     }
 
     /**
      * @dev Transfer given amount of tokens to specified address
      * @param to address The address to transfer to
-     * @param pool string The name of pool
+     * @param id string The id of the pool
      * @param amount uint256 The amount of tokens to transfer
      */
-    function transfer(address to, string pool, uint256 amount)
+    function transfer(string id, address to, uint256 amount)
         public
         onlyOwner
         onlyValid(to)
         onlyNotZero(amount)
-        onlySufficientAmount(pool, amount)
-        onlyUnlockedPool(pool)
+        onlySufficientAmount(id, amount)
+        onlyUnlockedPool(id)
     {
-        poolRegister[pool].amount = poolRegister[pool].amount.sub(amount);
+        pools[id].availableAmount = pools[id].availableAmount.sub(amount);
         require(token.transfer(to, amount));
-        Transferred(to, pool, amount);
     }
 
     /**
-     * @dev Get available amount of pool's tokens
-     * @param pool string The name of pool
-     * @return Available amount of tokens
+     * @dev Get available amount of tokens in the specified pool
+     * @param id string The id of the pool
+     * @return The available amount of tokens in the specified pool
      */
-    function getAvailableAmount(string pool)
+    function getAvailableAmount(string id)
         public
         view
         returns (uint256)
     {
-        return poolRegister[pool].amount;
+        return pools[id].availableAmount;
     }
 
     /**
-     * @dev Get pool's lock timestamp
-     * @param pool string The name of pool
-     * @return Pool's lock expiration timestamp
+     * @dev Get lock timestamp of the pool or zero
+     * @param id string The id of the pool
+     * @return The lock expiration timestamp of the pool or zero if not specified
      */
-    function getLockTimestamp(string pool)
+    function getLockTimestamp(string id)
         public
         view
         returns (uint256)
     {
-        return poolRegister[pool].lockTimestamp;
-    }
-
-    /**
-     * @dev Sets pool's lock timestamp
-     * @param name string The name of a pool
-     * @param lockTimestamp uint256 Lock timestamp in milliseconds
-     */
-    function lockPool(string name, uint256 lockTimestamp)
-        internal
-    {
-        poolRegister[name].lockTimestamp = lockTimestamp;
-        PoolLocked(name, lockTimestamp);
+        return pools[id].lockTimestamp;
     }
 }
