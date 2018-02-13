@@ -6,6 +6,8 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /**
  * @title Mintable token interface
+ * @author Wojciech Harzowski (https://github.com/harzo)
+ * @author Dominik Króliczek (https://github.com/Krolis)
  * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract Mintable {
@@ -25,10 +27,9 @@ contract IcoCrowdsale is Ownable {
     using SafeMath for uint256;
 
     /**
-     * @dev Token price period
+     * @dev Structure representing period of sale
      */
     struct PricePeriod {
-        //todo consider timetamp as 32 bit and price 224 bit uints
         /**
         * @dev Price period start timestamp, inclusive
         */
@@ -64,9 +65,60 @@ contract IcoCrowdsale is Ownable {
      */
     mapping (bytes32 => bool) public isContributionRegistered;
 
+    /**
+     * @dev Stores periods of sale in chronological order
+     */
     PricePeriod[] public pricePeriods;
 
+    /**
+    * @dev Timestamp of sale end
+    */
     uint256 public end;
+
+    modifier onlyValid(address addr) {
+        require(addr != address(0));
+        _;
+    }
+
+    modifier onlySufficientValue(uint256 value) {
+        require(value >= minValue);
+        _;
+    }
+
+    modifier onlySufficientAvailableTokens(uint256 amount) {
+        require(availableAmount >= amount);
+        _;
+    }
+
+    modifier onlyUniqueContribution(bytes32 id) {
+        require(!isContributionRegistered[id]);
+        _;
+    }
+
+    modifier onlyEqual(uint256 a, uint256 b) {
+        require(a == b);
+        _;
+    }
+
+    modifier onlyActive() {
+        require(isActive());
+        _;
+    }
+
+    modifier onlyScheduledPeriods() {
+        require(pricePeriods.length > 0);
+        _;
+    }
+
+    modifier onlyNotZero(uint256 a) {
+        require(a != 0);
+        _;
+    }
+
+    modifier onlyNotScheduledCrowdsaleEnd() {
+        require(!isCrowdsaleEndScheduled());
+        _;
+    }
 
     function IcoCrowdsale(
         address _wallet,
@@ -102,59 +154,17 @@ contract IcoCrowdsale is Ownable {
     event ContributionRegistered(bytes32 indexed id, address indexed contributor, uint256 amount);
 
     /**
-     * @dev Contract scheduled within given timestamps
-     * @param start uint256 Timestamp when contract activating
-     * @param price uint256 Price
+     * @dev Sale period start scheduled with given price
+     * @param start uint256 Timestamp when period activating
+     * @param price uint256 The price active during period
      */
     event PeriodScheduled(uint256 start, uint256 price);
 
+    /**
+     * @dev Sale end scheduled
+     * @param end uint256 Timestamp when sale ends
+     */
     event CrowdsaleEndScheduled(uint256 end);
-
-    modifier onlyValid(address addr) {
-        require(addr != address(0));
-        _;
-    }
-
-    modifier onlySufficientValue(uint256 value) {
-        require(value >= minValue);
-        _;
-    }
-
-    modifier onlySufficientAvailableTokens(uint256 amount) {
-        require(availableAmount >= amount);
-        _;
-    }
-
-    modifier onlyUniqueContribution(bytes32 id) {
-        require(!isContributionRegistered[id]);
-        _;
-    }
-
-    modifier onlyEqual(uint256 a, uint256 b) {
-        require(a == b);
-        _;
-    }
-
-    modifier onlyActive() {
-        require(isActive());
-        _;
-    }
-
-    modifier onlyScheduledPeriods() {
-        require(pricePeriods.length > 0);
-        require(pricePeriods.length > 0);
-        _;
-    }
-
-    modifier onlyNotZero(uint256 a) {
-        require(a != 0);
-        _;
-    }
-
-    modifier onlyNotScheduledCrowdsaleEnd() {
-        require(!isCrowdsaleEndScheduled());
-        _;
-    }
 
     /**
      * @dev Accept ETH transfers as contributions
@@ -241,6 +251,10 @@ contract IcoCrowdsale is Ownable {
         return value.mul(10 ** token.decimals()).div(getActualPrice());
     }
 
+    /**
+     * @dev Returns price of active sale period
+     * @return uint256 Active period price
+     */
     function getActualPrice()
         public
         view
@@ -255,7 +269,7 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
-     * @dev Check whether activation is scheduled
+     * @dev Check whether sale end is scheduled
      */
     function isCrowdsaleEndScheduled() public view returns (bool) {
         return end != 0;
@@ -265,12 +279,11 @@ contract IcoCrowdsale is Ownable {
     * @dev Check whether contract is currently active
     */
     function isActive() public view returns (bool) {
-        return now >= pricePeriods[0].start && now <= end;
+        return pricePeriods.length > 0 && now >= pricePeriods[0].start && now <= end;
     }
 
     function acceptContribution(address contributor, uint256 value)
         private
-        onlyScheduledPeriods
         onlyActive
         onlyValid(contributor)
         onlySufficientValue(value)

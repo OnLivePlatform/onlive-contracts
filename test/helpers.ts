@@ -5,7 +5,7 @@ import { assert } from 'chai';
 import { findLast, propEq } from 'ramda';
 import { TransactionLog, TransactionResult } from 'truffle';
 
-import { ETH_DECIMALS, ONL_DECIMALS } from '../utils';
+import { ETH_DECIMALS, ONL_DECIMALS, toWei } from '../utils';
 
 declare const web3: Web3;
 
@@ -107,4 +107,30 @@ export function findLastLog(
   event: string
 ): TransactionLog {
   return findLast(propEq('event', event))(trans.logs);
+}
+
+export function calculateContribution(
+  amount: Web3.AnyNumber,
+  price: Web3.AnyNumber
+) {
+  return toWei(amount)
+    .div(price)
+    .round(10)
+    .toNumber();
+}
+
+export function sendRpc(method: any, params?: any) {
+  return new Promise(resolve => {
+    web3.currentProvider.sendAsync(
+      {
+        jsonrpc: '2.0',
+        method: method,
+        params: params || [],
+        id: new Date().getTime()
+      },
+      (err, res) => {
+        resolve(res);
+      }
+    );
+  });
 }

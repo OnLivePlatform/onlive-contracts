@@ -20,11 +20,13 @@ declare module 'web3' {
       getNetwork(cb: Callback<string>): void;
     };
 
+    public currentProvider: Web3.Provider;
+
     public constructor(provider?: Web3.Provider);
 
     public sha3(str: string, options?: { encoding: 'hex' }): string;
-
     public toDecimal(hex: string): number;
+
     public toHex(num: number): string;
 
     public isChecksumAddress(address: Address): boolean;

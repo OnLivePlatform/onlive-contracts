@@ -13,8 +13,6 @@ import {
   OnLiveArtifacts,
   OnLiveToken,
   PeriodScheduledEvent,
-  PreIcoCrowdsale,
-  ScheduledEvent
 } from 'onlive';
 import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
 
@@ -26,9 +24,13 @@ import {
   assertReverts,
   assertTokenAlmostEqual,
   assertTokenEqual,
+  calculateContribution,
   findLastLog,
+  sendRpc,
   ZERO_ADDRESS
 } from './helpers';
+
+import { AnyNumber } from 'web3';
 
 declare const web3: Web3;
 declare const artifacts: OnLiveArtifacts;
@@ -44,30 +46,55 @@ contract('IcoCrowdsale', accounts => {
   const nonOwner = accounts[8];
   const contributor = accounts[7];
   const wallet = accounts[6];
+
   const dayInSeconds = 24 * 3600;
-  const createPeriods = (start: Web3.AnyNumber) => {
-    return [
-      {
-        from: owner,
-        price: toWei(0.0011466),
-        start
-      },
-      {
-        from: owner,
-        price: toWei(0.0011466),
-        start: new BigNumber(start).add(2 * dayInSeconds)
-      }
-    ];
+  const defaultPeriodsCount = 3;
+  const defaultPrice = toWei(0.0011466);
+
+  let networkTimeshift = 0;
+
+  interface ScheduleOptions {
+    start: Web3.AnyNumber;
+    price: Web3.AnyNumber;
+    from: Address;
+  }
+
+  const createPeriods = (options?: any) => {
+    const start = new BigNumber(propOr(
+      getUnixNow(),
+      'start',
+      options
+    ) as Web3.AnyNumber);
+    const price = new BigNumber(propOr(
+      defaultPrice,
+      'price',
+      options
+    ) as Web3.AnyNumber);
+    const periodsCount = propOr(defaultPeriodsCount, 'count', options);
+    const periodInterval = new BigNumber(propOr(
+      dayInSeconds,
+      'interval',
+      options
+    ) as Web3.AnyNumber);
+
+    const periods = [];
+    for (let i = 0; i < periodsCount; i++) {
+      periods.push({
+        from: propOr(owner, 'owner', options),
+        price: price.add(toWei(0.0001).mul(i)),
+        start: start.add(periodInterval.mul(i))
+      } as ScheduleOptions);
+    }
+
+    return periods;
   };
   const createEnd = (start: Web3.AnyNumber) => {
     return new BigNumber(start).add(7 * dayInSeconds);
   };
 
-  const availableAmount = toONL(1000);
+  const availableAmount = toONL(10000);
 
   const minValue = toWei(0.1);
-
-  const price = toWei(0.0011466);
 
   let token: OnLiveToken;
 
@@ -89,19 +116,13 @@ contract('IcoCrowdsale', accounts => {
     );
   }
 
-  interface ScheduleOptions {
-    start: Web3.AnyNumber;
-    price: Web3.AnyNumber;
-    from: Address;
-  }
-
   async function schedulePricePeriod(
     crowdsale: IcoCrowdsale,
     options?: Partial<ScheduleOptions>
   ) {
     return await crowdsale.schedulePricePeriod(
       propOr(getUnixNow(), 'start', options),
-      propOr(price, 'price', options),
+      propOr(defaultPrice, 'price', options),
       { from: propOr(owner, 'from', options) }
     );
   }
@@ -130,13 +151,25 @@ contract('IcoCrowdsale', accounts => {
   }
 
   function getUnixNow() {
-    return Math.round(new Date().getTime() / 1000);
+    return Math.round(new Date().getTime() / 1000) + networkTimeshift;
   }
 
+  let snapshotId: any;
+
+  before(async () => {
+    const response = await sendRpc('evm_snapshot');
+    snapshotId = (response as any).result;
+  });
+
   beforeEach(async () => {
-    token = await OnLiveTokenContract.new('OnLive Token', 'ONL', toONL(1000), {
-      from: owner
-    });
+    token = await OnLiveTokenContract.new(
+      'OnLive Token',
+      'ONL',
+      availableAmount,
+      {
+        from: owner
+      }
+    );
 
     assertNumberEqual(await token.decimals(), ETH_DECIMALS);
   });
@@ -183,6 +216,7 @@ contract('IcoCrowdsale', accounts => {
 
   describe('#schedulePricePeriod', () => {
     let crowdsale: IcoCrowdsale;
+    let periods: ScheduleOptions[];
 
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
@@ -199,24 +233,22 @@ contract('IcoCrowdsale', accounts => {
       const event = log.args as PeriodScheduledEvent;
       assert.isOk(event);
       assertNumberEqual(event.start, start);
-      assertNumberEqual(event.price, price);
+      assertNumberEqual(event.price, defaultPrice);
     });
 
     for (let i = 0; i < 5; i++) {
       it(`should store ${i + 1} period(s)`, async () => {
         const start = getUnixNow();
-        for (let j = 0; j <= i; j++) {
-          await schedulePricePeriod(crowdsale, {
-            start: start + dayInSeconds * j
-          });
-        }
+        periods = createPeriods({ count: i, start });
 
-        for (let j = 0; j <= i; j++) {
-          assertNumberEqual(
-            (await crowdsale.pricePeriods(j))[0],
-            start + dayInSeconds * j
-          );
-          assertNumberEqual((await crowdsale.pricePeriods(j))[1], price);
+        await periods.forEach(async period => {
+          await schedulePricePeriod(crowdsale, period as ScheduleOptions);
+        });
+
+        for (let p = 0; p < periods.length; p++) {
+          const period = await crowdsale.pricePeriods(p);
+          assertNumberEqual(period[0], periods[p].start);
+          assertNumberEqual(period[1], periods[p].price);
         }
       });
     }
@@ -319,8 +351,6 @@ contract('IcoCrowdsale', accounts => {
   });
 
   context('Given deployed token contract', () => {
-    const saleDuration = 1000;
-
     let crowdsale: IcoCrowdsale;
 
     beforeEach(async () => {
@@ -334,7 +364,7 @@ contract('IcoCrowdsale', accounts => {
     ) => Promise<TransactionResult>;
 
     function testContribute(contribute: ContributionFunction) {
-      it('should revert when crowdsale end is not scheduled', async () => {
+      it('should revert when sale end is not scheduled', async () => {
         assert.isFalse(await crowdsale.isCrowdsaleEndScheduled());
 
         await assertReverts(async () => {
@@ -345,13 +375,191 @@ contract('IcoCrowdsale', accounts => {
       it('should revert when sale is not active', async () => {
         const start = getUnixNow() + 1 * dayInSeconds;
         const end = start + 7 * dayInSeconds;
-        await schedule(crowdsale, { periods: createPeriods(start), end });
+        await schedule(crowdsale, { periods: createPeriods({ start }), end });
 
         assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
         assert.isFalse(await crowdsale.isActive());
 
         await assertReverts(async () => {
           await contribute(contributor, minValue);
+        });
+      });
+
+      context('Given sale is active', () => {
+        let periods: ScheduleOptions[] = [];
+
+        beforeEach(async () => {
+          const start = getUnixNow() - 3600;
+          const end = start + 7 * dayInSeconds;
+          const periodsCount = 3;
+          periods = createPeriods({ start, count: periodsCount });
+          await schedule(crowdsale, { periods, end });
+
+          assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+          assert.isTrue(await crowdsale.isActive());
+        });
+
+        it('should forward funds to wallet', async () => {
+          const prevBalance = await utils.getBalance(wallet);
+          await contribute(contributor, minValue);
+          assertEtherEqual(
+            await utils.getBalance(wallet),
+            prevBalance.add(minValue)
+          );
+        });
+
+        const acceptableError = toONL(shiftNumber(1, -9));
+
+        const conversions = [
+          { eth: 0.1, onl: 87.2143729287 },
+          { eth: 0.5, onl: 436.071864643 },
+          { eth: 1, onl: 872.143729287 }
+        ];
+
+        for (const { eth, onl } of conversions) {
+          it(`should assign ${onl} ONL`, async () => {
+            const prevBalance = await token.balanceOf(contributor);
+            const expectedAmount = toONL(onl); // .mul(i + 1);
+
+            await contribute(contributor, toWei(eth));
+
+            assertTokenAlmostEqual(
+              await token.balanceOf(contributor),
+              prevBalance.add(expectedAmount),
+              acceptableError
+            );
+          });
+
+          it(`should emit ContributionAccepted event`, async () => {
+            const value = toWei(eth);
+            const expectedAmount = toONL(onl);
+
+            const tx = await contribute(contributor, value);
+
+            const log = findLastLog(tx, 'ContributionAccepted');
+            assert.isOk(log);
+
+            const event = log.args as ContributionAcceptedEvent;
+            assert.isOk(event);
+            assert.equal(event.contributor, contributor);
+            assertEtherEqual(event.value, value);
+            assertTokenAlmostEqual(
+              event.amount,
+              expectedAmount,
+              acceptableError
+            );
+          });
+        }
+
+        it('should revert when value is zero', async () => {
+          await assertReverts(async () => {
+            await contribute(contributor, toWei(0));
+          });
+        });
+
+        it('should revert when value is below threshold', async () => {
+          await assertReverts(async () => {
+            await contribute(contributor, minValue.sub(1));
+          });
+        });
+
+        it('should revert when there is not enough tokens', async () => {
+          const bigValue = toWei(20);
+          const expectedAmount = await crowdsale.calculateContribution(
+            bigValue
+          );
+          assert.isTrue(expectedAmount.gt(availableAmount));
+
+          await assertReverts(async () => {
+            await contribute(contributor, bigValue);
+          });
+        });
+      });
+
+      context('Periods changes', async () => {
+        const periodInterval = dayInSeconds;
+
+        async function setup() {
+          const start = getUnixNow() - 3600;
+          const end = start + 7 * dayInSeconds;
+          const periodsCount = 3;
+          const periods = createPeriods({
+            count: periodsCount,
+            interval: periodInterval,
+            start
+          });
+          await schedule(crowdsale, { periods, end });
+
+          assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+          assert.isTrue(await crowdsale.isActive());
+          return periods;
+        }
+
+        const acceptableError = toONL(shiftNumber(1, -9));
+
+        it('should assign ONL to contributor in all periods', async () => {
+          const periods = await setup();
+          const waitUntilNextPeriod = tempo(web3).wait;
+
+          for (const period of periods) {
+            const conversions = [
+              { eth: 0.1, onl: calculateContribution(0.1, period.price) },
+              { eth: 0.5, onl: calculateContribution(0.5, period.price) },
+              { eth: 1, onl: calculateContribution(1, period.price) }
+            ];
+
+            for (const { eth, onl } of conversions) {
+              const prevBalance = await token.balanceOf(contributor);
+              const expectedAmount = toONL(onl); // .mul(i + 1);
+
+              await contribute(contributor, toWei(eth));
+
+              assertTokenAlmostEqual(
+                await token.balanceOf(contributor),
+                prevBalance.add(expectedAmount),
+                acceptableError
+              );
+            }
+
+            await waitUntilNextPeriod(periodInterval);
+            networkTimeshift += periodInterval;
+          }
+        });
+
+        it(`should emit ContributionAccepted event in all periods`, async () => {
+          const periods = await setup();
+          const waitUntilNextPeriod = tempo(web3).wait;
+
+          for (const period of periods) {
+            const conversions = [
+              { eth: 0.1, onl: calculateContribution(0.1, period.price) },
+              { eth: 0.5, onl: calculateContribution(0.5, period.price) },
+              { eth: 1, onl: calculateContribution(1, period.price) }
+            ];
+
+            for (const { eth, onl } of conversions) {
+              const value = toWei(eth);
+              const expectedAmount = toONL(onl);
+
+              const tx = await contribute(contributor, value);
+
+              const log = findLastLog(tx, 'ContributionAccepted');
+              assert.isOk(log);
+
+              const event = log.args as ContributionAcceptedEvent;
+              assert.isOk(event);
+              assert.equal(event.contributor, contributor);
+              assertEtherEqual(event.value, value);
+              assertTokenAlmostEqual(
+                event.amount,
+                expectedAmount,
+                acceptableError
+              );
+            }
+
+            await waitUntilNextPeriod(periodInterval);
+            networkTimeshift += periodInterval;
+          }
         });
       });
     }
@@ -376,5 +584,128 @@ contract('IcoCrowdsale', accounts => {
         });
       });
     });
+
+    describe('#registerContribution', () => {
+      const id = '0x414243' + '0'.repeat(58);
+      const amount = toONL(100);
+
+      interface ContributionOptions {
+        id: string;
+        contributor: Address;
+        amount: AnyNumber;
+        from: Address;
+      }
+
+      async function registerContribution(
+        options?: Partial<ContributionOptions>
+      ) {
+        return await crowdsale.registerContribution(
+          propOr(id, 'id', options),
+          propOr(contributor, 'contributor', options),
+          propOr(amount, 'amount', options),
+          { from: propOr(owner, 'from', options) }
+        );
+      }
+
+      it('should revert when sale is not scheduled', async () => {
+        assert.isFalse(await crowdsale.isCrowdsaleEndScheduled());
+
+        await assertReverts(async () => {
+          await registerContribution();
+        });
+      });
+
+      it('should revert when sale is not active', async () => {
+        const start = getUnixNow() + 1 * dayInSeconds;
+        const end = start + 7 * dayInSeconds;
+        await schedule(crowdsale, { periods: createPeriods({ start }), end });
+
+        assert.isFalse(await crowdsale.isActive());
+
+        await assertReverts(async () => {
+          await registerContribution();
+        });
+      });
+
+      context('Given sale is active', () => {
+        beforeEach(async () => {
+          const start = getUnixNow() - 3600;
+          const end = start + 7 * dayInSeconds;
+          await schedule(crowdsale, { periods: createPeriods({ start }), end });
+
+          assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+          assert.isTrue(await crowdsale.isActive());
+        });
+
+        it('should reduce amount of available tokens', async () => {
+          const expectedAmount = availableAmount.sub(amount);
+          await registerContribution();
+          assertTokenEqual(await crowdsale.availableAmount(), expectedAmount);
+        });
+
+        it('should mint tokens for contributor', async () => {
+          const balance = await token.balanceOf(contributor);
+          const expectedBalance = balance.add(amount);
+          await registerContribution();
+          assertTokenEqual(await token.balanceOf(contributor), expectedBalance);
+        });
+
+        it('should mark id as registered', async () => {
+          assert.isFalse(await crowdsale.isContributionRegistered(id));
+          await registerContribution();
+          assert.isTrue(await crowdsale.isContributionRegistered(id));
+        });
+
+        it('should emit ContributionRegistered event', async () => {
+          const tx = await registerContribution();
+
+          const log = findLastLog(tx, 'ContributionRegistered');
+          assert.isOk(log);
+
+          const event = log.args as ContributionRegisteredEvent;
+          assert.isOk(event);
+          assert.equal(event.id, id);
+          assert.equal(event.contributor, contributor);
+          assertTokenEqual(event.amount, amount);
+        });
+
+        it('should revert when called by non-owner', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ from: nonOwner });
+          });
+        });
+
+        it('should revert when contributor address is zero', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ contributor: ZERO_ADDRESS });
+          });
+        });
+
+        it('should revert when amount is zero', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ amount: 0 });
+          });
+        });
+
+        it('should revert when amount exceeds availability', async () => {
+          await assertReverts(async () => {
+            await registerContribution({ amount: availableAmount.add(1) });
+          });
+        });
+
+        it('should revert when id is duplicated', async () => {
+          const duplicatedId = '0x123';
+          await registerContribution({ id: duplicatedId });
+
+          await assertReverts(async () => {
+            await registerContribution({ id: duplicatedId });
+          });
+        });
+      });
+    });
+  });
+
+  after(async () => {
+    await sendRpc('evm_revert', [snapshotId]);
   });
 });
