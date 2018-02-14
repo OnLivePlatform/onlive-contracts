@@ -86,8 +86,6 @@ contract('TokenPool', accounts => {
     beforeEach(async () => {
       tokenPool = await createTokenPool();
       await token.approveMintingManager(tokenPool.address, { from: owner });
-
-      // TODO: remove
       await token.approveTransferManager(tokenPool.address, { from: owner });
     });
 
