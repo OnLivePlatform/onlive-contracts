@@ -8,7 +8,7 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
  * @title Mintable token interface
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
- * @author Dominik Króliczek (https://github.com/Krolis)
+ * @author Dominik Kroliczek (https://github.com/krolis)
  */
 contract Mintable {
     uint256 public decimals;
@@ -21,7 +21,7 @@ contract Mintable {
  * @title ICO Crowdsale with price depending on timestamp and limited supply
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
- * @author Dominik Króliczek (https://github.com/krolis)
+ * @author Dominik Kroliczek (https://github.com/krolis)
  */
 contract IcoCrowdsale is Ownable {
 
@@ -157,7 +157,7 @@ contract IcoCrowdsale is Ownable {
     /**
      * @dev Sale stage scheduled with given start and price
      * @param start uint256 Timestamp when stage activating, inclusive
-     * @param price uint256 The price active during period
+     * @param price uint256 The price active during stage
      */
     event StageScheduled(uint256 start, uint256 price);
 
@@ -177,7 +177,7 @@ contract IcoCrowdsale is Ownable {
     /**
      * @dev Schedule crowdsale stage
      * @param _start uint256 Timestamp when stage activating, inclusive
-     * @param _price uint256 The price active during period
+     * @param _price uint256 The price active during stage
      */
     function scheduleStage(uint256 _start, uint _price)
         public
@@ -257,7 +257,7 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
-     * @dev Returns price of active sale period
+     * @dev Returns price of active stage
      * @return uint256 Current price if active, otherwise 0
      */
     function getActualPrice()
