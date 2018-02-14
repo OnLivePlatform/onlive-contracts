@@ -280,50 +280,6 @@ declare module 'onlive' {
       amount: BigNumber;
     }
 
-    interface MigrationsContract extends Contract<Migrations> {
-      'new'(options?: TransactionOptions): Promise<Migrations>;
-    }
-
-    interface ReleasableTokenContract extends Contract<ReleasableToken> {
-      'new'(options?: TransactionOptions): Promise<ReleasableToken>;
-    }
-
-    interface MintableTokenContract extends Contract<MintableToken> {
-      'new'(options?: TransactionOptions): Promise<MintableToken>;
-    }
-
-    interface CappedMintableTokenContract
-      extends Contract<CappedMintableToken> {
-      'new'(
-        maxSupply: AnyNumber,
-        options?: TransactionOptions
-      ): Promise<CappedMintableToken>;
-    }
-
-    interface BurnableTokenContract extends Contract<BurnableToken> {
-      'new'(options?: TransactionOptions): Promise<BurnableToken>;
-    }
-
-    interface OnLiveTokenContract extends Contract<OnLiveToken> {
-      'new'(
-        name: string,
-        symbol: string,
-        maxSupply: AnyNumber,
-        options?: TransactionOptions
-      ): Promise<OnLiveToken>;
-    }
-
-    interface PreIcoCrowdsaleContract extends Contract<PreIcoCrowdsale> {
-      'new'(
-        wallet: Address,
-        token: Address,
-        availableAmount: AnyNumber,
-        price: AnyNumber,
-        minValue: AnyNumber,
-        options?: TransactionOptions
-      ): Promise<PreIcoCrowdsale>;
-    }
-
     interface IcoCrowdsale extends Ownable {
       wallet(): Promise<string>;
       token(): Promise<string>;
@@ -369,6 +325,50 @@ declare module 'onlive' {
 
     interface CrowdsaleEndScheduledEvent {
       end: BigNumber;
+    }
+
+    interface MigrationsContract extends Contract<Migrations> {
+      'new'(options?: TransactionOptions): Promise<Migrations>;
+    }
+
+    interface ReleasableTokenContract extends Contract<ReleasableToken> {
+      'new'(options?: TransactionOptions): Promise<ReleasableToken>;
+    }
+
+    interface MintableTokenContract extends Contract<MintableToken> {
+      'new'(options?: TransactionOptions): Promise<MintableToken>;
+    }
+
+    interface CappedMintableTokenContract
+      extends Contract<CappedMintableToken> {
+      'new'(
+        maxSupply: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<CappedMintableToken>;
+    }
+
+    interface BurnableTokenContract extends Contract<BurnableToken> {
+      'new'(options?: TransactionOptions): Promise<BurnableToken>;
+    }
+
+    interface OnLiveTokenContract extends Contract<OnLiveToken> {
+      'new'(
+        name: string,
+        symbol: string,
+        maxSupply: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<OnLiveToken>;
+    }
+
+    interface PreIcoCrowdsaleContract extends Contract<PreIcoCrowdsale> {
+      'new'(
+        wallet: Address,
+        token: Address,
+        availableAmount: AnyNumber,
+        price: AnyNumber,
+        minValue: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<PreIcoCrowdsale>;
     }
 
     interface IcoCrowdsaleContract extends Contract<IcoCrowdsale> {
