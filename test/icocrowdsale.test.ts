@@ -12,7 +12,7 @@ import {
   IcoCrowdsale,
   OnLiveArtifacts,
   OnLiveToken,
-  PeriodScheduledEvent
+  StageScheduledEvent
 } from 'onlive';
 import { ETH_DECIMALS, shiftNumber, toONL, toWei, Web3Utils } from '../utils';
 
@@ -48,7 +48,7 @@ contract('IcoCrowdsale', accounts => {
   const contributor = accounts[7];
   const wallet = accounts[6];
 
-  const defaultPeriodsCount = 3;
+  const defaultStagesCount = 3;
   const defaultPrice = toWei(0.0011466);
   const availableAmount = toONL(10000);
   const minValue = toWei(0.1);
@@ -115,67 +115,67 @@ contract('IcoCrowdsale', accounts => {
     });
   });
 
-  describe('#schedulePricePeriod', () => {
+  describe('#scheduleStage', () => {
     let crowdsale: IcoCrowdsale;
-    let periods: ScheduleOptions[];
+    let stages: ScheduleStageOptions[];
 
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
     });
 
-    it('should emit PeriodScheduled event', async () => {
+    it('should emit StageScheduled event', async () => {
       const start = getUnixNow();
 
-      const tx = await schedulePricePeriod(crowdsale, { start });
+      const tx = await scheduleStage(crowdsale, { start });
 
-      const log = findLastLog(tx, 'PeriodScheduled');
+      const log = findLastLog(tx, 'StageScheduled');
       assert.isOk(log);
 
-      const event = log.args as PeriodScheduledEvent;
+      const event = log.args as StageScheduledEvent;
       assert.isOk(event);
       assertNumberEqual(event.start, start);
       assertNumberEqual(event.price, defaultPrice);
     });
 
     for (let i = 0; i < 5; i++) {
-      it(`should store ${i + 1} period(s)`, async () => {
+      it(`should store ${i + 1} stage(s)`, async () => {
         const start = getUnixNow();
-        periods = createPeriodsOrDefault({ count: i, start });
+        stages = createStagesOrDefault({ count: i, start });
 
-        await periods.forEach(async period => {
-          await schedulePricePeriod(crowdsale, period as ScheduleOptions);
+        await stages.forEach(async stage => {
+          await scheduleStage(crowdsale, stage as ScheduleStageOptions);
         });
 
-        for (let p = 0; p < periods.length; p++) {
-          const period = await crowdsale.pricePeriods(p);
-          assertNumberEqual(period[0], periods[p].start);
-          assertNumberEqual(period[1], periods[p].price);
+        for (let p = 0; p < stages.length; p++) {
+          const currentStage = await crowdsale.stages(p);
+          assertNumberEqual(currentStage[0], stages[p].start);
+          assertNumberEqual(currentStage[1], stages[p].price);
         }
       });
     }
 
     it('should revert for not owner', async () => {
       await assertReverts(async () => {
-        await schedulePricePeriod(crowdsale, { from: accounts[1] });
+        await scheduleStage(crowdsale, { from: accounts[1] });
       });
     });
 
     it('should revert for zero start', async () => {
       await assertReverts(async () => {
-        await schedulePricePeriod(crowdsale, { start: 0 });
+        await scheduleStage(crowdsale, { start: 0 });
       });
     });
 
     it('should revert for zero price', async () => {
       await assertReverts(async () => {
-        await schedulePricePeriod(crowdsale, { price: 0 });
+        await scheduleStage(crowdsale, { price: 0 });
       });
     });
 
-    it('should revert for start earlier than last period', async () => {
-      await schedulePricePeriod(crowdsale);
+    it('should revert for start earlier than last stage', async () => {
+      await scheduleStage(crowdsale);
       await assertReverts(async () => {
-        await schedulePricePeriod(crowdsale, {
+        await scheduleStage(crowdsale, {
           start: getUnixNow() - DAY_IN_SECONDS
         });
       });
@@ -184,13 +184,13 @@ contract('IcoCrowdsale', accounts => {
     it('should revert when crowdsale end is scheduled', async () => {
       const start = getUnixNow();
 
-      await schedulePricePeriod(crowdsale, { start });
+      await scheduleStage(crowdsale, { start });
       await crowdsale.scheduleCrowdsaleEnd(start + DAY_IN_SECONDS, {
         from: owner
       });
 
       await assertReverts(async () => {
-        await schedulePricePeriod(crowdsale, {
+        await scheduleStage(crowdsale, {
           start: start + DAY_IN_SECONDS
         });
       });
@@ -206,7 +206,7 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should emit CrowdsaleEndScheduled event', async () => {
-      await schedulePricePeriod(crowdsale);
+      await scheduleStage(crowdsale);
 
       const tx = await crowdsale.scheduleCrowdsaleEnd(end, { from: owner });
 
@@ -219,7 +219,7 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should set crowdale end', async () => {
-      await schedulePricePeriod(crowdsale);
+      await scheduleStage(crowdsale);
 
       await crowdsale.scheduleCrowdsaleEnd(end, { from: owner });
 
@@ -227,7 +227,7 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should revert for not owner', async () => {
-      await schedulePricePeriod(crowdsale);
+      await scheduleStage(crowdsale);
 
       await assertReverts(async () => {
         await crowdsale.scheduleCrowdsaleEnd(end, { from: accounts[1] });
@@ -235,19 +235,60 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should revert for zero end', async () => {
-      await schedulePricePeriod(crowdsale);
+      await scheduleStage(crowdsale);
 
       await assertReverts(async () => {
         await crowdsale.scheduleCrowdsaleEnd(0, { from: owner });
       });
     });
 
-    it('should revert when no periods are scheduled', async () => {
+    it('should revert when no stages are scheduled', async () => {
       await assertReverts(async () => {
         await crowdsale.scheduleCrowdsaleEnd(end, {
           from: owner
         });
       });
+    });
+  });
+
+  describe('#getActualPrice', () => {
+    let crowdsale: IcoCrowdsale;
+
+    beforeEach(async () => {
+      crowdsale = await createCrowdsale();
+    });
+
+    it('should return zero when end not scheduled', async () => {
+      assert.isFalse(await crowdsale.isCrowdsaleEndScheduled());
+      const actualPrice = await crowdsale.getActualPrice();
+
+      assert.equal(actualPrice.toNumber(), 0);
+    });
+
+    it('should return zero when inactive', async () => {
+      const start = getUnixNow() + DAY_IN_SECONDS;
+      const end = start + DAY_IN_SECONDS;
+      await scheduleStage(crowdsale, { start });
+      await crowdsale.scheduleCrowdsaleEnd(end, { from: owner });
+      assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+      assert.isFalse(await crowdsale.isActive());
+
+      const actualPrice = await crowdsale.getActualPrice();
+
+      assert.equal(actualPrice.toNumber(), 0);
+    });
+
+    it('should return correct whe active', async () => {
+      const start = getUnixNow() - DAY_IN_SECONDS;
+      const end = start + DAY_IN_SECONDS;
+      await scheduleStage(crowdsale, { start, price: defaultPrice});
+      await crowdsale.scheduleCrowdsaleEnd(end, { from: owner });
+      assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+      assert.isTrue(await crowdsale.isActive());
+
+      const actualPrice = await crowdsale.getActualPrice();
+
+      assert.equal(actualPrice.toNumber(), defaultPrice.toNumber());
     });
   });
 
@@ -276,8 +317,8 @@ contract('IcoCrowdsale', accounts => {
       it('should revert when sale is not active', async () => {
         const start = getUnixNow() + 1 * DAY_IN_SECONDS;
         const end = start + 7 * DAY_IN_SECONDS;
-        const periods = createPeriodsOrDefault({ start });
-        await schedule(crowdsale, { periods, end });
+        const stages = createStagesOrDefault({ start });
+        await schedule(crowdsale, { stages, end });
 
         assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
         assert.isFalse(await crowdsale.isActive());
@@ -288,14 +329,14 @@ contract('IcoCrowdsale', accounts => {
       });
 
       context('Given sale is active', () => {
-        let periods: ScheduleOptions[];
+        let stages: ScheduleStageOptions[];
 
         beforeEach(async () => {
           const start = getUnixNow() - 3600;
           const end = start + 7 * DAY_IN_SECONDS;
-          const periodsCount = 3;
-          periods = createPeriodsOrDefault({ start, count: periodsCount });
-          await schedule(crowdsale, { periods, end });
+          const stagesCount = 3;
+          stages = createStagesOrDefault({ start, count: stagesCount });
+          await schedule(crowdsale, { stages, end });
 
           assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
           assert.isTrue(await crowdsale.isActive());
@@ -335,54 +376,54 @@ contract('IcoCrowdsale', accounts => {
         });
       });
 
-      context('Periods changes', async () => {
+      context('Stages changes', async () => {
         const acceptableError = toONL(shiftNumber(1, -9));
-        const periodInterval = DAY_IN_SECONDS;
+        const stageInterval = DAY_IN_SECONDS;
 
         async function setup() {
           const start = getUnixNow() - 3600;
           const end = start + 7 * DAY_IN_SECONDS;
-          const periodsCount = 3;
-          const periods = createPeriodsOrDefault({
-            count: periodsCount,
-            interval: periodInterval,
+          const stagesCount = 3;
+          const stages = createStagesOrDefault({
+            count: stagesCount,
+            interval: stageInterval,
             start
           });
-          await schedule(crowdsale, { periods, end });
+          await schedule(crowdsale, { stages, end });
 
           assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
           assert.isTrue(await crowdsale.isActive());
-          return periods;
+          return stages;
         }
 
-        type PeriodContributionFunction = (
-          period: ScheduleOptions,
+        type StageContributionFunction = (
+          stage: ScheduleStageOptions,
           value: Web3.AnyNumber
         ) => Promise<void>;
 
-        async function testContributeForAllPeriod(
-          testFunction: PeriodContributionFunction
+        async function testContributeForAllStages(
+          testFunction: StageContributionFunction
         ) {
-          const periods = await setup();
-          const waitUntilNextPeriod = tempo(web3).wait;
+          const stages = await setup();
+          const waitUntilNextStage = tempo(web3).wait;
 
-          for (const period of periods) {
+          for (const stage of stages) {
             const contributionAmounts = [0.1, 0.5, 1];
             for (const eth of contributionAmounts) {
-              await testFunction(period, eth);
+              await testFunction(stage, eth);
             }
 
-            await waitUntilNextPeriod(periodInterval);
-            networkTimeshift += periodInterval;
+            await waitUntilNextStage(stageInterval);
+            networkTimeshift += stageInterval;
           }
         }
 
-        it('should assign ONL to contributor in all periods', async () => {
-          await testContributeForAllPeriod(
-            async (period: ScheduleOptions, eth: Web3.AnyNumber) => {
+        it('should assign ONL to contributor in all stages', async () => {
+          await testContributeForAllStages(
+            async (stage: ScheduleStageOptions, eth: Web3.AnyNumber) => {
               const prevBalance = await token.balanceOf(contributor);
               const expectedAmount = toONL(
-                calculateContribution(eth, period.price)
+                calculateContribution(eth, stage.price)
               );
               await contribute(contributor, toWei(eth));
 
@@ -395,12 +436,12 @@ contract('IcoCrowdsale', accounts => {
           );
         });
 
-        it(`should emit ContributionAccepted in all periods`, async () => {
-          await testContributeForAllPeriod(
-            async (period: ScheduleOptions, eth: Web3.AnyNumber) => {
+        it(`should emit ContributionAccepted in all stages`, async () => {
+          await testContributeForAllStages(
+            async (stage: ScheduleStageOptions, eth: Web3.AnyNumber) => {
               const value = toWei(eth);
               const expectedAmount = toONL(
-                calculateContribution(eth, period.price)
+                calculateContribution(eth, stage.price)
               );
 
               const tx = await contribute(contributor, value);
@@ -472,7 +513,7 @@ contract('IcoCrowdsale', accounts => {
         const end = start + 7 * DAY_IN_SECONDS;
         await schedule(crowdsale, {
           end,
-          periods: createPeriodsOrDefault({ start })
+          stages: createStagesOrDefault({ start })
         });
 
         assert.isFalse(await crowdsale.isActive());
@@ -488,7 +529,7 @@ contract('IcoCrowdsale', accounts => {
           const end = start + 7 * DAY_IN_SECONDS;
           await schedule(crowdsale, {
             end,
-            periods: createPeriodsOrDefault({ start })
+            stages: createStagesOrDefault({ start })
           });
 
           assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
@@ -567,7 +608,7 @@ contract('IcoCrowdsale', accounts => {
     await sendRpc('evm_revert', [snapshotId]);
   });
 
-  function createPeriodsOrDefault(options?: any) {
+  function createStagesOrDefault(options?: any) {
     const start = new BigNumber(propOr(
       getUnixNow(),
       'start',
@@ -578,23 +619,23 @@ contract('IcoCrowdsale', accounts => {
       'price',
       options
     ) as Web3.AnyNumber);
-    const periodsCount = propOr(defaultPeriodsCount, 'count', options);
-    const periodInterval = new BigNumber(propOr(
+    const stagesCount = propOr(defaultStagesCount, 'count', options);
+    const stageInterval = new BigNumber(propOr(
       DAY_IN_SECONDS,
       'interval',
       options
     ) as Web3.AnyNumber);
 
-    const periods = [];
-    for (let i = 0; i < periodsCount; i++) {
-      periods.push({
+    const stages = [];
+    for (let i = 0; i < stagesCount; i++) {
+      stages.push({
         from: propOr(owner, 'owner', options),
         price: price.add(toWei(0.0001).mul(i)),
-        start: start.add(periodInterval.mul(i))
-      } as ScheduleOptions);
+        start: start.add(stageInterval.mul(i))
+      } as ScheduleStageOptions);
     }
 
-    return periods;
+    return stages;
   }
 
   function createEnd(start: Web3.AnyNumber) {
@@ -611,11 +652,11 @@ contract('IcoCrowdsale', accounts => {
     );
   }
 
-  async function schedulePricePeriod(
+  async function scheduleStage(
     crowdsale: IcoCrowdsale,
-    options?: Partial<ScheduleOptions>
+    options?: Partial<ScheduleStageOptions>
   ) {
-    return await crowdsale.schedulePricePeriod(
+    return await crowdsale.scheduleStage(
       propOr(getUnixNow(), 'start', options),
       propOr(defaultPrice, 'price', options),
       { from: propOr(owner, 'from', options) }
@@ -624,18 +665,18 @@ contract('IcoCrowdsale', accounts => {
 
   async function schedule(
     crowdsale: IcoCrowdsale,
-    options?: Partial<ScheduleAllOptions>
+    options?: Partial<ScheduleEndOptions>
   ) {
-    const periods: ScheduleOptions[] = propOr(
-      createPeriodsOrDefault(getUnixNow()),
-      'periods',
+    const stages: ScheduleStageOptions[] = propOr(
+      createStagesOrDefault(getUnixNow()),
+      'stages',
       options
     );
-    await periods.forEach(async period => {
-      await schedulePricePeriod(crowdsale, period);
+    await stages.forEach(async stage => {
+      await scheduleStage(crowdsale, stage);
     });
     await crowdsale.scheduleCrowdsaleEnd(
-      propOr(createEnd(periods[0].start), 'end', options),
+      propOr(createEnd(stages[0].start), 'end', options),
       { from: owner }
     );
   }
@@ -644,12 +685,6 @@ contract('IcoCrowdsale', accounts => {
     return Math.round(new Date().getTime() / 1000) + networkTimeshift;
   }
 });
-
-interface ScheduleOptions {
-  start: Web3.AnyNumber;
-  price: Web3.AnyNumber;
-  from: Address;
-}
 
 interface CrowdsaleOptions {
   wallet: Address;
@@ -666,7 +701,13 @@ interface ContributionOptions {
   from: Address;
 }
 
-interface ScheduleAllOptions {
-  periods: ScheduleOptions[];
+interface ScheduleEndOptions {
+  stages: ScheduleStageOptions[];
   end: Web3.AnyNumber;
+}
+
+interface ScheduleStageOptions {
+  start: Web3.AnyNumber;
+  price: Web3.AnyNumber;
+  from: Address;
 }

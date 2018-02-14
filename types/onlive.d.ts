@@ -329,7 +329,7 @@ declare module 'onlive' {
       token(): Promise<string>;
       availableAmount(): Promise<BigNumber>;
       minValue(): Promise<BigNumber>;
-      pricePeriods(index: AnyNumber): Promise<BigNumber[]>;
+      stages(index: AnyNumber): Promise<BigNumber[]>;
       end(): Promise<BigNumber>;
       isContributionRegistered(id: string): Promise<boolean>;
       calculateContribution(value: AnyNumber): Promise<BigNumber>;
@@ -350,7 +350,7 @@ declare module 'onlive' {
 
       getActualPrice(): Promise<BigNumber>;
 
-      schedulePricePeriod(
+      scheduleStage(
         start: AnyNumber,
         price: AnyNumber,
         options?: TransactionOptions
@@ -362,7 +362,7 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
     }
 
-    interface PeriodScheduledEvent {
+    interface StageScheduledEvent {
       start: BigNumber;
       price: BigNumber;
     }

@@ -6,9 +6,9 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /**
  * @title Mintable token interface
+ * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
  * @author Dominik Króliczek (https://github.com/Krolis)
- * @author Jakub Stefanski (https://github.com/jstefanski)
  */
 contract Mintable {
     uint256 public decimals;
@@ -20,6 +20,7 @@ contract Mintable {
 /**
  * @title ICO Crowdsale with price depending on timestamp and limited supply
  * @author Jakub Stefanski (https://github.com/jstefanski)
+ * @author Wojciech Harzowski (https://github.com/harzo)
  * @author Dominik Króliczek (https://github.com/krolis)
  */
 contract IcoCrowdsale is Ownable {
@@ -27,11 +28,11 @@ contract IcoCrowdsale is Ownable {
     using SafeMath for uint256;
 
     /**
-     * @dev Structure representing period of sale
+     * @dev Structure representing stage of crowdsale
      */
-    struct PricePeriod {
+    struct Stage {
         /**
-        * @dev Price period start timestamp, inclusive
+        * @dev Start timestamp, inclusive
         */
         uint256 start;
         /**
@@ -66,9 +67,9 @@ contract IcoCrowdsale is Ownable {
     mapping (bytes32 => bool) public isContributionRegistered;
 
     /**
-     * @dev Stores periods of sale in chronological order
+     * @dev Stores stages of sale in chronological order
      */
-    PricePeriod[] public pricePeriods;
+    Stage[] public stages;
 
     /**
     * @dev Timestamp of sale end
@@ -105,8 +106,8 @@ contract IcoCrowdsale is Ownable {
         _;
     }
 
-    modifier onlyScheduledPeriods() {
-        require(pricePeriods.length > 0);
+    modifier onlyScheduledStages() {
+        require(stages.length > 0);
         _;
     }
 
@@ -154,11 +155,11 @@ contract IcoCrowdsale is Ownable {
     event ContributionRegistered(bytes32 indexed id, address indexed contributor, uint256 amount);
 
     /**
-     * @dev Sale period start scheduled with given price
-     * @param start uint256 Timestamp when period activating
+     * @dev Sale stage scheduled with given start and price
+     * @param start uint256 Timestamp when stage activating, inclusive
      * @param price uint256 The price active during period
      */
-    event PeriodScheduled(uint256 start, uint256 price);
+    event StageScheduled(uint256 start, uint256 price);
 
     /**
      * @dev Sale end scheduled
@@ -174,36 +175,39 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
-     * @dev Schedule contract activation for given timestamp range
+     * @dev Schedule crowdsale stage
+     * @param _start uint256 Timestamp when stage activating, inclusive
+     * @param _price uint256 The price active during period
      */
-    function schedulePricePeriod(uint256 _start, uint _price)
+    function scheduleStage(uint256 _start, uint _price)
         public
         onlyOwner
         onlyNotScheduledCrowdsaleEnd
         onlyNotZero(_start)
         onlyNotZero(_price)
     {
-        if (pricePeriods.length > 0) {
-            require(_start > pricePeriods[pricePeriods.length - 1].start);
+        if (stages.length > 0) {
+            require(_start > stages[stages.length - 1].start);
         }
 
-        pricePeriods.push(
-            PricePeriod({
+        stages.push(
+            Stage({
                 start: _start,
                 price: _price
             })
         );
 
-        PeriodScheduled(_start, _price);
+        StageScheduled(_start, _price);
     }
 
     /**
-     * @dev Schedule contract activation for given timestamp range
+     * @dev Schedule crowdsale end
+     * @param _end uint256 Timestamp end of crowdsale, inclusive
      */
     function scheduleCrowdsaleEnd(uint256 _end)
         public
         onlyOwner
-        onlyScheduledPeriods
+        onlyScheduledStages
         onlyNotZero(_end)
     {
         end = _end;
@@ -213,6 +217,7 @@ contract IcoCrowdsale is Ownable {
     /**
      * @dev Contribute ETH in exchange for tokens
      * @param contributor address The address that receives tokens
+     * @return uint256 Amount of received ONL tokens
      */
     function contribute(address contributor) public payable returns (uint256) {
         return acceptContribution(contributor, msg.value);
@@ -253,23 +258,27 @@ contract IcoCrowdsale is Ownable {
 
     /**
      * @dev Returns price of active sale period
-     * @return uint256 Active period price
+     * @return uint256 Current price if active, otherwise 0
      */
     function getActualPrice()
         public
         view
         returns (uint256)
     {
-        for (uint256 i = pricePeriods.length - 1; i >= 0; i--) {
-            if (now >= pricePeriods[i].start) {
-                return pricePeriods[i].price;
+        if (isActive()) {
+            for (uint256 i = stages.length - 1; i >= 0; i--) {
+                if (now >= stages[i].start) {
+                    return stages[i].price;
+                }
             }
+        } else {
+            return 0;
         }
-        return pricePeriods[0].price;
     }
 
     /**
      * @dev Check whether sale end is scheduled
+     * @return boolean
      */
     function isCrowdsaleEndScheduled() public view returns (bool) {
         return end != 0;
@@ -277,9 +286,10 @@ contract IcoCrowdsale is Ownable {
 
     /**
     * @dev Check whether contract is currently active
+    * @return boolean
     */
     function isActive() public view returns (bool) {
-        return pricePeriods.length > 0 && now >= pricePeriods[0].start && now <= end;
+        return stages.length > 0 && now >= stages[0].start && now <= end;
     }
 
     function acceptContribution(address contributor, uint256 value)
