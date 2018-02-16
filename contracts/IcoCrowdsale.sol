@@ -14,7 +14,8 @@ contract Mintable {
     uint256 public decimals;
 
     function mint(address to, uint256 amount) public;
-    function transfer(address to, uint256 amount) public;
+    function transferFrom(address from, address to, uint256 amount) public;
+    function burn(uint256 amount) public;
 }
 
 
@@ -107,6 +108,11 @@ contract IcoCrowdsale is Ownable {
         _;
     }
 
+    modifier onlyCrowdsaleEnded() {
+        require(now > end);
+        _;
+    }
+
     modifier onlyScheduledStages() {
         require(stages.length > 0);
         _;
@@ -114,6 +120,11 @@ contract IcoCrowdsale is Ownable {
 
     modifier onlyNotZero(uint256 a) {
         require(a != 0);
+        _;
+    }
+
+    modifier onlyScheduledCrowdsaleEnd() {
+        require(isCrowdsaleEndScheduled());
         _;
     }
 
@@ -170,6 +181,8 @@ contract IcoCrowdsale is Ownable {
      */
     event CrowdsaleEndScheduled(uint256 end);
 
+    event LeftTokensBurned();
+
     /**
      * @dev Accept ETH transfers as contributions
      */
@@ -184,7 +197,7 @@ contract IcoCrowdsale is Ownable {
         onlyNotZero(_availableAmount)
     {
         availableAmount = _availableAmount;
-        token.mint(wallet, availableAmount);
+        token.mint(this, availableAmount);
     }
 
     /**
@@ -254,6 +267,20 @@ contract IcoCrowdsale is Ownable {
         mintTokens(contributor, amount);
 
         ContributionRegistered(id, contributor, amount);
+    }
+
+    function burnLeftTokens()
+        public
+        onlyOwner
+        onlyScheduledCrowdsaleEnd
+        onlyCrowdsaleEnded
+        onlyNotZero(availableAmount)
+    {
+        uint256 _availableAmount = availableAmount;
+        delete availableAmount;
+        token.burn(_availableAmount);
+
+        LeftTokensBurned();
     }
 
     /**
@@ -327,6 +354,6 @@ contract IcoCrowdsale is Ownable {
         onlySufficientAvailableTokens(amount)
     {
         availableAmount = availableAmount.sub(amount);
-        token.transfer(to, amount);
+        token.transferFrom(this, to, amount);
     }
 }

@@ -10,6 +10,7 @@ import {
   ContributionRegisteredEvent,
   CrowdsaleEndScheduledEvent,
   IcoCrowdsale,
+  LeftTokensBurnedEvent,
   OnLiveArtifacts,
   OnLiveToken,
   StageScheduledEvent
@@ -313,37 +314,14 @@ contract('IcoCrowdsale', accounts => {
     });
   });
 
-  context('Given deployed token contract', () => {
-    let crowdsale: IcoCrowdsale;
-
-    beforeEach(async () => {
-      crowdsale = await createCrowdsale();
-      await token.approveMintingManager(crowdsale.address, { from: owner });
-    });
-
-    it('should set amount of tokens available', async () => {
-      assertTokenEqual(await crowdsale.availableAmount(), 0);
-      await crowdsale.setAvailableAmount(availableAmount);
-      assertTokenEqual(await crowdsale.availableAmount(), availableAmount);
-    });
-
-    it('should not be able to contrubiute if tokens not minted', async () => {
-      await assertReverts(async () => {
-        await crowdsale.contribute(contributor, {
-          from: contributor,
-          value: minValue
-        });
-      });
-    });
-  });
-
   context('Given deployed token contract and tokens minted', () => {
     let crowdsale: IcoCrowdsale;
 
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
       await token.approveMintingManager(crowdsale.address, { from: owner });
-      await crowdsale.setAvailableAmount(availableAmount);
+      await token.approveTransferManager(crowdsale.address, { from: owner });
+      await crowdsale.setAvailableAmount(availableAmount, {from: owner});
     });
 
     it('should set amount of tokens available', async () => {
@@ -651,6 +629,75 @@ contract('IcoCrowdsale', accounts => {
           await assertReverts(async () => {
             await registerContribution({ id: duplicatedId });
           });
+        });
+      });
+    });
+
+    describe.only('#burnLeftTokens', () => {
+
+      it('should revert if not owner', async () => {
+        await assertReverts(async () => {
+          await crowdsale.burnLeftTokens({ from: nonOwner });
+        });
+      });
+
+      it('should revert if crowdsale is not scheduled', async () => {
+        await assertReverts(async () => {
+          await crowdsale.burnLeftTokens({ from: owner});
+        });
+      });
+
+      it('should revert if crowdsale is active', async () => {
+        const start = getUnixNow() - 3600;
+        const end = start + 7 * DAY_IN_SECONDS;
+        await schedule(crowdsale, {
+          end,
+          stages: createStagesOrDefault({ start })
+        });
+
+        assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+        assert.isTrue(await crowdsale.isActive());
+
+        await assertReverts(async () => {
+          await crowdsale.burnLeftTokens({ from: owner});
+        });
+      });
+
+      context('Given sale is ended', () => {
+        const waitUntilEnd = tempo(web3).wait;
+
+        beforeEach(async () => {
+          const start = getUnixNow() - 3600;
+          const crowdaleDuration = 7 * DAY_IN_SECONDS;
+          const end = start + crowdaleDuration;
+          await schedule(crowdsale, {
+            end,
+            stages: createStagesOrDefault({ start })
+          });
+
+          assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+          assert.isTrue(await crowdsale.isActive());
+
+          await waitUntilEnd(crowdaleDuration);
+          networkTimeshift += (crowdaleDuration);
+
+          assert.isFalse(await crowdsale.isActive());
+        });
+
+        it('should set available amount to zero', async () => {
+          await crowdsale.burnLeftTokens({ from: owner});
+
+          assertNumberEqual(await crowdsale.availableAmount(), 0);
+        });
+
+        it('should emit LeftTokensBurned event', async () => {
+          const tx = await crowdsale.burnLeftTokens({ from: owner});
+
+          const log = findLastLog(tx, 'LeftTokensBurned');
+          assert.isOk(log);
+
+          const event = log.args as LeftTokensBurnedEvent;
+          assert.isOk(event);
         });
       });
     });

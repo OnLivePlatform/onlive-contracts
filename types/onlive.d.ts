@@ -297,6 +297,10 @@ declare module 'onlive' {
         options?: TransactionOptions
       ): Promise<void>;
 
+      burnLeftTokens(
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
       contribute(
         contributor: Address,
         options?: TransactionOptions
@@ -331,6 +335,8 @@ declare module 'onlive' {
     interface CrowdsaleEndScheduledEvent {
       end: BigNumber;
     }
+
+    type LeftTokensBurnedEvent = { };
 
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;

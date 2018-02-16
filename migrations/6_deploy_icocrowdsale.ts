@@ -29,6 +29,7 @@ async function deploy(deployer: Deployer, network: string) {
 
   const crowdsale = await IcoCrowdsale.deployed();
   await token.approveMintingManager(crowdsale.address);
+  await token.approveTransferManager(crowdsale.address);
 }
 
 function migrate(deployer: Deployer, network: string) {
