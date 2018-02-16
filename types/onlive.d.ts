@@ -246,31 +246,37 @@ declare module 'onlive' {
       token(): Promise<string>;
 
       registerPool(
-        id: string,
+        poolId: string,
         availableAmount: AnyNumber,
         lockTimestamp: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
       transfer(
-        id: string,
+        poolId: string,
         to: Address,
         amount: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
-      getAvailableAmount(id: string): Promise<AnyNumber>;
+      getAvailableAmount(poolId: string): Promise<AnyNumber>;
 
-      getLockTimestamp(id: string): Promise<AnyNumber>;
+      getLockTimestamp(poolId: string): Promise<AnyNumber>;
     }
 
     interface PoolLockedEvent {
-      id: string;
-      timestamp: BigNumber;
+      poolId: string;
+      lockTimestamp: BigNumber;
     }
 
     interface PoolRegisteredEvent {
-      id: string;
+      poolId: string;
+      amount: BigNumber;
+    }
+
+    interface PoolTransferredEvent {
+      poolId: string;
+      to: Address;
       amount: BigNumber;
     }
 
