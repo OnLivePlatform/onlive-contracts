@@ -8,12 +8,13 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
  * @title Mintable token interface
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
- * @author Dominik Kroliczek (https://github.com/krolis)
+ * @author Dominik Kroliczek (https://github.com/kruligh)
  */
 contract Mintable {
     uint256 public decimals;
 
     function mint(address to, uint256 amount) public;
+    function transfer(address to, uint256 amount) public;
 }
 
 
@@ -21,7 +22,7 @@ contract Mintable {
  * @title ICO Crowdsale with price depending on timestamp and limited supply
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
- * @author Dominik Kroliczek (https://github.com/krolis)
+ * @author Dominik Kroliczek (https://github.com/kruligh)
  */
 contract IcoCrowdsale is Ownable {
 
@@ -124,17 +125,14 @@ contract IcoCrowdsale is Ownable {
     function IcoCrowdsale(
         address _wallet,
         Mintable _token,
-        uint256 _availableAmount,
         uint256 _minValue
     )
         public
         onlyValid(_wallet)
         onlyValid(_token)
-        onlyNotZero(_availableAmount)
     {
         wallet = _wallet;
         token = _token;
-        availableAmount = _availableAmount;
         minValue = _minValue;
     }
 
@@ -172,6 +170,15 @@ contract IcoCrowdsale is Ownable {
      */
     function () public payable {
         acceptContribution(msg.sender, msg.value);
+    }
+
+    function setAvailableAmount(uint256 _availableAmount)
+        public
+        onlyOwner
+        onlyNotZero(amount)
+    {
+        availableAmount = _availableAmount;
+        token.mint(wallet, availableAmount);
     }
 
     /**
@@ -314,6 +321,6 @@ contract IcoCrowdsale is Ownable {
         onlySufficientAvailableTokens(amount)
     {
         availableAmount = availableAmount.sub(amount);
-        token.mint(to, amount);
+        token.transfer(to, amount);
     }
 }
