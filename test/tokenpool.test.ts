@@ -14,7 +14,7 @@ import {
   TokenPool,
   TransferEvent
 } from 'onlive';
-import { ETH_DECIMALS, toONL } from '../utils';
+import { ETH_DECIMALS, getTimestamp, toONL } from '../utils';
 
 import { ContractContextDefinition } from 'truffle';
 import {
@@ -41,7 +41,7 @@ contract('TokenPool', accounts => {
   const poolId = 'testPool';
   const availableAmount = toONL(1000);
   const lockPeriod = 24 * 60 * 60;
-  const lockTimestamp = Math.round(new Date().getTime() / 1000) + lockPeriod;
+  const lockTimestamp = getTimestamp() + lockPeriod;
 
   let token: OnLiveToken;
 
