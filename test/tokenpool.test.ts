@@ -10,6 +10,7 @@ import {
   OnLiveToken,
   PoolLockedEvent,
   PoolRegisteredEvent,
+  PoolTransferredEvent,
   TokenPool,
   TransferEvent
 } from 'onlive';
@@ -37,7 +38,7 @@ contract('TokenPool', accounts => {
   const owner = accounts[9];
   const nonOwner = accounts[1];
 
-  const id = 'testPool';
+  const poolId = 'testPool';
   const availableAmount = toONL(1000);
   const lockPeriod = 24 * 60 * 60;
   const lockTimestamp = Math.round(new Date().getTime() / 1000) + lockPeriod;
@@ -76,7 +77,7 @@ contract('TokenPool', accounts => {
 
     async function registerPool(options?: any) {
       return await tokenPool.registerPool(
-        propOr(id, 'name', options),
+        propOr(poolId, 'name', options),
         propOr(availableAmount, 'availableAmount', options),
         propOr(0, 'lockTimestamp', options),
         { from: propOr(owner, 'from', options) }
@@ -94,7 +95,7 @@ contract('TokenPool', accounts => {
         await registerPool();
 
         assertNumberEqual(
-          await tokenPool.getAvailableAmount(id),
+          await tokenPool.getAvailableAmount(poolId),
           availableAmount
         );
       });
@@ -102,13 +103,16 @@ contract('TokenPool', accounts => {
       it('should set lock timestamp', async () => {
         await registerPool({ lockTimestamp });
 
-        assertNumberEqual(await tokenPool.getLockTimestamp(id), lockTimestamp);
+        assertNumberEqual(
+          await tokenPool.getLockTimestamp(poolId),
+          lockTimestamp
+        );
       });
 
       it('should set lock timestamp to zero if not locked', async () => {
         await registerPool();
 
-        assertNumberEqual(await tokenPool.getLockTimestamp(id), 0);
+        assertNumberEqual(await tokenPool.getLockTimestamp(poolId), 0);
       });
 
       it('should emit PoolRegistered event', async () => {
@@ -118,9 +122,9 @@ contract('TokenPool', accounts => {
         assert.isOk(log);
 
         const event = log.args as PoolRegisteredEvent;
-        assert.equal(event.id, id);
+        assert.equal(event.poolId, poolId);
         assertNumberEqual(event.amount, availableAmount);
-        assertNumberEqual(await tokenPool.getLockTimestamp(id), 0);
+        assertNumberEqual(await tokenPool.getLockTimestamp(poolId), 0);
       });
 
       it('should emit PoolLocked event', async () => {
@@ -130,12 +134,8 @@ contract('TokenPool', accounts => {
         assert.isOk(log);
 
         const event = log.args as PoolLockedEvent;
-        assert.equal(event.id, id);
-        assertNumberEqual(event.timestamp, lockTimestamp);
-        assertNumberEqual(
-          event.timestamp,
-          await tokenPool.getLockTimestamp(id)
-        );
+        assert.equal(event.poolId, poolId);
+        assertNumberEqual(event.lockTimestamp, lockTimestamp);
       });
 
       it('should revert for non-owner', async () => {
@@ -165,36 +165,12 @@ contract('TokenPool', accounts => {
 
       async function transferFromPool(options?: any) {
         return await tokenPool.transfer(
-          propOr(id, 'id', options),
+          propOr(poolId, 'poolId', options),
           propOr(beneficiary, 'to', options),
           propOr(amount, 'amount', options),
           { from: propOr(owner, 'from', options) }
         );
       }
-
-      it('should revert for non-owner', async () => {
-        await assertReverts(async () => {
-          await transferFromPool({ from: nonOwner });
-        });
-      });
-
-      it('should revert for invalid address', async () => {
-        await assertReverts(async () => {
-          await transferFromPool({ to: ZERO_ADDRESS });
-        });
-      });
-
-      it('should revert for zero amount', async () => {
-        await assertReverts(async () => {
-          await transferFromPool({ amount: 0 });
-        });
-      });
-
-      it('should revert for amount exceeding limit', async () => {
-        await assertReverts(async () => {
-          await transferFromPool({ amount: availableAmount.add(toONL(0.1)) });
-        });
-      });
 
       context('from unlocked pool', () => {
         beforeEach(async () => {
@@ -205,7 +181,7 @@ contract('TokenPool', accounts => {
           await transferFromPool();
 
           assertNumberEqual(
-            await tokenPool.getAvailableAmount(id),
+            await tokenPool.getAvailableAmount(poolId),
             availableAmount.sub(amount)
           );
         });
@@ -220,6 +196,42 @@ contract('TokenPool', accounts => {
           assert.equal(event.from, tokenPool.address);
           assert.equal(event.to, beneficiary);
           assertNumberEqual(event.value, amount);
+        });
+
+        it('should emit PoolTransferred event', async () => {
+          const tx = await transferFromPool();
+
+          const log = findLastLog(tx, 'PoolTransferred');
+          assert.isOk(log);
+
+          const event = log.args as PoolTransferredEvent;
+          assert.equal(event.poolId, poolId);
+          assert.equal(event.to, beneficiary);
+          assertNumberEqual(event.amount, amount);
+        });
+
+        it('should revert for non-owner', async () => {
+          await assertReverts(async () => {
+            await transferFromPool({ from: nonOwner });
+          });
+        });
+
+        it('should revert for invalid address', async () => {
+          await assertReverts(async () => {
+            await transferFromPool({ to: ZERO_ADDRESS });
+          });
+        });
+
+        it('should revert for zero amount', async () => {
+          await assertReverts(async () => {
+            await transferFromPool({ amount: 0 });
+          });
+        });
+
+        it('should revert for amount exceeding limit', async () => {
+          await assertReverts(async () => {
+            await transferFromPool({ amount: availableAmount.add(toONL(0.1)) });
+          });
         });
       });
 
@@ -245,7 +257,7 @@ contract('TokenPool', accounts => {
           await transferFromPool();
 
           assertNumberEqual(
-            await tokenPool.getAvailableAmount(id),
+            await tokenPool.getAvailableAmount(poolId),
             availableAmount.sub(amount)
           );
         });

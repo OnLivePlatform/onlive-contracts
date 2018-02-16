@@ -48,20 +48,20 @@ contract TokenPool is Ownable {
         _;
     }
 
-    modifier onlySufficientAmount(string id, uint256 amount) {
-        require(amount <= pools[id].availableAmount);
+    modifier onlySufficientAmount(string poolId, uint256 amount) {
+        require(amount <= pools[poolId].availableAmount);
         _;
     }
 
-    modifier onlyUnlockedPool(string id) {
+    modifier onlyUnlockedPool(string poolId) {
         /* solhint-disable not-rely-on-time */
-        require(block.timestamp > pools[id].lockTimestamp);
+        require(block.timestamp > pools[poolId].lockTimestamp);
         /* solhint-enable not-rely-on-time */
         _;
     }
 
-    modifier onlyUniquePool(string id) {
-        require(pools[id].availableAmount == 0);
+    modifier onlyUniquePool(string poolId) {
+        require(pools[poolId].availableAmount == 0);
         _;
     }
 
@@ -79,86 +79,95 @@ contract TokenPool is Ownable {
 
     /**
      * @dev New pool registered
-     * @param id string The unique pool id
+     * @param poolId string The unique pool id
      * @param amount uint256 The amount of available tokens
      */
-    event PoolRegistered(string id, uint256 amount);
+    event PoolRegistered(string poolId, uint256 amount);
 
     /**
      * @dev Pool locked until the specified timestamp
-     * @param id string The unique pool id
-     * @param timestamp uint256 The expiration timestamp of the pool or zero
+     * @param poolId string The unique pool id
+     * @param lockTimestamp uint256 The lock timestamp as Unix Epoch (seconds from 1970)
      */
-    event PoolLocked(string id, uint256 timestamp);
+    event PoolLocked(string poolId, uint256 lockTimestamp);
+
+    /**
+     * @dev Tokens transferred from pool
+     * @param poolId string The unique pool id
+     * @param amount uint256 The amount of transferred tokens
+     */
+    event PoolTransferred(string poolId, address to, uint256 amount);
 
     /**
      * @dev Register a new pool and mint its tokens
-     * @param id string The id of the pool
+     * @param poolId string The unique pool id
      * @param availableAmount uint256 The amount of available tokens
      * @param lockTimestamp uint256 The optional lock timestamp as Unix Epoch (seconds from 1970),
      *                              leave zero if not applicable
      */
-    function registerPool(string id, uint256 availableAmount, uint256 lockTimestamp)
+    function registerPool(string poolId, uint256 availableAmount, uint256 lockTimestamp)
         public
         onlyOwner
         onlyNotZero(availableAmount)
-        onlyUniquePool(id)
+        onlyUniquePool(poolId)
     {
-        pools[id] = Pool({
+        pools[poolId] = Pool({
             availableAmount: availableAmount,
             lockTimestamp: lockTimestamp
         });
 
         token.mint(this, availableAmount);
 
-        PoolRegistered(id, availableAmount);
+        PoolRegistered(poolId, availableAmount);
 
         if (lockTimestamp > 0) {
-            PoolLocked(id, lockTimestamp);
+            PoolLocked(poolId, lockTimestamp);
         }
     }
 
     /**
      * @dev Transfer given amount of tokens to specified address
      * @param to address The address to transfer to
-     * @param id string The id of the pool
+     * @param poolId string The unique pool id
      * @param amount uint256 The amount of tokens to transfer
      */
-    function transfer(string id, address to, uint256 amount)
+    function transfer(string poolId, address to, uint256 amount)
         public
         onlyOwner
         onlyValid(to)
         onlyNotZero(amount)
-        onlySufficientAmount(id, amount)
-        onlyUnlockedPool(id)
+        onlySufficientAmount(poolId, amount)
+        onlyUnlockedPool(poolId)
     {
-        pools[id].availableAmount = pools[id].availableAmount.sub(amount);
+        pools[poolId].availableAmount = pools[poolId].availableAmount.sub(amount);
         require(token.transfer(to, amount));
+
+        PoolTransferred(poolId, to, amount);
     }
 
     /**
      * @dev Get available amount of tokens in the specified pool
-     * @param id string The id of the pool
+     * @param poolId string The unique pool id
      * @return The available amount of tokens in the specified pool
      */
-    function getAvailableAmount(string id)
+    function getAvailableAmount(string poolId)
         public
         view
         returns (uint256)
     {
-        return pools[id].availableAmount;
+        return pools[poolId].availableAmount;
     }
 
     /**
      * @dev Get lock timestamp of the pool or zero
-     * @param id string The id of the pool
+     * @param poolId string The unique pool id
      * @return The lock expiration timestamp of the pool or zero if not specified
      */
-    function getLockTimestamp(string id)
+    function getLockTimestamp(string poolId)
         public
         view
         returns (uint256)
     {
-        return pools[id].lockTimestamp;
+        return pools[poolId].lockTimestamp;
     }
 }
