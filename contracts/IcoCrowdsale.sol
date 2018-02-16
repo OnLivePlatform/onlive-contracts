@@ -122,6 +122,11 @@ contract IcoCrowdsale is Ownable {
         _;
     }
 
+    modifier onlyNotMinted() {
+        require(availableAmount == 0);
+        _;
+    }
+
     function IcoCrowdsale(
         address _wallet,
         Mintable _token,
@@ -175,7 +180,8 @@ contract IcoCrowdsale is Ownable {
     function setAvailableAmount(uint256 _availableAmount)
         public
         onlyOwner
-        onlyNotZero(amount)
+        onlyNotMinted
+        onlyNotZero(_availableAmount)
     {
         availableAmount = _availableAmount;
         token.mint(wallet, availableAmount);

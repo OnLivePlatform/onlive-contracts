@@ -86,14 +86,14 @@ contract('IcoCrowdsale', accounts => {
       assert.equal(await crowdsale.token(), token.address);
     });
 
-    it('should set amount of tokens available', async () => {
-      const crowdsale = await createCrowdsale();
-      assertTokenEqual(await crowdsale.availableAmount(), availableAmount);
-    });
-
     it('should set minimum contribution value', async () => {
       const crowdsale = await createCrowdsale();
       assertTokenEqual(await crowdsale.minValue(), minValue);
+    });
+
+    it('should set available amount to zero', async () => {
+      const crowdsale = await createCrowdsale();
+      assertTokenEqual(await crowdsale.availableAmount(), 0);
     });
 
     it('should revert when wallet address is zero', async () => {
@@ -111,6 +111,27 @@ contract('IcoCrowdsale', accounts => {
     it('should revert when available amount is zero', async () => {
       await assertReverts(async () => {
         await createCrowdsale({ availableAmount: toWei(0) });
+      });
+    });
+  });
+
+  describe('#setAvailableAmount', () => {
+    let crowdsale: IcoCrowdsale;
+
+    beforeEach(async () => {
+      crowdsale = await createCrowdsale();
+    });
+
+    it('should revert if not owner', async () => {
+      await assertReverts(async () => {
+        await crowdsale.setAvailableAmount(availableAmount, { from: nonOwner });
+      });
+    });
+
+    it('should revert if not mintage approved', async () => {
+      assertTokenEqual(await crowdsale.availableAmount(), 0);
+      await assertReverts(async () => {
+        await crowdsale.setAvailableAmount(availableAmount);
       });
     });
   });
@@ -281,7 +302,7 @@ contract('IcoCrowdsale', accounts => {
     it('should return correct whe active', async () => {
       const start = getUnixNow() - DAY_IN_SECONDS;
       const end = start + DAY_IN_SECONDS;
-      await scheduleStage(crowdsale, { start, price: defaultPrice});
+      await scheduleStage(crowdsale, { start, price: defaultPrice });
       await crowdsale.scheduleCrowdsaleEnd(end, { from: owner });
       assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
       assert.isTrue(await crowdsale.isActive());
@@ -298,6 +319,37 @@ contract('IcoCrowdsale', accounts => {
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
       await token.approveMintingManager(crowdsale.address, { from: owner });
+    });
+
+    it('should set amount of tokens available', async () => {
+      assertTokenEqual(await crowdsale.availableAmount(), 0);
+      await crowdsale.setAvailableAmount(availableAmount);
+      assertTokenEqual(await crowdsale.availableAmount(), availableAmount);
+    });
+
+    it('should not be able to contrubiute if tokens not minted', async () => {
+      await assertReverts(async () => {
+        await crowdsale.contribute(contributor, {
+          from: contributor,
+          value: minValue
+        });
+      });
+    });
+  });
+
+  context('Given deployed token contract and tokens minted', () => {
+    let crowdsale: IcoCrowdsale;
+
+    beforeEach(async () => {
+      crowdsale = await createCrowdsale();
+      await token.approveMintingManager(crowdsale.address, { from: owner });
+      await crowdsale.setAvailableAmount(availableAmount);
+    });
+
+    it('should set amount of tokens available', async () => {
+      assertTokenEqual(await crowdsale.availableAmount(), 0);
+      await crowdsale.setAvailableAmount(availableAmount);
+      assertTokenEqual(await crowdsale.availableAmount(), availableAmount);
     });
 
     type ContributionFunction = (
@@ -646,7 +698,6 @@ contract('IcoCrowdsale', accounts => {
     return await IcoCrowdsaleContract.new(
       propOr(wallet, 'wallet', options),
       propOr(token.address, 'token', options),
-      propOr(availableAmount, 'availableAmount', options),
       propOr(minValue, 'minValue', options),
       { from: propOr(owner, 'from', options) }
     );

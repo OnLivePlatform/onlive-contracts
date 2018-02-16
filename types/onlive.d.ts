@@ -292,6 +292,11 @@ declare module 'onlive' {
       isCrowdsaleEndScheduled(): Promise<boolean>;
       isActive(): Promise<boolean>;
 
+      setAvailableAmount(
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<void>;
+
       contribute(
         contributor: Address,
         options?: TransactionOptions
@@ -375,7 +380,6 @@ declare module 'onlive' {
       'new'(
         wallet: Address,
         token: Address,
-        availableAmount: AnyNumber,
         minValue: AnyNumber,
         options?: TransactionOptions
       ): Promise<IcoCrowdsale>;

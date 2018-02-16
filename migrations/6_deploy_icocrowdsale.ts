@@ -24,7 +24,6 @@ async function deploy(deployer: Deployer, network: string) {
     IcoCrowdsale,
     wallet,
     token.address,
-    availableAmount,
     minValue
   );
 

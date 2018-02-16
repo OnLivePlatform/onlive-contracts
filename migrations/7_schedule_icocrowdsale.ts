@@ -2,7 +2,7 @@ import { OnLiveArtifacts } from 'onlive';
 import { Deployer } from 'truffle';
 import * as Web3 from 'web3';
 
-import {toWei} from '../utils';
+import { toWei } from '../utils';
 
 declare const artifacts: OnLiveArtifacts;
 declare const web3: Web3;
@@ -12,7 +12,7 @@ const IcoCrowdsale = artifacts.require('./IcoCrowdsale.sol');
 async function deploy() {
   const stages = [
     {
-      price: toWei(0.001310),
+      price: toWei(0.00131),
       start: getUnixSeconds(new Date(2018, 2, 11)) // month starts from 0
     },
     {
@@ -28,7 +28,7 @@ async function deploy() {
 
   const crowdsale = await IcoCrowdsale.deployed();
 
-  await stages.forEach(async (stage) => {
+  await stages.forEach(async stage => {
     await crowdsale.scheduleStage(stage.start, stage.price);
   });
 
