@@ -181,6 +181,9 @@ contract IcoCrowdsale is Ownable {
      */
     event CrowdsaleEndScheduled(uint256 availableAmount, uint256 end);
 
+    /**
+     * @dev Not sold tokens burned
+     */
     event LeftTokensBurned();
 
     /**
@@ -265,7 +268,7 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
-     * @dev Burns rest of available tokens
+     * @dev Burns all tokens which haven't been sold
      */
     function burnLeftTokens()
         public
