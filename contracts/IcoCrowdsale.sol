@@ -5,7 +5,7 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
- * @title Mintable token interface
+ * @title Token interface
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
  * @author Dominik Kroliczek (https://github.com/kruligh)
@@ -14,7 +14,7 @@ contract Mintable {
     uint256 public decimals;
 
     function mint(address to, uint256 amount) public;
-    function transferFrom(address from, address to, uint256 amount) public;
+    function transfer(address to, uint256 amount) public;
     function burn(uint256 amount) public;
 }
 
@@ -179,7 +179,7 @@ contract IcoCrowdsale is Ownable {
      * @dev Sale end scheduled
      * @param end uint256 Timestamp when sale ends
      */
-    event CrowdsaleEndScheduled(uint256 end);
+    event CrowdsaleEndScheduled(uint256 availableAmount, uint256 end);
 
     event LeftTokensBurned();
 
@@ -188,16 +188,6 @@ contract IcoCrowdsale is Ownable {
      */
     function () public payable {
         acceptContribution(msg.sender, msg.value);
-    }
-
-    function setAvailableAmount(uint256 _availableAmount)
-        public
-        onlyOwner
-        onlyNotMinted
-        onlyNotZero(_availableAmount)
-    {
-        availableAmount = _availableAmount;
-        token.mint(this, availableAmount);
     }
 
     /**
@@ -228,16 +218,21 @@ contract IcoCrowdsale is Ownable {
 
     /**
      * @dev Schedule crowdsale end
+     * @param _availableAmount uint256 Token amount available in crowdsale
      * @param _end uint256 Timestamp end of crowdsale, inclusive
      */
-    function scheduleCrowdsaleEnd(uint256 _end)
+    function scheduleCrowdsaleEnd(uint256 _availableAmount, uint256 _end)
         public
         onlyOwner
         onlyScheduledStages
+        onlyNotMinted
+        onlyNotZero(_availableAmount)
         onlyNotZero(_end)
     {
+        availableAmount = _availableAmount;
         end = _end;
-        CrowdsaleEndScheduled(_end);
+        token.mint(this, _availableAmount);
+        CrowdsaleEndScheduled(_availableAmount, _end);
     }
 
     /**
@@ -264,7 +259,7 @@ contract IcoCrowdsale is Ownable {
         onlyUniqueContribution(id)
     {
         isContributionRegistered[id] = true;
-        mintTokens(contributor, amount);
+        transferTokens(contributor, amount);
 
         ContributionRegistered(id, contributor, amount);
     }
@@ -340,8 +335,7 @@ contract IcoCrowdsale is Ownable {
         returns (uint256)
     {
         uint256 amount = calculateContribution(value);
-        mintTokens(contributor, amount);
-
+        transferTokens(contributor, amount);
         wallet.transfer(value);
 
         ContributionAccepted(contributor, value, amount);
@@ -349,11 +343,11 @@ contract IcoCrowdsale is Ownable {
         return amount;
     }
 
-    function mintTokens(address to, uint256 amount)
+    function transferTokens(address to, uint256 amount)
         private
         onlySufficientAvailableTokens(amount)
     {
         availableAmount = availableAmount.sub(amount);
-        token.transferFrom(this, to, amount);
+        token.transfer(to, amount);
     }
 }

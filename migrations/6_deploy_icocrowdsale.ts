@@ -12,7 +12,6 @@ const IcoCrowdsale = artifacts.require('./IcoCrowdsale.sol');
 
 async function deploy(deployer: Deployer, network: string) {
   const token = await OnLiveToken.deployed();
-  const availableAmount = toMillionsONL('61.050');
   const minValue = toWei('0.1');
 
   let wallet = web3.eth.accounts[0];
@@ -20,12 +19,7 @@ async function deploy(deployer: Deployer, network: string) {
     wallet = '0xd0078f5c7E33BaD8767c602D3aaEe6e38481c9A1';
   }
 
-  await deployer.deploy(
-    IcoCrowdsale,
-    wallet,
-    token.address,
-    minValue
-  );
+  await deployer.deploy(IcoCrowdsale, wallet, token.address, minValue);
 
   const crowdsale = await IcoCrowdsale.deployed();
   await token.approveMintingManager(crowdsale.address);

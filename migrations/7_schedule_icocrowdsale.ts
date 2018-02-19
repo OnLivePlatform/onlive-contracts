@@ -2,7 +2,7 @@ import { OnLiveArtifacts } from 'onlive';
 import { Deployer } from 'truffle';
 import * as Web3 from 'web3';
 
-import { toWei } from '../utils';
+import { toMillionsONL, toWei } from '../utils';
 
 declare const artifacts: OnLiveArtifacts;
 declare const web3: Web3;
@@ -10,6 +10,7 @@ declare const web3: Web3;
 const IcoCrowdsale = artifacts.require('./IcoCrowdsale.sol');
 
 async function deploy() {
+  const availableAmount = toMillionsONL('61.050');
   const stages = [
     {
       price: toWei(0.00131),
@@ -32,7 +33,7 @@ async function deploy() {
     await crowdsale.scheduleStage(stage.start, stage.price);
   });
 
-  await crowdsale.scheduleCrowdsaleEnd(end);
+  await crowdsale.scheduleCrowdsaleEnd(availableAmount, end);
 }
 
 function migrate(deployer: Deployer) {

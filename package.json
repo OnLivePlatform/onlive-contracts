@@ -20,7 +20,7 @@
     "migrate:kovan:reset": "run-s compile:ts migrate:kovan:reset:js",
     "migrate:kovan:reset:js": "truffle migrate --network kovan --reset",
     "test": "run-s compile:ts test:js",
-    "test:js": "truffle test",
+    "test:js": "truffle test ./test/icocrowdsale.test.js",
     "test:token": "run-s compile:ts test:token:js",
     "test:token:js": "truffle test test/onlivetoken.test.js",
     "test:crowdsale": "run-s compile:ts test:crowdsale:js",

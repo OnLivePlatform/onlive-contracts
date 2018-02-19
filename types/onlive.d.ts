@@ -292,14 +292,7 @@ declare module 'onlive' {
       isCrowdsaleEndScheduled(): Promise<boolean>;
       isActive(): Promise<boolean>;
 
-      setAvailableAmount(
-        amount: AnyNumber,
-        options?: TransactionOptions
-      ): Promise<void>;
-
-      burnLeftTokens(
-        options?: TransactionOptions
-      ): Promise<TransactionResult>;
+      burnLeftTokens(options?: TransactionOptions): Promise<TransactionResult>;
 
       contribute(
         contributor: Address,
@@ -322,6 +315,7 @@ declare module 'onlive' {
       ): Promise<TransactionResult>;
 
       scheduleCrowdsaleEnd(
+        availableAmount: AnyNumber,
         end: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
@@ -333,10 +327,11 @@ declare module 'onlive' {
     }
 
     interface CrowdsaleEndScheduledEvent {
+      availableAmount: BigNumber;
       end: BigNumber;
     }
 
-    type LeftTokensBurnedEvent = { };
+    type LeftTokensBurnedEvent = {};
 
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
