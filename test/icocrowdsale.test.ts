@@ -244,7 +244,25 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should mint tokens', async () => {
-      assert.fail();
+      const totalSupplyBefore = await token.totalSupply();
+      await approveMintage(token, crowdsale);
+      await schedule(crowdsale);
+      const totalSupplyAfter = await token.totalSupply();
+
+      assertNumberEqual(
+        totalSupplyBefore.add(availableAmount),
+        totalSupplyAfter
+      );
+    });
+
+    it('should transfer minted tokens to crowdsale', async () => {
+      await approveMintage(token, crowdsale);
+      await schedule(crowdsale);
+
+      assertNumberEqual(
+        availableAmount,
+        await token.balanceOf(crowdsale.address)
+      );
     });
 
     it('should revert for not owner', async () => {

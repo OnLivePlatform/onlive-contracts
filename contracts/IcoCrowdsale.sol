@@ -264,6 +264,9 @@ contract IcoCrowdsale is Ownable {
         ContributionRegistered(id, contributor, amount);
     }
 
+    /**
+     * @dev Burns rest of available tokens
+     */
     function burnLeftTokens()
         public
         onlyOwner
