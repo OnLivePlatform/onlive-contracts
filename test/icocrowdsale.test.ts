@@ -719,6 +719,10 @@ contract('IcoCrowdsale', accounts => {
           });
 
           assert.isTrue(await crowdsale.isCrowdsaleEndScheduled());
+          assertNumberEqual(
+            await token.balanceOf(crowdsale.address),
+            availableAmount
+          );
           assert.isTrue(await crowdsale.isActive());
 
           await waitUntilEnd(crowdaleDuration);
@@ -731,6 +735,12 @@ contract('IcoCrowdsale', accounts => {
           await crowdsale.burnLeftTokens({ from: owner });
 
           assertNumberEqual(await crowdsale.availableAmount(), 0);
+        });
+
+        it('should set contract token balance to zero', async () => {
+          await crowdsale.burnLeftTokens({ from: owner });
+
+          assertNumberEqual(await token.balanceOf(crowdsale.address), 0);
         });
 
         it('should emit LeftTokensBurned event', async () => {
