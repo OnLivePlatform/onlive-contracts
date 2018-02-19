@@ -29,7 +29,7 @@ import {
   calculateContribution,
   DAY_IN_SECONDS,
   findLastLog,
-  sendRpc,
+  getNetworkTimestamp,
   ZERO_ADDRESS
 } from './helpers';
 
@@ -55,16 +55,13 @@ contract('IcoCrowdsale', accounts => {
   const availableAmount = toONL(10000);
   const minValue = toWei(0.1);
 
-  let token: OnLiveToken;
-  let snapshotId: number;
-  let networkTimeshift: number = 0;
+  let startTimestamp = 0;
 
-  before(async () => {
-    const response = await sendRpc('evm_snapshot');
-    snapshotId = (response as any).result;
-  });
+  let token: OnLiveToken;
 
   beforeEach(async () => {
+    startTimestamp = await getNetworkTimestamp();
+
     token = await OnLiveTokenContract.new(
       'OnLive Token',
       'ONL',
@@ -120,23 +117,20 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should emit StageScheduled event', async () => {
-      const start = getUnixNow();
-
-      const tx = await scheduleStage(crowdsale, { start });
+      const tx = await scheduleStage(crowdsale, { start: startTimestamp });
 
       const log = findLastLog(tx, 'StageScheduled');
       assert.isOk(log);
 
       const event = log.args as StageScheduledEvent;
       assert.isOk(event);
-      assertNumberEqual(event.start, start);
+      assertNumberEqual(event.start, startTimestamp);
       assertNumberEqual(event.price, defaultPrice);
     });
 
     for (let i = 0; i < 5; i++) {
       it(`should store ${i + 1} stage(s)`, async () => {
-        const start = getUnixNow();
-        stages = createStagesOrDefault({ count: i, start });
+        stages = createStagesOrDefault({ count: i, start: startTimestamp });
 
         await stages.forEach(async stage => {
           await scheduleStage(crowdsale, stage as ScheduleStageOptions);
@@ -172,19 +166,17 @@ contract('IcoCrowdsale', accounts => {
       await scheduleStage(crowdsale);
       await assertReverts(async () => {
         await scheduleStage(crowdsale, {
-          start: getUnixNow() - DAY_IN_SECONDS
+          start: startTimestamp - DAY_IN_SECONDS
         });
       });
     });
 
     it('should revert when crowdsale end is scheduled', async () => {
-      const start = getUnixNow();
-
-      await scheduleStage(crowdsale, { start });
+      await scheduleStage(crowdsale, { start: startTimestamp });
       await approveMintage(token, crowdsale);
       await crowdsale.scheduleCrowdsaleEnd(
         availableAmount,
-        start + DAY_IN_SECONDS,
+        startTimestamp + DAY_IN_SECONDS,
         {
           from: owner
         }
@@ -192,7 +184,7 @@ contract('IcoCrowdsale', accounts => {
 
       await assertReverts(async () => {
         await scheduleStage(crowdsale, {
-          start: start + DAY_IN_SECONDS
+          start: startTimestamp + DAY_IN_SECONDS
         });
       });
     });
@@ -200,7 +192,7 @@ contract('IcoCrowdsale', accounts => {
 
   describe('#scheduleCrowdsaleEnd', () => {
     let crowdsale: IcoCrowdsale;
-    const end = getUnixNow() + DAY_IN_SECONDS;
+    const end = startTimestamp + DAY_IN_SECONDS;
 
     beforeEach(async () => {
       crowdsale = await createCrowdsale();
@@ -345,7 +337,7 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should return zero when inactive', async () => {
-      const start = getUnixNow() + DAY_IN_SECONDS;
+      const start = startTimestamp + DAY_IN_SECONDS;
       const end = start + DAY_IN_SECONDS;
       await scheduleStage(crowdsale, { start });
       await crowdsale.scheduleCrowdsaleEnd(availableAmount, end, {
@@ -360,7 +352,7 @@ contract('IcoCrowdsale', accounts => {
     });
 
     it('should return correct when active', async () => {
-      const start = getUnixNow() - DAY_IN_SECONDS;
+      const start = startTimestamp - DAY_IN_SECONDS;
       const end = start + DAY_IN_SECONDS;
       await scheduleStage(crowdsale, { start, price: defaultPrice });
       await crowdsale.scheduleCrowdsaleEnd(availableAmount, end, {
@@ -385,8 +377,10 @@ contract('IcoCrowdsale', accounts => {
 
     it('should correct calculate', async () => {
       await schedule(crowdsale, {
-        end: getUnixNow() + 2 * DAY_IN_SECONDS,
-        stages: [{ start: getUnixNow() - DAY_IN_SECONDS, price: defaultPrice }]
+        end: startTimestamp + 2 * DAY_IN_SECONDS,
+        stages: [
+          { start: startTimestamp - DAY_IN_SECONDS, price: defaultPrice }
+        ]
       });
 
       const calculatedContrubution = await crowdsale.calculateContribution(
@@ -400,8 +394,10 @@ contract('IcoCrowdsale', accounts => {
 
     it('should return zero if actual price is zero', async () => {
       await schedule(crowdsale, {
-        end: getUnixNow() + 2 * DAY_IN_SECONDS,
-        stages: [{ start: getUnixNow() + DAY_IN_SECONDS, price: defaultPrice }]
+        end: startTimestamp + 2 * DAY_IN_SECONDS,
+        stages: [
+          { start: startTimestamp + DAY_IN_SECONDS, price: defaultPrice }
+        ]
       });
 
       assertNumberEqual(
@@ -443,7 +439,7 @@ contract('IcoCrowdsale', accounts => {
       });
 
       it('should revert when sale is not active', async () => {
-        const start = getUnixNow() + 1 * DAY_IN_SECONDS;
+        const start = startTimestamp + 1 * DAY_IN_SECONDS;
         const end = start + 7 * DAY_IN_SECONDS;
         const stages = createStagesOrDefault({ start });
         await schedule(crowdsale, { stages, end });
@@ -460,7 +456,7 @@ contract('IcoCrowdsale', accounts => {
         let stages: ScheduleStageOptions[];
 
         beforeEach(async () => {
-          const start = getUnixNow() - 3600;
+          const start = startTimestamp - 3600;
           const end = start + 7 * DAY_IN_SECONDS;
           const stagesCount = 3;
           stages = createStagesOrDefault({ start, count: stagesCount });
@@ -509,7 +505,7 @@ contract('IcoCrowdsale', accounts => {
         const stageInterval = DAY_IN_SECONDS;
 
         async function setup() {
-          const start = getUnixNow() - 3600;
+          const start = startTimestamp - 3600;
           const end = start + 7 * DAY_IN_SECONDS;
           const stagesCount = 3;
           const stages = createStagesOrDefault({
@@ -542,7 +538,6 @@ contract('IcoCrowdsale', accounts => {
             }
 
             await waitUntilNextStage(stageInterval);
-            networkTimeshift += stageInterval;
           }
         }
 
@@ -637,7 +632,7 @@ contract('IcoCrowdsale', accounts => {
       });
 
       it('should revert when sale is not active', async () => {
-        const start = getUnixNow() + 1 * DAY_IN_SECONDS;
+        const start = startTimestamp + 1 * DAY_IN_SECONDS;
         const end = start + 7 * DAY_IN_SECONDS;
         await schedule(crowdsale, {
           end,
@@ -653,7 +648,7 @@ contract('IcoCrowdsale', accounts => {
 
       context('Given sale is active', () => {
         beforeEach(async () => {
-          const start = getUnixNow() - 3600;
+          const start = startTimestamp - 3600;
           const end = start + 7 * DAY_IN_SECONDS;
           await schedule(crowdsale, {
             end,
@@ -745,7 +740,7 @@ contract('IcoCrowdsale', accounts => {
       });
 
       it('should revert if crowdsale is active', async () => {
-        const start = getUnixNow() - 3600;
+        const start = startTimestamp - 3600;
         const end = start + 7 * DAY_IN_SECONDS;
         await schedule(crowdsale, {
           end,
@@ -764,7 +759,7 @@ contract('IcoCrowdsale', accounts => {
         const waitUntilEnd = tempo(web3).wait;
 
         beforeEach(async () => {
-          const start = getUnixNow() - 3600;
+          const start = startTimestamp - 3600;
           const crowdaleDuration = 7 * DAY_IN_SECONDS;
           const end = start + crowdaleDuration;
           await schedule(crowdsale, {
@@ -780,7 +775,6 @@ contract('IcoCrowdsale', accounts => {
           assert.isTrue(await crowdsale.isActive());
 
           await waitUntilEnd(crowdaleDuration);
-          networkTimeshift += crowdaleDuration;
 
           assert.isFalse(await crowdsale.isActive());
         });
@@ -810,13 +804,9 @@ contract('IcoCrowdsale', accounts => {
     });
   });
 
-  after(async () => {
-    await sendRpc('evm_revert', [snapshotId]);
-  });
-
   function createStagesOrDefault(options?: any) {
     const start = new BigNumber(propOr(
-      getUnixNow(),
+      startTimestamp,
       'start',
       options
     ) as Web3.AnyNumber);
@@ -871,7 +861,7 @@ contract('IcoCrowdsale', accounts => {
     options?: Partial<ScheduleStageOptions>
   ) {
     return await crowdsale.scheduleStage(
-      propOr(getUnixNow(), 'start', options),
+      propOr(startTimestamp, 'start', options),
       propOr(defaultPrice, 'price', options),
       { from: propOr(owner, 'from', options) }
     );
@@ -882,7 +872,7 @@ contract('IcoCrowdsale', accounts => {
     options?: Partial<ScheduleEndOptions>
   ) {
     const stages: ScheduleStageOptions[] = propOr(
-      createStagesOrDefault(getUnixNow()),
+      createStagesOrDefault(startTimestamp),
       'stages',
       options
     );
@@ -894,10 +884,6 @@ contract('IcoCrowdsale', accounts => {
       propOr(createEnd(stages[0].start), 'end', options),
       { from: owner }
     );
-  }
-
-  function getUnixNow() {
-    return Math.round(new Date().getTime() / 1000) + networkTimeshift;
   }
 });
 

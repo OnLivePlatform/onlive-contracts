@@ -109,7 +109,9 @@ contract IcoCrowdsale is Ownable {
     }
 
     modifier onlyCrowdsaleEnded() {
+        /* solhint-disable not-rely-on-time */
         require(now > end);
+        /* solhint-enable not-rely-on-time */
         _;
     }
 
@@ -315,9 +317,11 @@ contract IcoCrowdsale is Ownable {
         returns (uint256)
     {
         for (uint256 i = stages.length - 1; i >= 0; i--) {
+            /* solhint-disable not-rely-on-time */
             if (now >= stages[i].start) {
                 return stages[i].price;
             }
+            /* solhint-enable not-rely-on-time */
         }
     }
 
@@ -334,7 +338,9 @@ contract IcoCrowdsale is Ownable {
     * @return boolean
     */
     function isActive() public view returns (bool) {
+        /* solhint-disable not-rely-on-time */
         return stages.length > 0 && now >= stages[0].start && now <= end;
+        /* solhint-enable not-rely-on-time */
     }
 
     function acceptContribution(address contributor, uint256 value)

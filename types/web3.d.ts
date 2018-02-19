@@ -14,6 +14,7 @@ declare module 'web3' {
       sendTransaction(txData: Web3.TxData, callback: Callback<string>): void;
       getBalance(account: Address, callback: Callback<BigNumber>): void;
       sign(account: Address, text: string): string;
+      getBlock(id: number | string, callback: Callback<any>): void;
     };
 
     public version: {

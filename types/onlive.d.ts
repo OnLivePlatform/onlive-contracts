@@ -388,6 +388,7 @@ declare module 'onlive' {
 
     interface TokenPoolContract extends Contract<TokenPool> {
       'new'(token: Address, options?: TransactionOptions): Promise<TokenPool>;
+      link(contract: Contract<any>): void;
     }
 
     interface OnLiveArtifacts extends TruffleArtifacts {

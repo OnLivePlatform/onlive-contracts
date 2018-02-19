@@ -5,9 +5,11 @@ import { assert } from 'chai';
 import { findLast, propEq } from 'ramda';
 import { TransactionLog, TransactionResult } from 'truffle';
 
-import { ETH_DECIMALS, ONL_DECIMALS, toWei } from '../utils';
+import { ETH_DECIMALS, ONL_DECIMALS, toWei, Web3Utils } from '../utils';
 
 declare const web3: Web3;
+
+const utils = new Web3Utils(web3);
 
 export const ZERO_ADDRESS = '0x' + '0'.repeat(40);
 
@@ -135,4 +137,8 @@ export function sendRpc(method: any, params?: any) {
       }
     );
   });
+}
+
+export async function getNetworkTimestamp() {
+  return (await utils.getBlock()).timestamp;
 }
