@@ -375,6 +375,42 @@ contract('IcoCrowdsale', accounts => {
     });
   });
 
+  describe('#calculateContribution', async () => {
+    let crowdsale: IcoCrowdsale;
+
+    beforeEach(async () => {
+      crowdsale = await createCrowdsale();
+      await approveMintage(token, crowdsale);
+    });
+
+    it('should correct calculate', async () => {
+      await schedule(crowdsale, {
+        end: getUnixNow() + 2 * DAY_IN_SECONDS,
+        stages: [{ start: getUnixNow() - DAY_IN_SECONDS, price: defaultPrice }]
+      });
+
+      const calculatedContrubution = await crowdsale.calculateContribution(
+        minValue
+      );
+      assert.equal(
+        calculatedContrubution.round(10).toNumber(),
+        calculateContribution(minValue, defaultPrice)
+      );
+    });
+
+    it('should return zero if actual price is zero', async () => {
+      await schedule(crowdsale, {
+        end: getUnixNow() + 2 * DAY_IN_SECONDS,
+        stages: [{ start: getUnixNow() + DAY_IN_SECONDS, price: defaultPrice }]
+      });
+
+      assertNumberEqual(
+        await crowdsale.calculateContribution(defaultPrice),
+        new BigNumber(0)
+      );
+    });
+  });
+
   context('Given deployed token contract and tokens minted', () => {
     let crowdsale: IcoCrowdsale;
 
@@ -888,5 +924,5 @@ interface ScheduleEndOptions {
 interface ScheduleStageOptions {
   start: Web3.AnyNumber;
   price: Web3.AnyNumber;
-  from: Address;
+  from?: Address;
 }

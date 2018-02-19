@@ -138,6 +138,12 @@ contract IcoCrowdsale is Ownable {
         _;
     }
 
+    modifier returnsZeroIfNotActive() {
+        if (isActive()) {
+            _;
+        }
+    }
+
     function IcoCrowdsale(
         address _wallet,
         Mintable _token,
@@ -287,11 +293,12 @@ contract IcoCrowdsale is Ownable {
     /**
      * @dev Calculate amount of ONL tokens received for given ETH value
      * @param value uint256 Contribution value in ETH
-     * @return uint256 Amount of received ONL tokens
+     * @return uint256 Amount of received ONL tokens if contract active, otherwise 0
      */
     function calculateContribution(uint256 value)
         public
         view
+        returnsZeroIfNotActive
         returns (uint256)
     {
         return value.mul(10 ** token.decimals()).div(getActualPrice());
@@ -304,16 +311,13 @@ contract IcoCrowdsale is Ownable {
     function getActualPrice()
         public
         view
+        returnsZeroIfNotActive
         returns (uint256)
     {
-        if (isActive()) {
-            for (uint256 i = stages.length - 1; i >= 0; i--) {
-                if (now >= stages[i].start) {
-                    return stages[i].price;
-                }
+        for (uint256 i = stages.length - 1; i >= 0; i--) {
+            if (now >= stages[i].start) {
+                return stages[i].price;
             }
-        } else {
-            return 0;
         }
     }
 
