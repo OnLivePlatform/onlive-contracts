@@ -60,8 +60,10 @@ function validateInputParameters() {
     throw new Error(`Invalid contribution id: ${argv.id}`);
   }
 
-  if (!Address.test(argv.contributor)) {
-    throw new Error(`Invalid contributor address: ${argv.contributor}`);
+  if (!web3.isChecksumAddress(argv.contributor)) {
+    throw new Error(
+      `Invalid contributor address checksum: ${argv.contributor}`
+    );
   }
 
   if (isNaN(argv.amount)) {

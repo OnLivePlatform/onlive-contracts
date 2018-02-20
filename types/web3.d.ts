@@ -26,6 +26,8 @@ declare module 'web3' {
 
     public toDecimal(hex: string): number;
     public toHex(num: number): string;
+
+    public isChecksumAddress(address: Address): boolean;
   }
 
   namespace Web3 {
