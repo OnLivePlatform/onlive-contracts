@@ -16,7 +16,7 @@ const specification = [
     pools: [
       {
         amount: 1_343_100,
-        lock: new Date('2018-05-11'),
+        lock: null,
         tranche: 't1'
       },
       {
@@ -68,7 +68,7 @@ const specification = [
     pools: [
       {
         amount: 2_664_000,
-        lock: new Date('2018-05-11'),
+        lock: null,
         tranche: 't1'
       },
       {
@@ -94,7 +94,7 @@ const specification = [
     pools: [
       {
         amount: 610_500,
-        lock: new Date('2018-05-11'),
+        lock: null,
         tranche: 't1'
       },
       {
@@ -120,7 +120,7 @@ const specification = [
     pools: [
       {
         amount: 555_000,
-        lock: new Date('2018-05-11'),
+        lock: null,
         tranche: 't1'
       },
       {
@@ -153,10 +153,10 @@ async function deploy() {
 
       console.log(
         `${id} ${amount.toLocaleString()} ONL`,
-        `locked until ${lock.toISOString()}`
+        lock ? `locked until ${lock.toISOString()}` : 'not locked'
       );
 
-      await pool.registerPool(id, toONL(amount), toTimestamp(lock));
+      await pool.registerPool(id, toONL(amount), lock ? toTimestamp(lock) : 0);
     }
   }
 }
