@@ -15,6 +15,10 @@
     "migrate:rinkeby:js": "truffle migrate --network rinkeby",
     "migrate:rinkeby:reset": "run-s compile:ts migrate:rinkeby:reset:js",
     "migrate:rinkeby:reset:js": "truffle migrate --network rinkeby --reset",
+    "migrate:kovan": "run-s compile:ts migrate:kovan:js",
+    "migrate:kovan:js": "truffle migrate --network kovan",
+    "migrate:kovan:reset": "run-s compile:ts migrate:kovan:reset:js",
+    "migrate:kovan:reset:js": "truffle migrate --network kovan --reset",
     "test": "run-s compile:ts test:js",
     "test:js": "truffle test",
     "test:token": "run-s compile:ts test:token:js",
@@ -35,7 +39,9 @@
     "flatten:token": "run-s compile:ts flatten:token:js",
     "flatten:token:js": "node scripts/flatten.js -c OnLiveToken",
     "flatten:preicocrowdsale": "run-s compile:ts flatten:preicocrowdsale:js",
-    "flatten:preicocrowdsale:js": "node scripts/flatten.js -c PreIcoCrowdsale"
+    "flatten:preicocrowdsale:js": "node scripts/flatten.js -c PreIcoCrowdsale",
+    "flatten:tokenpool": "run-s compile:ts flatten:tokenpool:js",
+    "flatten:tokenpool:js": "node scripts/flatten.js -c TokenPool"
   },
   "repository": {
     "type": "git",
@@ -60,12 +66,12 @@
     "chai": "^4.1.2",
     "commander": "^2.12.2",
     "npm-run-all": "^4.1.2",
-    "prettier": "^1.9.2",
+    "prettier": "^1.11.1",
     "ramda": "^0.25.0",
     "solhint": "^1.1.10",
     "truffle": "^4.0.4",
     "tslint": "^5.8.0",
-    "typescript": "^2.6.2"
+    "typescript": "^2.7.2"
   },
   "dependencies": {
     "zeppelin-solidity": "^1.5.0"

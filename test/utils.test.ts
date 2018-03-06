@@ -22,6 +22,7 @@ import {
   toONL,
   toSzabo,
   toThousandsONL,
+  toTimestamp,
   toWei
 } from '../utils';
 import {
@@ -268,4 +269,25 @@ describe('#daysToBlocks', () => {
       assert.equal(daysToBlocks(days), blocks);
     });
   }
+});
+
+describe('#toTimestamp', () => {
+  const suite = [
+    { date: '2012-01-02T20:21Z', timestamp: 1325535660 },
+    { date: '2018-02-16T10:00Z', timestamp: 1518775200 },
+    { date: '2042-10-15T15:21Z', timestamp: 2296999260 },
+    { date: '1970-01-01T00:00Z', timestamp: 0 }
+  ];
+
+  for (const { date, timestamp } of suite) {
+    it(`should return ${timestamp} for ${date}`, () => {
+      assert.equal(toTimestamp(new Date(date)), timestamp);
+    });
+  }
+
+  it(`should throw error for date before 1970`, () => {
+    assert.throws(() => {
+      toTimestamp(new Date('1969-12-01T10:00Z'));
+    });
+  });
 });
