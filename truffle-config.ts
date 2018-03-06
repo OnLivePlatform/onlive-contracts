@@ -2,7 +2,7 @@ import { fromGwei } from './utils';
 
 const from = '0x6c14a683e3e894fbEE5F929C5fAC402dF79694f6';
 const gas = 3500000;
-const gasPrice = fromGwei(21);
+const gasPrice = fromGwei(14);
 const host = 'localhost';
 const port = 8545;
 
