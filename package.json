@@ -35,7 +35,9 @@
     "flatten:token": "run-s compile:ts flatten:token:js",
     "flatten:token:js": "node scripts/flatten.js -c OnLiveToken",
     "flatten:preicocrowdsale": "run-s compile:ts flatten:preicocrowdsale:js",
-    "flatten:preicocrowdsale:js": "node scripts/flatten.js -c PreIcoCrowdsale"
+    "flatten:preicocrowdsale:js": "node scripts/flatten.js -c PreIcoCrowdsale",
+    "flatten:tokenpool": "run-s compile:ts flatten:tokenpool:js",
+    "flatten:tokenpool:js": "node scripts/flatten.js -c TokenPool"
   },
   "repository": {
     "type": "git",
