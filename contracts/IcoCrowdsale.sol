@@ -5,22 +5,24 @@ import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
- * @title Token interface
+ * @title Token interface compatible with ICO Crowdsale
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
  * @author Dominik Kroliczek (https://github.com/kruligh)
  */
-contract Mintable {
+contract IcoToken {
     uint256 public decimals;
 
-    function mint(address to, uint256 amount) public;
     function transfer(address to, uint256 amount) public;
+    function mint(address to, uint256 amount) public;
     function burn(uint256 amount) public;
+
+    function balanceOf(address who) public view returns (uint256);
 }
 
 
 /**
- * @title ICO Crowdsale with price depending on timestamp and limited supply
+ * @title ICO Crowdsale with multiple price tiers and limited supply
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
  * @author Dominik Kroliczek (https://github.com/kruligh)
@@ -30,13 +32,13 @@ contract IcoCrowdsale is Ownable {
     using SafeMath for uint256;
 
     /**
-     * @dev Structure representing stage of crowdsale
+     * @dev Structure representing price tier
      */
-    struct Stage {
+    struct Tier {
         /**
-        * @dev Start timestamp, inclusive
+        * @dev The first block of the tier (inclusive)
         */
-        uint256 start;
+        uint256 startBlock;
         /**
         * @dev Price of token in Wei
         */
@@ -49,14 +51,9 @@ contract IcoCrowdsale is Ownable {
     address public wallet;
 
     /**
-     * @dev Address of mintable token instance
+     * @dev Address of compatible token instance
      */
-    Mintable public token;
-
-    /**
-     * @dev Current amount of tokens available for sale
-     */
-    uint256 public availableAmount;
+    IcoToken public token;
 
     /**
      * @dev Minimum ETH value sent as contribution
@@ -69,27 +66,17 @@ contract IcoCrowdsale is Ownable {
     mapping (bytes32 => bool) public isContributionRegistered;
 
     /**
-     * @dev Stores stages of sale in chronological order
+     * @dev Stores price tiers in chronological order
      */
-    Stage[] public stages;
+    Tier[] public tiers;
 
     /**
-    * @dev Timestamp of sale end
+    * @dev The last block of crowdsale (inclusive)
     */
-    uint256 public end;
-
-    modifier onlyValid(address addr) {
-        require(addr != address(0));
-        _;
-    }
+    uint256 public endBlock;
 
     modifier onlySufficientValue(uint256 value) {
         require(value >= minValue);
-        _;
-    }
-
-    modifier onlySufficientAvailableTokens(uint256 amount) {
-        require(availableAmount >= amount);
         _;
     }
 
@@ -98,57 +85,46 @@ contract IcoCrowdsale is Ownable {
         _;
     }
 
-    modifier onlyEqual(uint256 a, uint256 b) {
-        require(a == b);
-        _;
-    }
-
     modifier onlyActive() {
         require(isActive());
         _;
     }
 
-    modifier onlyCrowdsaleEnded() {
-        /* solhint-disable not-rely-on-time */
-        require(now > end);
-        /* solhint-enable not-rely-on-time */
+    modifier onlyFinished() {
+        require(isFinished());
         _;
     }
 
-    modifier onlyScheduledStages() {
-        require(stages.length > 0);
+    modifier onlyScheduledTiers() {
+        require(tiers.length > 0);
         _;
     }
 
-    modifier onlyNotZero(uint256 a) {
-        require(a != 0);
+    modifier onlyNotFinalized() {
+        require(!isFinalized());
         _;
     }
 
-    modifier onlyScheduledCrowdsaleEnd() {
-        require(isCrowdsaleEndScheduled());
-        _;
-    }
-
-    modifier onlyNotScheduledCrowdsaleEnd() {
-        require(!isCrowdsaleEndScheduled());
-        _;
-    }
-
-    modifier onlyNotMinted() {
-        require(availableAmount == 0);
-        _;
-    }
-
-    modifier returnsZeroIfNotActive() {
-        if (isActive()) {
-            _;
+    modifier onlySubsequentTier(uint256 startBlock) {
+        if (tiers.length > 0) {
+            require(startBlock > tiers[tiers.length - 1].startBlock);
         }
+        _;
+    }
+
+    modifier onlyNotZero(uint256 value) {
+        require(value != 0);
+        _;
+    }
+
+    modifier onlyValid(address addr) {
+        require(addr != address(0));
+        _;
     }
 
     function IcoCrowdsale(
         address _wallet,
-        Mintable _token,
+        IcoToken _token,
         uint256 _minValue
     )
         public
@@ -177,73 +153,29 @@ contract IcoCrowdsale is Ownable {
     event ContributionRegistered(bytes32 indexed id, address indexed contributor, uint256 amount);
 
     /**
-     * @dev Sale stage scheduled with given start and price
-     * @param start uint256 Timestamp when stage activating, inclusive
-     * @param price uint256 The price active during stage
+     * @dev Tier scheduled with given start block and price
+     * @param startBlock uint256 The first block of tier activation (inclusive)
+     * @param price uint256 The price active during tier
      */
-    event StageScheduled(uint256 start, uint256 price);
+    event TierScheduled(uint256 startBlock, uint256 price);
 
     /**
-     * @dev Sale end scheduled
-     * @param end uint256 Timestamp when sale ends
+     * @dev Crowdsale end block scheduled
+     * @param availableAmount uint256 The amount of tokens available in crowdsale
+     * @param endBlock uint256 The last block of crowdsale (inclusive)
      */
-    event CrowdsaleEndScheduled(uint256 availableAmount, uint256 end);
+    event Finalized(uint256 endBlock, uint256 availableAmount);
 
     /**
-     * @dev Not sold tokens burned
+     * @dev Unsold tokens burned
      */
-    event LeftTokensBurned();
+    event RemainsBurned(uint256 burnedAmount);
 
     /**
      * @dev Accept ETH transfers as contributions
      */
     function () public payable {
         acceptContribution(msg.sender, msg.value);
-    }
-
-    /**
-     * @dev Schedule crowdsale stage
-     * @param _start uint256 Timestamp when stage activating, inclusive
-     * @param _price uint256 The price active during stage
-     */
-    function scheduleStage(uint256 _start, uint _price)
-        public
-        onlyOwner
-        onlyNotScheduledCrowdsaleEnd
-        onlyNotZero(_start)
-        onlyNotZero(_price)
-    {
-        if (stages.length > 0) {
-            require(_start > stages[stages.length - 1].start);
-        }
-
-        stages.push(
-            Stage({
-                start: _start,
-                price: _price
-            })
-        );
-
-        StageScheduled(_start, _price);
-    }
-
-    /**
-     * @dev Schedule crowdsale end
-     * @param _availableAmount uint256 Token amount available in crowdsale
-     * @param _end uint256 Timestamp end of crowdsale, inclusive
-     */
-    function scheduleCrowdsaleEnd(uint256 _availableAmount, uint256 _end)
-        public
-        onlyOwner
-        onlyScheduledStages
-        onlyNotMinted
-        onlyNotZero(_availableAmount)
-        onlyNotZero(_end)
-    {
-        availableAmount = _availableAmount;
-        end = _end;
-        token.mint(this, _availableAmount);
-        CrowdsaleEndScheduled(_availableAmount, _end);
     }
 
     /**
@@ -270,77 +202,148 @@ contract IcoCrowdsale is Ownable {
         onlyUniqueContribution(id)
     {
         isContributionRegistered[id] = true;
-        transferTokens(contributor, amount);
+
+        token.transfer(contributor, amount);
 
         ContributionRegistered(id, contributor, amount);
     }
 
     /**
-     * @dev Burns all tokens which haven't been sold
+     * @dev Schedule price tier
+     * @param _startBlock uint256 Block when the tier activates, inclusive
+     * @param _price uint256 The price of the tier
      */
-    function burnLeftTokens()
+    function scheduleTier(uint256 _startBlock, uint256 _price)
         public
         onlyOwner
-        onlyScheduledCrowdsaleEnd
-        onlyCrowdsaleEnded
-        onlyNotZero(availableAmount)
+        onlyNotFinalized
+        onlySubsequentTier(_startBlock)
+        onlyNotZero(_startBlock)
+        onlyNotZero(_price)
     {
-        uint256 _availableAmount = availableAmount;
-        delete availableAmount;
-        token.burn(_availableAmount);
+        tiers.push(
+            Tier({
+                startBlock: _startBlock,
+                price: _price
+            })
+        );
 
-        LeftTokensBurned();
+        TierScheduled(_startBlock, _price);
+    }
+
+    /**
+     * @dev Schedule crowdsale end
+     * @param _endBlock uint256 The last block end of crowdsale (inclusive)
+     * @param _availableAmount uint256 Amount of tokens available in crowdsale
+     */
+    function finalize(uint256 _endBlock, uint256 _availableAmount)
+        public
+        onlyOwner
+        onlyNotFinalized
+        onlyScheduledTiers
+        onlySubsequentTier(_endBlock)
+        onlyNotZero(_availableAmount)
+    {
+        endBlock = _endBlock;
+
+        token.mint(this, _availableAmount);
+
+        Finalized(_endBlock, _availableAmount);
+    }
+
+    /**
+     * @dev Burns all tokens which have not been sold
+     */
+    function burnRemains()
+        public
+        onlyOwner
+        onlyFinished
+    {
+        uint256 availableAmount = token.balanceOf(this);
+
+        token.burn(availableAmount);
+
+        RemainsBurned(availableAmount);
     }
 
     /**
      * @dev Calculate amount of ONL tokens received for given ETH value
-     * @param value uint256 Contribution value in ETH
+     * @param value uint256 Contribution value in wei
      * @return uint256 Amount of received ONL tokens if contract active, otherwise 0
      */
-    function calculateContribution(uint256 value)
-        public
-        view
-        returnsZeroIfNotActive
-        returns (uint256)
-    {
-        return value.mul(10 ** token.decimals()).div(getActualPrice());
+    function calculateContribution(uint256 value) public view returns (uint256) {
+        uint256 price = currentPrice();
+        if (price > 0) {
+            return value.mul(10 ** token.decimals()).div(price);
+        }
+
+        return 0;
     }
 
     /**
-     * @dev Returns price of active stage
-     * @return uint256 Current price if active, otherwise 0
+     * @dev Find closest tier id to given block
+     * @return boolean
      */
-    function getActualPrice()
+    function getTierId(uint256 blockNumber) public view returns (uint256) {
+        for (uint256 i = tiers.length - 1; i >= 0; i--) {
+            if (blockNumber >= tiers[i].startBlock) {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * @dev Return price of the current tier
+     * @return uint256 Current price if , otherwise 0
+     */
+    function currentPrice() public view returns (uint256) {
+        if (tiers.length > 0) {
+            uint256 id = getTierId(block.number);
+            return tiers[id].price;
+        }
+
+        return 0;
+    }
+
+    /**
+     * @dev Returns current tier id or first tier if crowdsale has not started yet or last if ended
+     * @return boolean
+     */
+    function currentTierId()
         public
         view
-        returnsZeroIfNotActive
         returns (uint256)
     {
-        for (uint256 i = stages.length - 1; i >= 0; i--) {
-            /* solhint-disable not-rely-on-time */
-            if (now >= stages[i].start) {
-                return stages[i].price;
-            }
-            /* solhint-enable not-rely-on-time */
-        }
+        return getTierId(block.number);
+    }
+
+    /**
+     * @dev Check whether crowdsale is currently active
+     * @return boolean
+     */
+    function isActive() public view returns (bool) {
+        return
+            tiers.length > 0 &&
+            block.number >= tiers[0].startBlock &&
+            block.number <= endBlock;
     }
 
     /**
      * @dev Check whether sale end is scheduled
      * @return boolean
      */
-    function isCrowdsaleEndScheduled() public view returns (bool) {
-        return end != 0;
+    function isFinalized() public view returns (bool) {
+        return endBlock > 0;
     }
 
     /**
-    * @dev Check whether contract is currently active
-    * @return boolean
-    */
-    function isActive() public view returns (bool) {
-        /* solhint-disable not-rely-on-time */
-        return stages.length > 0 && now >= stages[0].start && now <= end;
-        /* solhint-enable not-rely-on-time */
+     * @dev Check whether crowdsale has finished
+     * @return boolean
+     */
+    function isFinished() public view returns (bool) {
+        return endBlock > 0 && block.number > endBlock;
     }
 
     function acceptContribution(address contributor, uint256 value)
@@ -351,19 +354,12 @@ contract IcoCrowdsale is Ownable {
         returns (uint256)
     {
         uint256 amount = calculateContribution(value);
-        transferTokens(contributor, amount);
+        token.transfer(contributor, amount);
+
         wallet.transfer(value);
 
         ContributionAccepted(contributor, value, amount);
 
         return amount;
-    }
-
-    function transferTokens(address to, uint256 amount)
-        private
-        onlySufficientAvailableTokens(amount)
-    {
-        availableAmount = availableAmount.sub(amount);
-        token.transfer(to, amount);
     }
 }
