@@ -2,46 +2,47 @@ import { OnLiveArtifacts } from 'onlive';
 import { Deployer } from 'truffle';
 import * as Web3 from 'web3';
 
-import { toMillionsONL, toWei } from '../utils';
+import { BlockCalculator, blockTimes, toMillionsONL, toWei } from '../utils';
 
 declare const artifacts: OnLiveArtifacts;
 declare const web3: Web3;
 
 const IcoCrowdsale = artifacts.require('./IcoCrowdsale.sol');
 
-async function deploy() {
+async function deploy(network: string) {
+  const calculator = new BlockCalculator(blockTimes[network]);
+  const tierDuration = calculator.daysToBlocks(11);
+  const startOffset = calculator.hoursToBlocks(10);
+
   const availableAmount = toMillionsONL('61.050');
-  const stages = [
+  const tiers = [
     {
       price: toWei(0.00131),
-      start: getUnixSeconds(new Date(2018, 2, 11)) // month starts from 0
+      startBlock: startOffset
     },
     {
       price: toWei(0.001458),
-      start: getUnixSeconds(new Date(2018, 2, 22))
+      startBlock: startOffset + tierDuration
     },
     {
       price: toWei(0.001638),
-      start: getUnixSeconds(new Date(2018, 3, 3))
+      startBlock: startOffset + 2 * tierDuration
     }
   ];
-  const end = getUnixSeconds(new Date(2018, 3, 11));
+
+  const endBlock = startOffset + 3 * tierDuration;
 
   const crowdsale = await IcoCrowdsale.deployed();
 
-  await stages.forEach(async stage => {
-    await crowdsale.scheduleStage(stage.start, stage.price);
+  await tiers.forEach(async tier => {
+    await crowdsale.scheduleTier(tier.startBlock, tier.price);
   });
 
-  await crowdsale.scheduleCrowdsaleEnd(availableAmount, end);
+  await crowdsale.finalize(availableAmount, endBlock);
 }
 
-function migrate(deployer: Deployer) {
-  deployer.then(() => deploy());
+function migrate(deployer: Deployer, network: string) {
+  deployer.then(() => deploy(network));
 }
 
 export = migrate;
-
-function getUnixSeconds(date: Date) {
-  return Math.round(date.getTime() / 1000);
-}

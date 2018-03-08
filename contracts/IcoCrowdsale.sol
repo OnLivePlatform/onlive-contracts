@@ -68,7 +68,7 @@ contract IcoCrowdsale is Ownable {
     /**
      * @dev Stores price tiers in chronological order
      */
-    Tier[] public tiers;
+    Tier[] private tiers;
 
     /**
     * @dev The last block of crowdsale (inclusive)
@@ -259,11 +259,11 @@ contract IcoCrowdsale is Ownable {
         onlyOwner
         onlyFinished
     {
-        uint256 availableAmount = token.balanceOf(this);
+        uint256 amount = availableAmount();
 
-        token.burn(availableAmount);
+        token.burn(amount);
 
-        RemainsBurned(availableAmount);
+        RemainsBurned(amount);
     }
 
     /**
@@ -295,7 +295,7 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
-     * @dev Return price of the current tier
+     * @dev Get price of the current tier
      * @return uint256 Current price if tiers defined, otherwise 0
      */
     function currentPrice() public view returns (uint256) {
@@ -308,19 +308,23 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
-     * @dev Returns current tier id
+     * @dev Get current tier id
      * @return uint256 Tier containing the block or zero if before start or last if after finished
      */
-    function currentTierId()
-        public
-        view
-        returns (uint256)
-    {
+    function currentTierId() public view returns (uint256) {
         return getTierId(block.number);
     }
 
     /**
-     * @dev Returns specification of all tiers
+     * @dev Get available amount of tokens
+     * @return uint256 Amount of unsold tokens
+     */
+    function availableAmount() public view returns (uint256) {
+        return token.balanceOf(this);
+    }
+
+    /**
+     * @dev Get specification of all tiers
      */
     function listTiers()
         public

@@ -209,8 +209,8 @@ declare module 'onlive' {
     }
 
     interface PreIcoCrowdsale extends Schedulable {
-      wallet(): Promise<string>;
-      token(): Promise<string>;
+      wallet(): Promise<Address>;
+      token(): Promise<Address>;
       availableAmount(): Promise<BigNumber>;
       price(): Promise<BigNumber>;
       minValue(): Promise<BigNumber>;
@@ -281,18 +281,11 @@ declare module 'onlive' {
     }
 
     interface IcoCrowdsale extends Ownable {
-      wallet(): Promise<string>;
-      token(): Promise<string>;
-      availableAmount(): Promise<BigNumber>;
+      wallet(): Promise<Address>;
+      token(): Promise<Address>;
       minValue(): Promise<BigNumber>;
-      stages(index: AnyNumber): Promise<BigNumber[]>;
-      end(): Promise<BigNumber>;
       isContributionRegistered(id: string): Promise<boolean>;
-      calculateContribution(value: AnyNumber): Promise<BigNumber>;
-      isCrowdsaleEndScheduled(): Promise<boolean>;
-      isActive(): Promise<boolean>;
-
-      burnLeftTokens(options?: TransactionOptions): Promise<TransactionResult>;
+      endBlock(): Promise<BigNumber>;
 
       contribute(
         contributor: Address,
@@ -306,19 +299,30 @@ declare module 'onlive' {
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
-      getActualPrice(): Promise<BigNumber>;
-
-      scheduleStage(
-        start: AnyNumber,
+      scheduleTier(
+        startBlock: AnyNumber,
         price: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
 
-      scheduleCrowdsaleEnd(
+      finalize(
+        endBlock: AnyNumber,
         availableAmount: AnyNumber,
-        end: AnyNumber,
         options?: TransactionOptions
       ): Promise<TransactionResult>;
+
+      burnRemains(options?: TransactionOptions): Promise<TransactionResult>;
+
+      calculateContribution(value: AnyNumber): Promise<BigNumber>;
+      getTierId(blockNumber: AnyNumber): Promise<BigNumber>;
+      currentPrice(): Promise<BigNumber>;
+      currentTierId(): Promise<BigNumber>;
+      availableAmount(): Promise<BigNumber>;
+      listTiers(): Promise<[BigNumber[], BigNumber[], BigNumber[]]>;
+
+      isActive(): Promise<boolean>;
+      isFinalized(): Promise<boolean>;
+      isFinished(): Promise<boolean>;
     }
 
     interface StageScheduledEvent {
