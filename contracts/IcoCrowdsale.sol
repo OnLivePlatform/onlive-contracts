@@ -105,7 +105,7 @@ contract IcoCrowdsale is Ownable {
         _;
     }
 
-    modifier onlySubsequentTier(uint256 startBlock) {
+    modifier onlySubsequentBlock(uint256 startBlock) {
         if (tiers.length > 0) {
             require(startBlock > tiers[tiers.length - 1].startBlock);
         }
@@ -217,7 +217,7 @@ contract IcoCrowdsale is Ownable {
         public
         onlyOwner
         onlyNotFinalized
-        onlySubsequentTier(_startBlock)
+        onlySubsequentBlock(_startBlock)
         onlyNotZero(_startBlock)
         onlyNotZero(_price)
     {
@@ -241,7 +241,7 @@ contract IcoCrowdsale is Ownable {
         onlyOwner
         onlyNotFinalized
         onlyScheduledTiers
-        onlySubsequentTier(_endBlock)
+        onlySubsequentBlock(_endBlock)
         onlyNotZero(_availableAmount)
     {
         endBlock = _endBlock;
@@ -282,7 +282,7 @@ contract IcoCrowdsale is Ownable {
 
     /**
      * @dev Find closest tier id to given block
-     * @return boolean
+     * @return uint256 Tier containing the block or zero if before start or last if after finished
      */
     function getTierId(uint256 blockNumber) public view returns (uint256) {
         for (uint256 i = tiers.length - 1; i >= 0; i--) {
@@ -296,7 +296,7 @@ contract IcoCrowdsale is Ownable {
 
     /**
      * @dev Return price of the current tier
-     * @return uint256 Current price if , otherwise 0
+     * @return uint256 Current price if tiers defined, otherwise 0
      */
     function currentPrice() public view returns (uint256) {
         if (tiers.length > 0) {
@@ -308,8 +308,8 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
-     * @dev Returns current tier id or first tier if crowdsale has not started yet or last if ended
-     * @return boolean
+     * @dev Returns current tier id
+     * @return uint256 Tier containing the block or zero if before start or last if after finished
      */
     function currentTierId()
         public
@@ -320,8 +320,32 @@ contract IcoCrowdsale is Ownable {
     }
 
     /**
+     * @dev Returns specification of all tiers
+     */
+    function listTiers()
+        public
+        view
+        returns (uint256[] startBlocks, uint256[] endBlocks, uint256[] prices)
+    {
+        startBlocks = new uint256[](tiers.length);
+        endBlocks = new uint256[](tiers.length);
+        prices = new uint256[](tiers.length);
+
+        for (uint256 i = 0; i < tiers.length; i++) {
+            startBlocks[i] = tiers[i].startBlock;
+            prices[i] = tiers[i].price;
+
+            if (i + 1 < tiers.length) {
+                endBlocks[i] = tiers[i + 1].startBlock;
+            } else {
+                endBlocks[i] = endBlock;
+            }
+        }
+    }
+
+    /**
      * @dev Check whether crowdsale is currently active
-     * @return boolean
+     * @return boolean True if current block number is within tier ranges, otherwise False
      */
     function isActive() public view returns (bool) {
         return
@@ -332,7 +356,7 @@ contract IcoCrowdsale is Ownable {
 
     /**
      * @dev Check whether sale end is scheduled
-     * @return boolean
+     * @return boolean True if end block is defined, otherwise False
      */
     function isFinalized() public view returns (bool) {
         return endBlock > 0;
@@ -340,7 +364,7 @@ contract IcoCrowdsale is Ownable {
 
     /**
      * @dev Check whether crowdsale has finished
-     * @return boolean
+     * @return boolean True if end block passed, otherwise False
      */
     function isFinished() public view returns (bool) {
         return endBlock > 0 && block.number > endBlock;
