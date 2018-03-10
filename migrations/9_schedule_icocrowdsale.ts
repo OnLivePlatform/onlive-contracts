@@ -32,15 +32,15 @@ async function deploy(network: string) {
   const crowdsaleStartBlock = await calculateStartBlock(calculator);
   const tiers = [
     {
-      price: toWei(0.00131),
+      price: toWei('0.00131'),
       startBlock: crowdsaleStartBlock
     },
     {
-      price: toWei(0.001458),
+      price: toWei('0.001458'),
       startBlock: crowdsaleStartBlock + calculator.daysToBlocks(10.5)
     },
     {
-      price: toWei(0.001638),
+      price: toWei('0.001638'),
       startBlock: crowdsaleStartBlock + calculator.daysToBlocks(21.5)
     }
   ];
@@ -65,7 +65,7 @@ function migrate(deployer: Deployer, network: string) {
 }
 
 async function calculateStartBlock(calculator: BlockCalculator) {
-  const startOffset = calculator.hoursToBlocks(21);
+  const startOffset = calculator.hoursToBlocks(1);
   const currentBlock = await utils.getBlockNumber();
   const crowdsaleStartBlock = currentBlock + startOffset;
   return crowdsaleStartBlock;

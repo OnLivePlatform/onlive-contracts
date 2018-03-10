@@ -9941,6 +9941,119 @@
     "version": "0.4.18+commit.9cf6e910.Emscripten.clang"
   },
   "networks": {
+    "1": {
+      "events": {
+        "0xc82bd2657a86085d10f487c20f5c22d24b8031e8d43be961bfec4ee100df27ba": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "contributor",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "ContributionAccepted",
+          "type": "event"
+        },
+        "0x1d978f9e1df3910a137d9fde0320c164e817c01d8142a2127d9a381e1ac67206": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "id",
+              "type": "bytes32"
+            },
+            {
+              "indexed": true,
+              "name": "contributor",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "ContributionRegistered",
+          "type": "event"
+        },
+        "0xe910947d2d7e6a3288bd2d48460ebed44b0c73947479e9134142d15c8c3e3301": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "startBlock",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "name": "price",
+              "type": "uint256"
+            }
+          ],
+          "name": "TierScheduled",
+          "type": "event"
+        },
+        "0xb968440accd1ce5fa60b00de8bb8d8487eb2fda3c3701fb30fea3f69aa910a48": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "endBlock",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "name": "availableAmount",
+              "type": "uint256"
+            }
+          ],
+          "name": "Finalized",
+          "type": "event"
+        },
+        "0xf3ef5a589d6b2cbcb14401a0bb2a9e089011f8415ea930fd7dd13ebbafd8573a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "burnedAmount",
+              "type": "uint256"
+            }
+          ],
+          "name": "RemainsBurned",
+          "type": "event"
+        },
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x526e0e252c1037f5c85ab451c35906b8c978161a"
+    },
     "4": {
       "events": {
         "0xc82bd2657a86085d10f487c20f5c22d24b8031e8d43be961bfec4ee100df27ba": {
@@ -10169,5 +10282,5 @@
     }
   },
   "schemaVersion": "1.0.1",
-  "updatedAt": "2018-03-10T16:15:40.692Z"
+  "updatedAt": "2018-03-10T16:46:25.767Z"
 }
