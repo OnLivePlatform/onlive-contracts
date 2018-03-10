@@ -65,7 +65,7 @@ function migrate(deployer: Deployer, network: string) {
 }
 
 async function calculateStartBlock(calculator: BlockCalculator) {
-  const startOffset = calculator.hoursToBlocks(22);
+  const startOffset = calculator.hoursToBlocks(21);
   const currentBlock = await utils.getBlockNumber();
   const crowdsaleStartBlock = currentBlock + startOffset;
   return crowdsaleStartBlock;
