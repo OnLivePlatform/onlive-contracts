@@ -209,8 +209,8 @@ declare module 'onlive' {
     }
 
     interface PreIcoCrowdsale extends Schedulable {
-      wallet(): Promise<string>;
-      token(): Promise<string>;
+      wallet(): Promise<Address>;
+      token(): Promise<Address>;
       availableAmount(): Promise<BigNumber>;
       price(): Promise<BigNumber>;
       minValue(): Promise<BigNumber>;
@@ -280,6 +280,63 @@ declare module 'onlive' {
       amount: BigNumber;
     }
 
+    interface IcoCrowdsale extends Ownable {
+      wallet(): Promise<Address>;
+      token(): Promise<Address>;
+      minValue(): Promise<BigNumber>;
+      isContributionRegistered(id: string): Promise<boolean>;
+      endBlock(): Promise<BigNumber>;
+
+      contribute(
+        contributor: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      registerContribution(
+        id: string,
+        contributor: Address,
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      scheduleTier(
+        startBlock: AnyNumber,
+        price: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      finalize(
+        endBlock: AnyNumber,
+        availableAmount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      burnRemains(options?: TransactionOptions): Promise<TransactionResult>;
+
+      calculateContribution(value: AnyNumber): Promise<BigNumber>;
+      getTierId(blockNumber: AnyNumber): Promise<BigNumber>;
+      currentPrice(): Promise<BigNumber>;
+      currentTierId(): Promise<BigNumber>;
+      availableAmount(): Promise<BigNumber>;
+      listTiers(): Promise<[BigNumber[], BigNumber[], BigNumber[]]>;
+
+      isActive(): Promise<boolean>;
+      isFinalized(): Promise<boolean>;
+      isFinished(): Promise<boolean>;
+    }
+
+    interface StageScheduledEvent {
+      start: BigNumber;
+      price: BigNumber;
+    }
+
+    interface CrowdsaleEndScheduledEvent {
+      availableAmount: BigNumber;
+      end: BigNumber;
+    }
+
+    type LeftTokensBurnedEvent = {};
+
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
@@ -324,8 +381,18 @@ declare module 'onlive' {
       ): Promise<PreIcoCrowdsale>;
     }
 
+    interface IcoCrowdsaleContract extends Contract<IcoCrowdsale> {
+      'new'(
+        wallet: Address,
+        token: Address,
+        minValue: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<IcoCrowdsale>;
+    }
+
     interface TokenPoolContract extends Contract<TokenPool> {
       'new'(token: Address, options?: TransactionOptions): Promise<TokenPool>;
+      link(contract: Contract<any>): void;
     }
 
     interface OnLiveArtifacts extends TruffleArtifacts {
@@ -337,6 +404,7 @@ declare module 'onlive' {
       require(name: './OnLiveToken.sol'): OnLiveTokenContract;
       require(name: './PreIcoCrowdsale.sol'): PreIcoCrowdsaleContract;
       require(name: './TokenPool.sol'): TokenPoolContract;
+      require(name: './IcoCrowdsale.sol'): IcoCrowdsaleContract;
     }
   }
 

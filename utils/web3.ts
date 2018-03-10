@@ -13,4 +13,8 @@ export class Web3Utils {
   public async getBalance(account: Address) {
     return promisify<BigNumber>(cb => this.web3.eth.getBalance(account, cb));
   }
+
+  public async getBlock() {
+    return promisify<any>(cb => this.web3.eth.getBlock('latest', cb));
+  }
 }

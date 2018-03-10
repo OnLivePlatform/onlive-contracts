@@ -14,17 +14,20 @@ declare module 'web3' {
       sendTransaction(txData: Web3.TxData, callback: Callback<string>): void;
       getBalance(account: Address, callback: Callback<BigNumber>): void;
       sign(account: Address, text: string): string;
+      getBlock(id: number | string, callback: Callback<any>): void;
     };
 
     public version: {
       getNetwork(cb: Callback<string>): void;
     };
 
+    public currentProvider: Web3.Provider;
+
     public constructor(provider?: Web3.Provider);
 
     public sha3(str: string, options?: { encoding: 'hex' }): string;
-
     public toDecimal(hex: string): number;
+
     public toHex(num: number): string;
 
     public isChecksumAddress(address: Address): boolean;

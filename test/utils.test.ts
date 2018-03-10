@@ -2,17 +2,14 @@ import { BigNumber } from 'bignumber.js';
 import { assert } from 'chai';
 
 import {
+  BlockCalculator,
   calculateContribution,
-  daysToBlocks,
   fromEth,
   fromFinney,
   fromGwei,
   fromKwei,
   fromMwei,
   fromSzabo,
-  hoursToBlocks,
-  minutesToBlocks,
-  secondsToBlocks,
   shiftNumber,
   toFinney,
   toGwei,
@@ -211,6 +208,7 @@ describe('#calculateContribution', () => {
 });
 
 describe('#secondsToBlocks', () => {
+  const calculator = new BlockCalculator(15);
   const suite = [
     { seconds: 0, blocks: 0 },
     { seconds: 5, blocks: 1 },
@@ -223,12 +221,13 @@ describe('#secondsToBlocks', () => {
 
   for (const { seconds, blocks } of suite) {
     it(`should return ${blocks} blocks for ${seconds} seconds`, () => {
-      assert.equal(secondsToBlocks(seconds), blocks);
+      assert.equal(calculator.secondsToBlocks(seconds), blocks);
     });
   }
 });
 
 describe('#minutesToBlocks', () => {
+  const calculator = new BlockCalculator(15);
   const suite = [
     { minutes: 0, blocks: 0 },
     { minutes: 5, blocks: 20 },
@@ -238,12 +237,13 @@ describe('#minutesToBlocks', () => {
 
   for (const { minutes, blocks } of suite) {
     it(`should return ${blocks} blocks for ${minutes} minutes`, () => {
-      assert.equal(minutesToBlocks(minutes), blocks);
+      assert.equal(calculator.minutesToBlocks(minutes), blocks);
     });
   }
 });
 
 describe('#hoursToBlocks', () => {
+  const calculator = new BlockCalculator(15);
   const suite = [
     { hours: 0, blocks: 0 },
     { hours: 5, blocks: 1200 },
@@ -252,12 +252,13 @@ describe('#hoursToBlocks', () => {
 
   for (const { hours, blocks } of suite) {
     it(`should return ${blocks} blocks for ${hours} hours`, () => {
-      assert.equal(hoursToBlocks(hours), blocks);
+      assert.equal(calculator.hoursToBlocks(hours), blocks);
     });
   }
 });
 
 describe('#daysToBlocks', () => {
+  const calculator = new BlockCalculator(15);
   const suite = [
     { days: 0, blocks: 0 },
     { days: 2, blocks: 11520 },
@@ -266,7 +267,7 @@ describe('#daysToBlocks', () => {
 
   for (const { days, blocks } of suite) {
     it(`should return ${blocks} blocks for ${days} days`, () => {
-      assert.equal(daysToBlocks(days), blocks);
+      assert.equal(calculator.daysToBlocks(days), blocks);
     });
   }
 });

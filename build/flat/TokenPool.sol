@@ -1,3 +1,5 @@
+/* solhint-disable no-simple-event-func-name */
+
 pragma solidity 0.4.18;
 
 
