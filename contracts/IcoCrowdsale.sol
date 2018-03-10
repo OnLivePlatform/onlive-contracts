@@ -340,7 +340,7 @@ contract IcoCrowdsale is Ownable {
             prices[i] = tiers[i].price;
 
             if (i + 1 < tiers.length) {
-                endBlocks[i] = tiers[i + 1].startBlock;
+                endBlocks[i] = tiers[i + 1].startBlock - 1;
             } else {
                 endBlocks[i] = endBlock;
             }
