@@ -1,11 +1,12 @@
 import { isNumber } from 'util';
 
 export const blockTimes: { [network: string]: number } = {
+  develop: 14.5,
   kovan: 4,
   mainnet: 14.5,
   rinkeby: 15,
   test: 15,
-  testrpc: 15
+  testrpc: 14.5
 };
 
 export class BlockCalculator {

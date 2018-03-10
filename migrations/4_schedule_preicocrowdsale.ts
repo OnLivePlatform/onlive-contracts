@@ -12,7 +12,7 @@ const utils = new Web3Utils(web3);
 const PreIcoCrowdsale = artifacts.require('./PreIcoCrowdsale.sol');
 
 async function deploy(network: string) {
-  const calculator = new BlockCalculator(blockTimes[network])
+  const calculator = new BlockCalculator(blockTimes[network]);
 
   const duration = calculator.daysToBlocks(31) + calculator.hoursToBlocks(12);
   const startOffset = calculator.hoursToBlocks(10);
