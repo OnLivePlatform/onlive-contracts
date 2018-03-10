@@ -83,6 +83,11 @@ contract Ownable {
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
  * @author Dominik Kroliczek (https://github.com/kruligh)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
  */
 contract IcoToken {
     uint256 public decimals;
@@ -100,6 +105,11 @@ contract IcoToken {
  * @author Jakub Stefanski (https://github.com/jstefanski)
  * @author Wojciech Harzowski (https://github.com/harzo)
  * @author Dominik Kroliczek (https://github.com/kruligh)
+ *
+ * https://github.com/OnLivePlatform/onlive-contracts
+ *
+ * The BSD 3-Clause Clear License
+ * Copyright (c) 2018 OnLive LTD
  */
 contract IcoCrowdsale is Ownable {
 
