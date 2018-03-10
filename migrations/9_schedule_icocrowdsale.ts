@@ -23,14 +23,13 @@ const IcoCrowdsale = artifacts.require('./IcoCrowdsale.sol');
 
 async function deploy(network: string) {
   const crowdsale = await IcoCrowdsale.deployed();
-  const calculator = new BlockCalculator(blockTimes[network]);
-  const tierDuration = calculator.daysToBlocks(11);
-  const startOffset = calculator.hoursToBlocks(10);
-  const currentBlock = await utils.getBlockNumber();
+  const blockTime = blockTimes[network];
+  const calculator = new BlockCalculator(blockTime);
+
+  console.log(`Estimating block numbers with ${blockTime} seconds per block`);
 
   const availableAmount = toMillionsONL('61.050');
-
-  const crowdsaleStartBlock = currentBlock + startOffset;
+  const crowdsaleStartBlock = await calculateStartBlock(calculator);
   const tiers = [
     {
       price: toWei(0.00131),
@@ -38,14 +37,14 @@ async function deploy(network: string) {
     },
     {
       price: toWei(0.001458),
-      startBlock: crowdsaleStartBlock + tierDuration
+      startBlock: crowdsaleStartBlock + calculator.daysToBlocks(10.5)
     },
     {
       price: toWei(0.001638),
-      startBlock: crowdsaleStartBlock + 2 * tierDuration
+      startBlock: crowdsaleStartBlock + calculator.daysToBlocks(21.5)
     }
   ];
-  const crowdsaleEndBlock = crowdsaleStartBlock + 3 * tierDuration;
+  const crowdsaleEndBlock = crowdsaleStartBlock + calculator.daysToBlocks(30.5);
 
   for (const { price, startBlock } of tiers) {
     console.log(
@@ -63,6 +62,13 @@ async function deploy(network: string) {
 
 function migrate(deployer: Deployer, network: string) {
   deployer.then(() => deploy(network));
+}
+
+async function calculateStartBlock(calculator: BlockCalculator) {
+  const startOffset = calculator.hoursToBlocks(22);
+  const currentBlock = await utils.getBlockNumber();
+  const crowdsaleStartBlock = currentBlock + startOffset;
+  return crowdsaleStartBlock;
 }
 
 export = migrate;
