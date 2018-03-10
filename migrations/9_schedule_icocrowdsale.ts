@@ -6,7 +6,9 @@ import * as Web3 from 'web3';
 
 import {
   BlockCalculator,
-  blockTimes, ONL_DECIMALS, shiftNumber,
+  blockTimes,
+  ONL_DECIMALS,
+  shiftNumber,
   toMillionsONL,
   toWei,
   Web3Utils
@@ -45,7 +47,7 @@ async function deploy(network: string) {
   ];
   const crowdsaleEndBlock = crowdsaleStartBlock + 3 * tierDuration;
 
-  for (const {price, startBlock} of tiers) {
+  for (const { price, startBlock } of tiers) {
     console.log(
       `Scheduling tier from ${startBlock.toLocaleString()} block`,
       `${shiftNumber(price, -ONL_DECIMALS)} ETH per token`
@@ -54,11 +56,9 @@ async function deploy(network: string) {
     await crowdsale.scheduleTier(startBlock, price);
   }
 
-  console.log(
-    `Finalizing with ${crowdsaleEndBlock.toLocaleString()} block`
-  );
+  console.log(`Finalizing with ${crowdsaleEndBlock.toLocaleString()} block`);
 
-  await crowdsale.finalize(availableAmount, crowdsaleEndBlock);
+  await crowdsale.finalize(crowdsaleEndBlock, availableAmount);
 }
 
 function migrate(deployer: Deployer, network: string) {
