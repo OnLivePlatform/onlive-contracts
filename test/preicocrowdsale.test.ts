@@ -267,7 +267,7 @@ contract('PreIcoCrowdsale', accounts => {
 
           assertEtherEqual(
             await utils.getBalance(wallet),
-            prevBalance.add(minValue)
+            prevBalance.plus(minValue)
           );
         });
 
@@ -288,7 +288,7 @@ contract('PreIcoCrowdsale', accounts => {
 
               assertTokenAlmostEqual(
                 await token.balanceOf(contributor),
-                prevBalance.add(expectedAmount),
+                prevBalance.plus(expectedAmount),
                 acceptableError
               );
             });
@@ -323,7 +323,7 @@ contract('PreIcoCrowdsale', accounts => {
 
         it('should revert when value is below threshold', async () => {
           await assertReverts(async () => {
-            await contribute(contributor, minValue.sub(1));
+            await contribute(contributor, minValue.minus(1));
           });
         });
 
@@ -413,14 +413,14 @@ contract('PreIcoCrowdsale', accounts => {
         });
 
         it('should reduce amount of available tokens', async () => {
-          const expectedAmount = availableAmount.sub(amount);
+          const expectedAmount = availableAmount.minus(amount);
           await registerContribution();
           assertTokenEqual(await crowdsale.availableAmount(), expectedAmount);
         });
 
         it('should mint tokens for contributor', async () => {
           const balance = await token.balanceOf(contributor);
-          const expectedBalance = balance.add(amount);
+          const expectedBalance = balance.plus(amount);
           await registerContribution();
           assertTokenEqual(await token.balanceOf(contributor), expectedBalance);
         });
@@ -464,7 +464,7 @@ contract('PreIcoCrowdsale', accounts => {
 
         it('should revert when amount exceeds availability', async () => {
           await assertReverts(async () => {
-            await registerContribution({ amount: availableAmount.add(1) });
+            await registerContribution({ amount: availableAmount.plus(1) });
           });
         });
 

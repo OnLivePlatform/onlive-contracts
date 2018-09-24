@@ -1,8 +1,8 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { ERC20Basic } from "zeppelin-solidity/contracts/token/ERC20Basic.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
+import { ERC20Basic } from "openzeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol";
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 /**
@@ -24,7 +24,7 @@ contract MintableToken is ERC20Basic {
 contract TokenPool is Ownable {
 
     using SafeMath for uint256;
-    
+
     /**
      * @dev Represents registered pool
      */
@@ -54,9 +54,8 @@ contract TokenPool is Ownable {
     }
 
     modifier onlyUnlockedPool(string poolId) {
-        /* solhint-disable not-rely-on-time */
-        require(block.timestamp > pools[poolId].lockTimestamp);
-        /* solhint-enable not-rely-on-time */
+        // solhint-disable-next-line not-rely-on-time
+        require(block.timestamp > pools[poolId].lockTimestamp); // solium-disable-line security/no-block-members
         _;
     }
 
@@ -70,7 +69,7 @@ contract TokenPool is Ownable {
         _;
     }
 
-    function TokenPool(MintableToken _token)
+    constructor(MintableToken _token)
         public
         onlyValid(_token)
     {
@@ -118,10 +117,10 @@ contract TokenPool is Ownable {
 
         token.mint(this, availableAmount);
 
-        PoolRegistered(poolId, availableAmount);
+        emit PoolRegistered(poolId, availableAmount);
 
         if (lockTimestamp > 0) {
-            PoolLocked(poolId, lockTimestamp);
+            emit PoolLocked(poolId, lockTimestamp);
         }
     }
 
@@ -142,7 +141,7 @@ contract TokenPool is Ownable {
         pools[poolId].availableAmount = pools[poolId].availableAmount.sub(amount);
         require(token.transfer(to, amount));
 
-        PoolTransferred(poolId, to, amount);
+        emit PoolTransferred(poolId, to, amount);
     }
 
     /**

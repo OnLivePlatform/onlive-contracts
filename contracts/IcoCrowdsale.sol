@@ -1,7 +1,7 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
@@ -122,11 +122,7 @@ contract IcoCrowdsale is Ownable {
         _;
     }
 
-    function IcoCrowdsale(
-        address _wallet,
-        IcoToken _token,
-        uint256 _minValue
-    )
+    constructor(address _wallet, IcoToken _token, uint256 _minValue)
         public
         onlyValid(_wallet)
         onlyValid(_token)
@@ -205,7 +201,7 @@ contract IcoCrowdsale is Ownable {
 
         token.transfer(contributor, amount);
 
-        ContributionRegistered(id, contributor, amount);
+        emit ContributionRegistered(id, contributor, amount);
     }
 
     /**
@@ -228,7 +224,7 @@ contract IcoCrowdsale is Ownable {
             })
         );
 
-        TierScheduled(_startBlock, _price);
+        emit TierScheduled(_startBlock, _price);
     }
 
     /**
@@ -248,7 +244,7 @@ contract IcoCrowdsale is Ownable {
 
         token.mint(this, _availableAmount);
 
-        Finalized(_endBlock, _availableAmount);
+        emit Finalized(_endBlock, _availableAmount);
     }
 
     /**
@@ -263,7 +259,7 @@ contract IcoCrowdsale is Ownable {
 
         token.burn(amount);
 
-        RemainsBurned(amount);
+        emit RemainsBurned(amount);
     }
 
     /**
@@ -352,10 +348,7 @@ contract IcoCrowdsale is Ownable {
      * @return boolean True if current block number is within tier ranges, otherwise False
      */
     function isActive() public view returns (bool) {
-        return
-            tiers.length > 0 &&
-            block.number >= tiers[0].startBlock &&
-            block.number <= endBlock;
+        return tiers.length > 0 && block.number >= tiers[0].startBlock && block.number <= endBlock;
     }
 
     /**
@@ -386,7 +379,7 @@ contract IcoCrowdsale is Ownable {
 
         wallet.transfer(value);
 
-        ContributionAccepted(contributor, value, amount);
+        emit ContributionAccepted(contributor, value, amount);
 
         return amount;
     }

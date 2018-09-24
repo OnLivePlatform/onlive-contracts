@@ -18,7 +18,7 @@ export function testMint(ctx: TokenTestContext<CappedMintableToken>) {
 
   beforeEach(async () => {
     maxSupply = await ctx.token.maxSupply();
-    mintableSupply = maxSupply.add(await ctx.token.totalSupply());
+    mintableSupply = maxSupply.plus(await ctx.token.totalSupply());
     assert.isTrue(
       mintableSupply.gt(0),
       'precondition: no tokens available to mint'
@@ -28,7 +28,7 @@ export function testMint(ctx: TokenTestContext<CappedMintableToken>) {
   });
 
   it('should pass if not exceeds maxSupply', async () => {
-    const expectedSupply = (await ctx.token.totalSupply()).add(mintableSupply);
+    const expectedSupply = (await ctx.token.totalSupply()).plus(mintableSupply);
 
     await ctx.token.mint(destinationAccount, mintableSupply, {
       from: mintingManager
@@ -39,7 +39,7 @@ export function testMint(ctx: TokenTestContext<CappedMintableToken>) {
 
   it('should revert when exceeds maxSupply', async () => {
     await assertReverts(async () => {
-      await ctx.token.mint(destinationAccount, mintableSupply.add(1), {
+      await ctx.token.mint(destinationAccount, mintableSupply.plus(1), {
         from: mintingManager
       });
     });
