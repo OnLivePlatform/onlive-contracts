@@ -1,6 +1,6 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
+import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import { Schedulable } from "./crowdsale/Schedulable.sol";
 
 
@@ -53,7 +53,7 @@ contract PreIcoCrowdsale is Schedulable {
      */
     mapping (bytes32 => bool) public isContributionRegistered;
 
-    function PreIcoCrowdsale(
+    constructor(
         address _wallet,
         Mintable _token,
         uint256 _availableAmount,
@@ -141,7 +141,7 @@ contract PreIcoCrowdsale is Schedulable {
         isContributionRegistered[id] = true;
         mintTokens(contributor, amount);
 
-        ContributionRegistered(id, contributor, amount);
+        emit ContributionRegistered(id, contributor, amount);
     }
 
     /**
@@ -165,7 +165,7 @@ contract PreIcoCrowdsale is Schedulable {
 
         wallet.transfer(value);
 
-        ContributionAccepted(contributor, value, amount);
+        emit ContributionAccepted(contributor, value, amount);
 
         return amount;
     }

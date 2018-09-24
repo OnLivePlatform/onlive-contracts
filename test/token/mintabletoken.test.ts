@@ -139,7 +139,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 
   it('should increase total supply', async () => {
     const amount = toONL(1);
-    const expectedSupply = (await ctx.token.totalSupply()).add(amount);
+    const expectedSupply = (await ctx.token.totalSupply()).plus(amount);
 
     await ctx.token.mint(destinationAccount, amount, { from: mintingManager });
 
@@ -148,7 +148,7 @@ export function testMint(ctx: TokenTestContext<MintableToken>) {
 
   it('should increase balance of destination account', async () => {
     const amount = toONL(1);
-    const expectedValue = (await ctx.token.balanceOf(destinationAccount)).add(
+    const expectedValue = (await ctx.token.balanceOf(destinationAccount)).plus(
       amount
     );
 

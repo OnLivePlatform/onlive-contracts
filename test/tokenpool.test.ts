@@ -185,7 +185,7 @@ contract('TokenPool', accounts => {
 
           assertNumberEqual(
             await tokenPool.getAvailableAmount(poolId),
-            availableAmount.sub(amount)
+            availableAmount.minus(amount)
           );
         });
 
@@ -233,7 +233,9 @@ contract('TokenPool', accounts => {
 
         it('should revert for amount exceeding limit', async () => {
           await assertReverts(async () => {
-            await transferFromPool({ amount: availableAmount.add(toONL(0.1)) });
+            await transferFromPool({
+              amount: availableAmount.plus(toONL(0.1))
+            });
           });
         });
       });
@@ -261,7 +263,7 @@ contract('TokenPool', accounts => {
 
           assertNumberEqual(
             await tokenPool.getAvailableAmount(poolId),
-            availableAmount.sub(amount)
+            availableAmount.minus(amount)
           );
         });
 

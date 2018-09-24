@@ -1,6 +1,6 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
@@ -68,7 +68,7 @@ contract Schedulable is Ownable {
         startBlock = _startBlock;
         endBlock = _endBlock;
 
-        Scheduled(_startBlock, _endBlock);
+        emit Scheduled(_startBlock, _endBlock);
     }
 
     /**

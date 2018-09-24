@@ -1,7 +1,7 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { StandardToken } from "zeppelin-solidity/contracts/token/StandardToken.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import { StandardToken } from "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
@@ -103,7 +103,7 @@ contract ReleasableToken is StandardToken, Ownable {
     {
         releaseManager = addr;
 
-        ReleaseManagerSet(addr);
+        emit ReleaseManagerSet(addr);
     }
 
     /**
@@ -117,7 +117,7 @@ contract ReleasableToken is StandardToken, Ownable {
     {
         isTransferManager[addr] = true;
 
-        TransferManagerApproved(addr);
+        emit TransferManagerApproved(addr);
     }
 
     /**
@@ -132,7 +132,7 @@ contract ReleasableToken is StandardToken, Ownable {
     {
         delete isTransferManager[addr];
 
-        TransferManagerRevoked(addr);
+        emit TransferManagerRevoked(addr);
     }
 
     /**
@@ -145,7 +145,7 @@ contract ReleasableToken is StandardToken, Ownable {
     {
         released = true;
 
-        Released();
+        emit Released();
     }
 
     /**

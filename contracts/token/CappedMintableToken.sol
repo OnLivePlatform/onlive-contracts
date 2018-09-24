@@ -1,4 +1,4 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
 import { MintableToken } from "./MintableToken.sol";
 
@@ -14,7 +14,7 @@ contract CappedMintableToken is MintableToken {
      */
     uint256 public maxSupply;
 
-    function CappedMintableToken(uint256 _maxSupply)
+    constructor(uint256 _maxSupply)
         public
         onlyNotZero(_maxSupply)
     {
@@ -39,7 +39,7 @@ contract CappedMintableToken is MintableToken {
      */
     function mint(address to, uint256 amount)
         public
-        onlyNotExceedingMaxSupply(totalSupply.add(amount))
+        onlyNotExceedingMaxSupply(totalSupply_.add(amount))
     {
         return MintableToken.mint(to, amount);
     }

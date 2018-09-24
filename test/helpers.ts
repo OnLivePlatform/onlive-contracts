@@ -69,8 +69,8 @@ export function assertNumberAlmostEqual(
   const epsilonNum = new BigNumber(epsilon);
 
   if (
-    actualNum.lessThan(expectNum.sub(epsilonNum)) ||
-    actualNum.greaterThan(expectNum.add(epsilonNum))
+    actualNum.lt(expectNum.minus(epsilonNum)) ||
+    actualNum.gt(expectNum.plus(epsilonNum))
   ) {
     const div = decimals ? Math.pow(10, decimals) : 1;
     assert.fail(
@@ -119,7 +119,6 @@ export function calculateContribution(
 ) {
   return toWei(amount)
     .div(price)
-    .round(10)
     .toNumber();
 }
 

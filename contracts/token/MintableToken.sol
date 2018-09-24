@@ -1,8 +1,8 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
-import { BasicToken } from "zeppelin-solidity/contracts/token/BasicToken.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import { BasicToken } from "openzeppelin-solidity/contracts/token/ERC20/BasicToken.sol";
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
@@ -74,7 +74,7 @@ contract MintableToken is BasicToken, Ownable {
     {
         isMintingManager[addr] = true;
 
-        MintingManagerApproved(addr);
+        emit MintingManagerApproved(addr);
     }
 
     /**
@@ -89,7 +89,7 @@ contract MintableToken is BasicToken, Ownable {
     {
         delete isMintingManager[addr];
 
-        MintingManagerRevoked(addr);
+        emit MintingManagerRevoked(addr);
     }
 
     /**
@@ -102,11 +102,11 @@ contract MintableToken is BasicToken, Ownable {
         onlyMintingManager(msg.sender)
         onlyMintingNotFinished
     {
-        totalSupply = totalSupply.add(amount);
+        totalSupply_ = totalSupply_.add(amount);
         balances[to] = balances[to].add(amount);
 
-        Minted(to, amount);
-        Transfer(MINT_ADDRESS, to, amount);
+        emit Minted(to, amount);
+        emit Transfer(MINT_ADDRESS, to, amount);
     }
 
     /**
@@ -119,6 +119,6 @@ contract MintableToken is BasicToken, Ownable {
     {
         mintingFinished = true;
 
-        MintingFinished();
+        emit MintingFinished();
     }
 }

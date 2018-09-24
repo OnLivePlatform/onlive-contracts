@@ -62,7 +62,7 @@ for (const { unit, func, base } of toConversionSpec) {
       assertNumberEqual(func(1), base);
     });
 
-    const expectedMul = new BigNumber(base).mul(5);
+    const expectedMul = new BigNumber(base).times(5);
     it(`should return ${expectedMul} ${unit} for 5 ETH`, () => {
       assertNumberEqual(func(5), expectedMul);
     });
@@ -89,7 +89,7 @@ for (const { unit, func, base } of fromConversionSpec) {
       assertNumberEqual(func(1), base);
     });
 
-    const expectedMul = new BigNumber(base).mul(5);
+    const expectedMul = new BigNumber(base).times(5);
     it(`should return ${expectedMul} Wei for 5 ${unit}`, () => {
       assertNumberEqual(func(5), expectedMul);
     });

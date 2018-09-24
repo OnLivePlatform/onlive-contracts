@@ -20,7 +20,7 @@ export function testBurn(
 ) {
   it('should reduce total supply', async () => {
     const amount = toONL(1);
-    const expectedSupply = (await ctx.token.totalSupply()).sub(amount);
+    const expectedSupply = (await ctx.token.totalSupply()).minus(amount);
 
     await ctx.token.burn(amount, { from: burnerAccount });
     assertTokenEqual(await ctx.token.totalSupply(), expectedSupply);
@@ -28,7 +28,7 @@ export function testBurn(
 
   it('should reduce sender balance', async () => {
     const amount = toONL(1);
-    const expectedBalance = (await ctx.token.balanceOf(burnerAccount)).sub(
+    const expectedBalance = (await ctx.token.balanceOf(burnerAccount)).minus(
       amount
     );
 
@@ -69,7 +69,7 @@ export function testBurn(
 
   it('should revert when insufficient balance', async () => {
     const balance = await ctx.token.balanceOf(burnerAccount);
-    const value = balance.add(toONL(1));
+    const value = balance.plus(toONL(1));
 
     await assertReverts(async () => {
       await ctx.token.burn(value, { from: burnerAccount });

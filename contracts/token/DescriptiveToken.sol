@@ -1,7 +1,7 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { BasicToken } from "zeppelin-solidity/contracts/token/BasicToken.sol";
-import { Ownable } from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import { BasicToken } from "openzeppelin-solidity/contracts/token/ERC20/BasicToken.sol";
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /**
@@ -15,10 +15,7 @@ contract DescriptiveToken is BasicToken, Ownable {
     bool public isDescriptionFinalized;
     uint256 public decimals = 18;
 
-    function DescriptiveToken(
-        string _name,
-        string _symbol
-    )
+    constructor(string _name, string _symbol)
         public
         onlyNotEmpty(_name)
         onlyNotEmpty(_symbol)
@@ -65,7 +62,7 @@ contract DescriptiveToken is BasicToken, Ownable {
         name = _name;
         symbol = _symbol;
 
-        DescriptionChanged(name, symbol);
+        emit DescriptionChanged(name, symbol);
     }
 
     /**
@@ -78,6 +75,6 @@ contract DescriptiveToken is BasicToken, Ownable {
     {
         isDescriptionFinalized = true;
 
-        DescriptionFinalized();
+        emit DescriptionFinalized();
     }
 }

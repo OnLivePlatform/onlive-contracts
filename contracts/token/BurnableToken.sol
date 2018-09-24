@@ -1,7 +1,7 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.24;
 
-import { SafeMath } from "zeppelin-solidity/contracts/math/SafeMath.sol";
-import { BasicToken } from "zeppelin-solidity/contracts/token/BasicToken.sol";
+import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import { BasicToken } from "openzeppelin-solidity/contracts/token/ERC20/BasicToken.sol";
 
 
 /**
@@ -39,9 +39,9 @@ contract BurnableToken is BasicToken {
         onlyHolder(amount)
     {
         balances[msg.sender] = balances[msg.sender].sub(amount);
-        totalSupply = totalSupply.sub(amount);
+        totalSupply_ = totalSupply_.sub(amount);
 
-        Burned(msg.sender, amount);
-        Transfer(msg.sender, BURN_ADDRESS, amount);
+        emit Burned(msg.sender, amount);
+        emit Transfer(msg.sender, BURN_ADDRESS, amount);
     }
 }

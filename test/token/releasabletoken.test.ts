@@ -231,11 +231,11 @@ export function testTransfer(
 
     const expectedDestinationBalance = (await ctx.token.balanceOf(
       destinationAccount
-    )).add(amount);
+    )).plus(amount);
 
     const expectedSourceBalance = (await ctx.token.balanceOf(
       sourceAccount
-    )).sub(amount);
+    )).minus(amount);
 
     await ctx.token.transfer(destinationAccount, amount, {
       from: sourceAccount
@@ -288,7 +288,7 @@ export function testTransfer(
 
       const expectedDestinationBalance = (await ctx.token.balanceOf(
         destinationAccount
-      )).add(amount);
+      )).plus(amount);
 
       await ctx.token.transfer(destinationAccount, amount, {
         from: sourceAccount
@@ -321,11 +321,11 @@ export function testTransferFrom(
 
     const expectedDestinationBalance = (await ctx.token.balanceOf(
       destinationAccount
-    )).add(amount);
+    )).plus(amount);
 
     const expectedSourceBalance = (await ctx.token.balanceOf(
       sourceAccount
-    )).sub(amount);
+    )).minus(amount);
 
     await ctx.token.transferFrom(sourceAccount, destinationAccount, amount, {
       from: approvedAccount
@@ -380,7 +380,7 @@ export function testTransferFrom(
     it('should change balance when not released', async () => {
       const expectedDestinationBalance = (await ctx.token.balanceOf(
         destinationAccount
-      )).add(amount);
+      )).plus(amount);
 
       await ctx.token.transferFrom(sourceAccount, destinationAccount, amount, {
         from: approvedAccount
